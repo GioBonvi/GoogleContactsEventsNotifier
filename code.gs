@@ -4,14 +4,14 @@
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
 var myEmail = "insertyouremailhere@myfakeemail.com";
 
-// Spcify your time zone.
+// Specify your time zone.
 var myTimeZone = "GMT+1";
 
-// Specify how many hours before the midnight of the birthday-day you want to receive the email.
-// The default is 24 hours before.
-var anticipateHours = 24
+// Specify how many days before the day of the birthday you want to receive the email.
+// The default is 1 day before.
+var anticipateDays = 1;
 // The script needs this value in milliseconds. Do not edit the following line.
-var anticipate = 1000 * 60 * 60 * anticipate;
+var anticipate = 1000 * 60 * 60 * 24 * anticipateDays;
 
 // The subject of the email you'll receive will be: "subjectPrefix - NAME1 - NAME2 ..." (e.g "Birthday: John Doe - John Smith")
 // Where NAME1, NAME2 and so on will be the full names of your contacts who take years,
@@ -94,9 +94,11 @@ function checkBirthdays()
     MailApp.sendEmail(
       myEmail,
       subjectPrefix + subjectBuilder.join(" - "),
-      bodyBuilder.join(""), {
-      htmlBody: bodyBuilder.join("")
-    });
+      bodyBuilder.join(""),
+      {
+        htmlBody: bodyBuilder.join("")
+      }
+    );
   }
 }
 
@@ -105,7 +107,8 @@ function checkBirthdays()
 function start() {
     ScriptApp.newTrigger("checkBirthdays")
       .timeBased()
-      .everyDays(anticipateHours / 24)
+      .everyDays(anticipateDays)
+      .inTimezone(myTimeZone)
       .create();
 }
 
