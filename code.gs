@@ -105,6 +105,7 @@ function checkBirthdays()
 
 // Start the notifications.
 function start() {
+  stop();
     ScriptApp.newTrigger("checkBirthdays")
       .timeBased()
       .everyDays(anticipateDays)
