@@ -1,124 +1,138 @@
 // Thanks to this script you are going to receive an email before the birthday of each of your contacts.
 // The script is easily customizable via some variables listed below.
 
+// START MANDATORY CUSTOMIZATION
+
+// You need to personalize these values, otherwise the script won't work.
+
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
-var myEmail = "insertyouremailhere@myfakeemail.com";
+var myEmail = "insertyouremailhere@myemail.com";
 
 // Specify your time zone.
 var myTimeZone = "GMT+1";
 
-// Specify how many days before the day of the birthday you want to receive the email.
-// The default is 1 day before.
-var anticipateDays = 1;
-// The script needs this value in milliseconds. Do not edit the following line.
-var anticipate = 1000 * 60 * 60 * 24 * anticipateDays;
+// Specify at what hour of the day would you like to receive the email notifications (Insert a number from 0 to 23).
+var notificationHour = 6;
 
-// The subject of the email you'll receive will be: "subjectPrefix - NAME1 - NAME2 ..." (e.g "Birthday: John Doe - John Smith")
-// Where NAME1, NAME2 and so on will be the full names of your contacts who take years,
-// while subjectPrefix is a short text you can customize at the next line.
-var subjectPrefix = "Birthday: ";
+// Here you must specify when you want to receive the email notification.
+// Enter between the square brackets a comma-separated list of numbers, where each number represents how many day before
+// a birthday you want to be notified. If you want to be notified only once then enter a single number between the brackets.
+// Examples:
+//  [0] means "Notify me the day of the birthday";
+//  [0, 1, 7] means "Notify me the day of the birthday, the day before and 7 days before";
+//  [0, 30] means "Notify me the day of the birthday and 30 days before";
+// Note: in any case you will receive maximum one email per day: notification will be grouped in that email.
+var anticipateDays = [0, 1, 7];
 
-// The body of the email will be:
+// END MANDATORY CUSTOMIZATION
 
-/*  
-bodyPrefix
-
-* NAME1 (EMAILADDRESS1)
-* NAME2 (EMAILADDRESS2)
-...
-
-bodySuffix
-*/
-
-/*
-e.g:  
-
-Hey! Just a little reminder; it's almost time to wish happy birthday to:
-
-* John Doe (johndoe@gmail.com)
-* John Smith (johnsmith@gmail.com)
-...
-
-Google Calendar Contacts Birthday Notification by Giorgio Bonvicini
-*/
-
-// You can edit bodyPrefix and bodySuffix below this explaination.
-// Keep all the text between these '<p>' and '</p>' strings (without quotes).
-// If you want to go to a new line insert '<br>' (without quotes). (e.g "<p>First line<br>Second line</p>")
-// If you want to make some words bold surrond them between '<b>' and '</b>' (without quotes). (e.g "<p>This is normal, <b>this is bold</b></p>")
-// If you want to make some words italics surrond them between '<i>' and '</i>' (without quotes). (e.g "<p>This is normal, <i>this is italic</i></p>")
-var bodyPrefix = "<p>Hey! Just a little reminder; it's almost time to wish <i>happy birthday</i> to:</p>";
-var bodySuffix = "<br><br><p><center>Google Calendar Contacts Birthday Notification<br>by Giorgio Bonvicini<center></p>";
-
-// END OF THE CUSTOMIZATION.
-// There is no need to go further: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
+// There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
+// If you want to translate the email notifications look for lines with this comment: // TRANSLATE HERE.
 
 function checkBirthdays()
 {
+  // The script needs this value in milliseconds while it was given in days.
+  var anticipate = anticipateDays.map(function(n) {return 1000 * 60 * 60 * 24 * n;});
+  
   // Unique ID of the calendar containing birthdays.  
   var calendarId = '#contacts@group.v.calendar.google.com';
   
+  // Email notification text.
+  var subjectPrefix = "Birthday: "; // TRANSLATE HERE
+  var subjectBuilder = [];
+  var bodyPrefix = "<p>Hey! Don't forget these birthdays:</p>"; // TRANSLATE HERE
+  var bodyBuilder = [];
+  var bodySuffix = "<br><br><p><center>Google Calendar Contacts Birthday Notification<br>by Giorgio Bonvicini<center></p>"; // TRANSLATE HERE
+  
   var now = new Date();
   
-  // Set the filter (We don't want every event in the calendar, just those happening tomorrow).
-  var optionalArgs = {
-    // Filter only events happening between now...
-    timeMin: Utilities.formatDate(now, myTimeZone, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-    // ... and the next 24 hours.
-    timeMax: Utilities.formatDate(new Date(now.getTime() + anticipate), myTimeZone, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-    // Treat recurring events as single events.
-    singleEvents: true
-  };
-  
-  // Get all the matching events.
-  var birthdays = Calendar.Events.list(calendarId, optionalArgs).items;
-  
-  // If there is at least an event tomorrow...
-  if (birthdays.length > 0)
-  {
-    // Build the subject of the email.
-    var subjectBuilder = [];
-    // Build the body of the email.
-    var bodyBuilder = [bodyPrefix, "<ul>"];
-    
-    for (var i = 0; i < birthdays.length; i++)
+  // For each of the interval to check:
+  anticipate.forEach(
+    function (timeInterval)
     {
-      var data = birthdays[i].gadget.preferences;
-      subjectBuilder.push(data['goo.contactsFullName']);
-      bodyBuilder.push("<li>" + data['goo.contactsFullName'] + " (" + data['goo.contactsEmail'] + ")</li>");
-    }
-    
-    bodyBuilder.push("</ul>", bodySuffix);
-    
-    // Send the email.
-    MailApp.sendEmail(
-      myEmail,
-      subjectPrefix + subjectBuilder.join(" - "),
-      bodyBuilder.join(""),
+      // Set the filter (We don't want every event in the calendar, just those happening 'timeInterval' milliseconds after now).
+      var optionalArgs = {
+        // Filter only events happening between 'now + timeInterval'...
+        timeMin: Utilities.formatDate(new Date(now.getTime() + timeInterval), myTimeZone, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        // ... and 'now + timeInterval + 1 sec'.
+        timeMax: Utilities.formatDate(new Date(now.getTime() + timeInterval + 10000), myTimeZone, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        // Treat recurring events as single events.
+        singleEvents: true
+      };
+      
+      // Get all the matching events.
+      var newBirthdays = Calendar.Events.list(calendarId, optionalArgs).items;
+      
+      // Get the correct formulation.
+      if (newBirthdays.length > 0)
       {
-        htmlBody: bodyBuilder.join("")
+        var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), myTimeZone, "yyyy-MM-dd"); // TRANSLATE HERE (Date format)
+        switch (timeInterval / (24 * 60 * 60 * 1000))
+        {
+          case 0:
+            bodyBuilder.push("<p>Birthday today (" + date + "):</p><ul>"); // TRANSLATE HERE
+            break;
+          case 1:
+            bodyBuilder.push("<p>Birthday tomorrow (" + date + "):</p><ul>"); // TRANSLATE HERE
+            break;
+          default:
+            bodyBuilder.push("<p>Birthday in " + timeInterval / (24 * 60 * 60 * 1000) + " days (" + date + "):</p><ul>"); // TRANSLATE HERE
+        }
+        
+        // Add each of the new birthdays for this timeInterval.
+        newBirthdays.forEach(
+          function (birthday)
+          {
+            var data = birthday.gadget.preferences;
+            // If the email exists add it to the notification.
+            var email = (typeof data['goo.contactsEmail'] == "undefined") ? "" : " (" + data['goo.contactsEmail'] + ") ";
+            subjectBuilder.push(data['goo.contactsFullName']);
+            bodyBuilder.push("<li>" + data['goo.contactsFullName'] + email + "</li>");
+          }
+        );
+        
+        bodyBuilder.push("</ul>"); 
       }
-    );
+    }
+  );
+  
+  // If there is an email to send...
+  if (bodyBuilder.length > 0)
+  {
+    var subject = subjectPrefix + subjectBuilder.join(" - ");
+    var body = bodyPrefix + bodyBuilder.join("") + bodySuffix;
   }
+  
+  // ...send the email notification.
+  MailApp.sendEmail(
+    myEmail,
+    subject,
+    body,
+      {
+        htmlBody: body
+      }
+  );
 }
 
 
 // Start the notifications.
 function start() {
   stop();
-    ScriptApp.newTrigger("checkBirthdays")
-      .timeBased()
-      .everyDays(anticipateDays)
-      .inTimezone(myTimeZone)
-      .create();
+  ScriptApp.newTrigger("checkBirthdays")
+  .timeBased()
+  .atHour(notificationHour)
+  .everyDays(anticipateDays)
+  .inTimezone(myTimeZone)
+  .create();
 }
 
 
-// Stop the notifications.
+// Stop the notifications
 function stop()
 {
   var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
+  for (var i = 0; i < triggers.length; i++)
+  {
     ScriptApp.deleteTrigger(triggers[i]);
   }
 }
