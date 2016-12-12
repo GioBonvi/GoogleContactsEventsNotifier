@@ -121,7 +121,7 @@ function start() {
   ScriptApp.newTrigger("checkBirthdays")
   .timeBased()
   .atHour(notificationHour)
-  .everyDays(anticipateDays)
+  .everyDays(1)
   .inTimezone(myTimeZone)
   .create();
 }
