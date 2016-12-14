@@ -101,17 +101,17 @@ function checkBirthdays()
   {
     var subject = subjectPrefix + subjectBuilder.join(" - ");
     var body = bodyPrefix + bodyBuilder.join("") + bodySuffix;
+    
+    // ...send the email notification.
+    MailApp.sendEmail(
+      myEmail,
+      subject,
+      body,
+        {
+          htmlBody: body
+        }
+    );
   }
-  
-  // ...send the email notification.
-  MailApp.sendEmail(
-    myEmail,
-    subject,
-    body,
-      {
-        htmlBody: body
-      }
-  );
 }
 
 
