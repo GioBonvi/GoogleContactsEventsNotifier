@@ -8,8 +8,15 @@
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
 var myEmail = 'insertyouremailhere@gmail.com';
 
-// Specify your time zone.
-var myTimeZone = 'GMT+1';
+// If you need to adjust the timezone of the calendar use this variable.
+// If you just want to use the time zone of your calendar leave this variable set
+// to null.
+/*
+ * Accepted values:
+ *  GMT/UTC - examples: 'UTC+2' 'GMT-4'
+ *  regional timezones: 'Europe/Berlin' (See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
+ */
+var myTimeZone = null;
 
 // Specify at what hour of the day would you like to receive the email notifications (Insert a number from 0 to 23).
 var notificationHour = 6;
@@ -35,6 +42,11 @@ function checkBirthdays () {
 
   // Unique ID of the calendar containing birthdays.
   var calendarId = '#contacts@group.v.calendar.google.com';
+
+  // Set timezone.
+  if (myTimeZone === null) {
+    myTimeZone = CalendarApp.getCalendarById(calendarId).getTimeZone();
+  }
 
   // Email notification text.
   var subjectPrefix = 'Birthday: '; // TRANSLATE HERE

@@ -8,7 +8,7 @@ First of all you need to enable your contacts birthday calendar in you Google Ca
 
 ### Create the script
 Copy the content of [this file](https://raw.githubusercontent.com/GioBonvi/GoogleCalendarBirthdayNotifications/master/code.gs).  
-Open www.script.google.com and login if requested, then paste the code into the page.
+Open [Google Script](https://script.google.com) and login if requested, then paste the code into the page.
 
 ### Customize the script
 Now read carefully the code you've pasted. At the beginning of the file you will find some lines you need to modify along with many lines of instructions. Edit the values as explained.  
@@ -18,7 +18,7 @@ You should modify the values of these variables:
  - myTimeZone
  - notificationHour
  - anticipateDays
- 
+
 Now click File->Save in the menu and enter a name for the script (it doesn't really matter, just name it so that you'll recognize if you find it in the future).
 
 ### Activate API for the script
