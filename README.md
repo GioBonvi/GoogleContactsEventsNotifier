@@ -14,10 +14,10 @@ Open [Google Script](https://script.google.com) and login if requested, then pas
 Now read carefully the code you've pasted. At the beginning of the file you will find some lines you need to modify along with many lines of instructions. Edit the values as explained.  
 You should modify the values of these variables:
 
- - myEmail
- - myTimeZone
- - notificationHour
- - anticipateDays
+-   myEmail
+-   myTimeZone
+-   notificationHour
+-   anticipateDays
 
 Now click File->Save in the menu and enter a name for the script (it doesn't really matter, just name it so that you'll recognize if you find it in the future).
 

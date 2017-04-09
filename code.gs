@@ -8,15 +8,13 @@
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
 var myEmail = 'insertyouremailhere@gmail.com';
 
-// If you need to adjust the timezone of the calendar use this variable.
-// If you just want to use the time zone of your calendar leave this variable set
-// to null.
+// If you need to adjust the timezone of the email notifications use this variable.
 /*
  * Accepted values:
  *  GMT/UTC - examples: 'UTC+2' 'GMT-4'
  *  regional timezones: 'Europe/Berlin' (See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
  */
-var myTimeZone = null;
+var myTimeZone = 'Europe/Rome';
 
 // Specify at what hour of the day would you like to receive the email notifications (Insert a number from 0 to 23).
 var notificationHour = 6;
@@ -44,9 +42,7 @@ function checkBirthdays () {
   var calendarId = '#contacts@group.v.calendar.google.com';
 
   // Set timezone.
-  if (myTimeZone === null) {
-    myTimeZone = CalendarApp.getCalendarById(calendarId).getTimeZone();
-  }
+  var calendarTimeZone = CalendarApp.getCalendarById(calendarId).getTimeZone();
 
   // Email notification text.
   var subjectPrefix = 'Birthday: '; // TRANSLATE HERE
@@ -63,9 +59,9 @@ function checkBirthdays () {
       // Set the filter (We don't want every event in the calendar, just those happening 'timeInterval' milliseconds after now).
       var optionalArgs = {
         // Filter only events happening between 'now + timeInterval'...
-        timeMin: Utilities.formatDate(new Date(now.getTime() + timeInterval), myTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
+        timeMin: Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
         // ... and 'now + timeInterval + 1 sec'.
-        timeMax: Utilities.formatDate(new Date(now.getTime() + timeInterval + 1000), myTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
+        timeMax: Utilities.formatDate(new Date(now.getTime() + timeInterval + 1000), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
         // Treat recurring events as single events.
         singleEvents: true
       };
@@ -75,7 +71,7 @@ function checkBirthdays () {
 
       // Get the correct formulation.
       if (newBirthdays.length > 0) {
-        var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), myTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
+        var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
         switch (timeInterval / (24 * 60 * 60 * 1000)) {
           case 0:
             bodyBuilder.push('<p>Birthday today (' + date + '):</p><ul>'); // TRANSLATE HERE
@@ -99,7 +95,7 @@ function checkBirthdays () {
 
               if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0] !== null) {
                 // For example the age of the contact.
-                var currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), myTimeZone, 'yyyy');
+                var currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
                 var birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
                 var age = (currentYear - birthdayYear).toFixed(0);
                 line.push(' - Age: ', age); // TRANSLATE HERE
