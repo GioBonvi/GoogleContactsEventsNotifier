@@ -23,7 +23,7 @@ Now click File->Save in the menu and enter a name for the script (it doesn't rea
 
 ### Activate API for the script
 Now that the script is saved in you Google Drive we need to activate it. To do so click the menu Resources->Advanced Google services.  
-In the popup which will open set "Google Calendar API" to "enabled" (click the switch on its row on the right). We are almost done! Click on the link which says "Google Developer Console": you will be taken to another page. In this page search for "Google Calendar API" and open it. Now click "Enable" at the top of the window and close this page.
+In the popup which will open set "Google Calendar API" to "enabled" (click the switch on its row on the right). We are almost done! Click on the link which says "Google API Console": you will be taken to another page. In this page search for "Google Calendar API" and open it. Now click "Enable" at the top of the window and close this page.
 
 ### Grant rights to the script
 This should be enough to enable the app to do its work: now the last step is granting it the rights it needs. To do so click on the menu Run->start. You will be prompted to "Review authorizations": do it and click "Allow".  
