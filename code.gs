@@ -93,7 +93,8 @@ function checkBirthdays () {
               // If the contact has an email we can retrieve some more information.
               var contact = ContactsApp.getContact(eventData['goo.contactsEmail']);
 
-              if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0] !== null) {
+              // If the contact's birthday does have the year.
+              if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
                 // For example the age of the contact.
                 var currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
                 var birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
