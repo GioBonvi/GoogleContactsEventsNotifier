@@ -16,7 +16,7 @@ var myEmail = 'insertyouremailhere@gmail.com';
  */
 var myTimeZone = 'Europe/Rome';
 
-// Specify at what hour of the day would you like to receive the email notifications (Insert a number from 0 to 23).
+// Specify at which hour of the day would you like to receive the email notifications (Insert a number from 0 to 23).
 var notificationHour = 6;
 
 // Here you must specify when you want to receive the email notification.
@@ -34,12 +34,19 @@ var anticipateDays = [0, 1, 7];
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 // If you want to translate the email notifications look for lines with this comment: // TRANSLATE HERE.
 
-function checkBirthdays () {
+function checkBirthdays (testDate) {
   // The script needs this value in milliseconds while it was given in days.
   var anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
 
   // Unique ID of the calendar containing birthdays.
   var calendarId = '#contacts@group.v.calendar.google.com';
+
+  // Verify that the birthday calendar exists.
+  if (!CalendarApp.getCalendarById(calendarId)) {
+    Logger.log('Error: Birthday calendar not found!');
+    Logger.log('Please follow the instructions at this page to activate it: https://support.google.com/calendar/answer/6084659?hl=en');
+    return;
+  }
 
   // Set timezone.
   var calendarTimeZone = CalendarApp.getCalendarById(calendarId).getTimeZone();
@@ -51,7 +58,9 @@ function checkBirthdays () {
   var bodyBuilder = [];
   var bodySuffix = '<br><br><p><center>Google Calendar Contacts Birthday Notification<br>by Giorgio Bonvicini<center></p>'; // TRANSLATE HERE
 
-  var now = new Date();
+  // Use the testDate if specified, otherwise use todays' date.
+  var now = testDate || new Date();
+  Logger.log('Date used: ' + now);
 
   // For each of the interval to check:
   anticipate.forEach(
@@ -65,9 +74,11 @@ function checkBirthdays () {
         // Treat recurring events as single events.
         singleEvents: true
       };
+      Logger.log('Checking birthdays from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
 
       // Get all the matching events.
       var newBirthdays = Calendar.Events.list(calendarId, optionalArgs).items;
+      Logger.log('Found ' + newBirthdays.length + ' birthdays in this time range.');
 
       // Get the correct formulation.
       if (newBirthdays.length > 0) {
@@ -85,16 +96,19 @@ function checkBirthdays () {
 
         // Add each of the new birthdays for this timeInterval.
         newBirthdays.forEach(
-          function (event) {
+          function (event, i) {
+            Logger.log('Contact #' + i);
             var eventData = event.gadget.preferences;
             var line = ['<li>', eventData['goo.contactsFullName']];
             var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
             if (email !== '') {
+              Logger.log('Has email.');
               // If the contact has an email we can retrieve some more information.
               var contact = ContactsApp.getContact(eventData['goo.contactsEmail']);
 
               // If the contact's birthday does have the year.
               if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
+                Logger.log('Has birthday year.');
                 // For example the age of the contact.
                 var currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
                 var birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
@@ -107,6 +121,7 @@ function checkBirthdays () {
 
               // And even the mobile phone number if specified.
               if (contact.getPhones().length > 0) {
+                Logger.log('Has phone.');
                 contact.getPhones().forEach(
                   function (phoneField) {
                     line.push(' - ');
@@ -137,6 +152,7 @@ function checkBirthdays () {
     var body = bodyPrefix + bodyBuilder.join('') + bodySuffix;
 
     // ...send the email notification.
+    Logger.log('Sending email...');
     MailApp.sendEmail(
       myEmail,
       subject,
@@ -145,6 +161,7 @@ function checkBirthdays () {
         htmlBody: body
       }
     );
+    Logger.log('Email sent.');
   }
 }
 
@@ -165,4 +182,17 @@ function stop () {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
+}
+
+/*
+ * Use this function to test the script. Insert a meaningful date below and
+ * click "Run"->"test" in the menu at the top.
+ */
+function test () {
+  // Date format: YEAR/MONTH/DAY
+  // Insert here a date you want to test. Choose a date you know should trigger a birthday notification.
+  var testDate = new Date('2017/01/01');
+  Logger.log('Testing.');
+  Logger.log('Test date: ' + testDate);
+  checkBirthdays(testDate);
 }
