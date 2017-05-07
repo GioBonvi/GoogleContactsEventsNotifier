@@ -168,7 +168,7 @@ function checkBirthdays (testDate) {
 // Start the notifications.
 function start () {
   stop();
-  ScriptApp.newTrigger('checkBirthdays')
+  ScriptApp.newTrigger('normal')
   .timeBased()
   .atHour(notificationHour)
   .everyDays(1)
@@ -182,6 +182,11 @@ function stop () {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
+}
+
+// Normal function call.
+function normal() {
+  checkBirthdays();
 }
 
 /*
