@@ -39,7 +39,7 @@ function checkBirthdays (testDate) {
   var anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
 
   // Unique ID of the calendar containing birthdays.
-  var calendarId = '#contacts@group.v.calendar.google.com';
+  var calendarId = 'addressbook#contacts@group.v.calendar.google.com';
 
   // Verify that the birthday calendar exists.
   if (!CalendarApp.getCalendarById(calendarId)) {
