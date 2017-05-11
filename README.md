@@ -12,9 +12,10 @@ Open [Google Script](https://script.google.com) and login if requested, then pas
 
 ### Customize the script
 Now read carefully the code you've pasted. At the beginning of the file you will find some lines you need to modify along with many lines of instructions. Edit the values as explained.  
-You should modify the values of these variables:
+You must adjust the values of these variables:
 
 -   myEmail
+-   calendarId
 -   myTimeZone
 -   notificationHour
 -   anticipateDays
@@ -50,7 +51,7 @@ In the text of the message please include:
 I really need these informations: without them I will not be able to help you.
 
 ### Bonus (Test)
-If you want to test the script, but in these day none of your contacts have a birthday you can use the ```test()``` function.
+If you want to test the script, but in these days none of your contacts have a birthday you can use the ```test()``` function.
 
 To do so, open the script and scroll to the bottom: you will find the ```test()``` function there, with some instructions.  
 You just need to replace the date you will see written in the function with the date you want to test, then click "Run" > "test" in the menu at the top of the page.  

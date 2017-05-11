@@ -8,8 +8,15 @@
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
 var myEmail = 'insertyouremailhere@gmail.com';
 
-// If you need to adjust the timezone of the email notifications use this variable.
 /*
+ * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the birthday calendar
+ * and choose 'Calendar settings', finally look for a the "Calendar ID field" (it should be something similar to
+ * #contacts@group.v.calendar.google.com): copy and paste it between the quotes in the next line.
+ */
+var calendarId = '#contacts@group.v.calendar.google.com';
+
+/*
+ * If you need to adjust the timezone of the email notifications use this variable.
  * Accepted values:
  *  GMT/UTC - examples: 'UTC+2' 'GMT-4'
  *  regional timezones: 'Europe/Berlin' (See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
@@ -37,9 +44,6 @@ var anticipateDays = [0, 1, 7];
 function checkBirthdays (testDate) {
   // The script needs this value in milliseconds while it was given in days.
   var anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
-
-  // Unique ID of the calendar containing birthdays.
-  var calendarId = '#contacts@group.v.calendar.google.com';
 
   // Verify that the birthday calendar exists.
   if (!CalendarApp.getCalendarById(calendarId)) {
