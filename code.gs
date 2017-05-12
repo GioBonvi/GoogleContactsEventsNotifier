@@ -160,14 +160,12 @@ function checkBirthdays (testDate) {
 
     // ...send the email notification.
     Logger.log('Sending email...');
-    MailApp.sendEmail(
-      myEmail,
-      subject,
-      body,
-      {
-        htmlBody: body
-      }
-    );
+    MailApp.sendEmail({
+      to: myEmail,
+      subject: subject,
+      body: body,
+      htmlBody: htmlBody,
+    });
     Logger.log('Email sent.');
   }
   if (sendLog) {
