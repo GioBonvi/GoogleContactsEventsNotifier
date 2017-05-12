@@ -43,7 +43,10 @@ var indentSize = 4;
 // 'i18n' hash below and change lang here to match that).
 var lang = 'en';
 
-// When debugging and you want the logs emailed too, set this to true.
+// When debugging is not wanted you can set this true to disable debugging calls, for a slight speedup.
+var noLog = false;
+
+// When debugging (noLog == false) and you want the logs emailed too, set this to true.
 var sendLog = false;
 
 // END MANDATORY CUSTOMIZATION
@@ -111,6 +114,10 @@ function _(string) {
   return i18n[lang][string] || string;
 }
 
+function doLog(arg) {
+  noLog || Logger.log(arg)
+}
+
 function getContactContent(event, now, timeInterval) {
   var eventData, contactId, fullName, email, photo, contact, line, currentYear, birthdayYear, contactPhones;
 
@@ -122,20 +129,20 @@ function getContactContent(event, now, timeInterval) {
   contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myEmail) + '/base/' + contactId);
   line = [];
   if (email !== '') {
-    Logger.log('Has email.');
+    doLog('Has email.');
   }
   if (fullName !== '') {
-    Logger.log('Has full name');
+    doLog('Has full name');
     line.push(fullName);
   } else if (email !== '') {
     line.push('&lt;', email, '&gt;');
   } else {
-    Logger.log('Has no email or full name');
+    doLog('Has no email or full name');
     line.push('&lt;', _('UNKNOWN'), '&gt;');
   }
   // If the contact's birthday does have the year.
   if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-    Logger.log('Has birthday year.');
+    doLog('Has birthday year.');
     // For example the age of the contact.
     currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
     birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
@@ -145,11 +152,11 @@ function getContactContent(event, now, timeInterval) {
   if (email !== '' || contactPhones.length > 0) {
     line.push(' (');
     if (email !== '') {
-      Logger.log('Has email.');
+      doLog('Has email.');
       line.push(email);
     }
     if (contactPhones.length > 0) {
-      Logger.log('Has phone.');
+      doLog('Has phone.');
       contactPhones.forEach(
         function(phoneField) {
           var phoneLabel;
@@ -165,7 +172,7 @@ function getContactContent(event, now, timeInterval) {
     line.push(')');
   }
   if (photo !== '') {
-    Logger.log('Has photo.');
+    doLog('Has photo.');
   }
   return [fullName, line, photo, email];
 }
@@ -178,8 +185,8 @@ function checkBirthdays(testDate) {
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
   // Verify that the birthday calendar exists.
   if (!calendar) {
-    Logger.log('Error: Birthday calendar not found!');
-    Logger.log('Please follow the instructions at this page to activate it: https://support.google.com/calendar/answer/6084659?hl=en');
+    doLog('Error: Birthday calendar not found!');
+    doLog('Please follow the instructions at this page to activate it: https://support.google.com/calendar/answer/6084659?hl=en');
     return;
   }
 
@@ -194,7 +201,7 @@ function checkBirthdays(testDate) {
 
   // Use the testDate if specified, otherwise use todays' date.
   now = testDate || new Date();
-  Logger.log('Date used: ' + now);
+  doLog('Date used: ' + now);
 
   imgCount = 0;
   inlineImages = {};
@@ -212,11 +219,11 @@ function checkBirthdays(testDate) {
         // Treat recurring events as single events.
         singleEvents: true
       };
-      Logger.log('Checking birthdays from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
+      doLog('Checking birthdays from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
 
       // Get all the matching events.
       newBirthdays = Calendar.Events.list(calendarId, optionalArgs).items;
-      Logger.log('Found ' + newBirthdays.length + ' birthdays in this time range.');
+      doLog('Found ' + newBirthdays.length + ' birthdays in this time range.');
       // Get the correct formulation.
       if (newBirthdays.length < 1) {
         return;
@@ -241,7 +248,7 @@ function checkBirthdays(testDate) {
         function (event, i) {
           var contactContent;
 
-          Logger.log('Contact #' + i);
+          doLog('Contact #' + i);
           contactContent = getContactContent(event, now, timeInterval);
           subjectBuilder.push(contactContent[0]);
           bodyBuilder.push('\n', indent);
@@ -249,7 +256,7 @@ function checkBirthdays(testDate) {
           bodyBuilder.push('\n');
           htmlBodyBuilder.push('<li>');
           if (contactContent[2] !== '') {
-            Logger.log('Has photo.');
+            doLog('Has photo.');
             inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(contactContent[2]).getBlob().setName('contact-img-' + imgCount);
             htmlBodyBuilder.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
             imgCount += 1;
@@ -280,7 +287,7 @@ function checkBirthdays(testDate) {
                .join('');
 
     // ...send the email notification.
-    Logger.log('Sending email...');
+    doLog('Sending email...');
     MailApp.sendEmail({
       to: myEmail,
       subject: subject,
@@ -288,9 +295,9 @@ function checkBirthdays(testDate) {
       htmlBody: htmlBody,
       inlineImages: inlineImages,
     });
-    Logger.log('Email sent.');
+    doLog('Email sent.');
   }
-  if (sendLog) {
+  if (doLog && sendLog) {
     MailApp.sendEmail({
       to: myEmail,
       subject: 'Logs for birthday-notification run',
@@ -335,7 +342,7 @@ function test() {
   // Date format: YEAR/MONTH/DAY
   // Insert here a date you want to test. Choose a date you know should trigger a birthday notification.
   testDate = new Date('2017/01/01');
-  Logger.log('Testing.');
-  Logger.log('Test date: ' + testDate);
+  doLog('Testing.');
+  doLog('Test date: ' + testDate);
   checkBirthdays(testDate);
 }
