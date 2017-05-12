@@ -154,6 +154,8 @@ function checkBirthdays (testDate) {
   // For each of the interval to check:
   anticipate.forEach(
     function (timeInterval) {
+      var whenIsIt;
+
       // Set the filter (We don't want every event in the calendar, just those happening 'timeInterval' milliseconds after now).
       var optionalArgs = {
         // Filter only events happening between 'now + timeInterval'...
@@ -178,18 +180,16 @@ function checkBirthdays (testDate) {
       htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
       switch (timeInterval / (24 * 60 * 60 * 1000)) {
         case 0:
-          bodyBuilder.push('Birthday today (' + date + '):\n'); // TRANSLATE HERE
-          htmlBodyBuilder.push('Birthday today (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+          whenIsIt = 'Birthday today (' + date + ')'; // TRANSLATE HERE
           break;
         case 1:
-          bodyBuilder.push('Birthday tomorrow (' + date + '):\n'); // TRANSLATE HERE
-          htmlBodyBuilder.push('Birthday tomorrow (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+          whenIsIt = 'Birthday tomorrow (' + date + ')'; // TRANSLATE HERE
           break;
         default:
-          bodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):\n'); // TRANSLATE HERE
-          htmlBodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+          whenIsIt = 'Birthday in {0} days ('.format(timeInterval / (24 * 60 * 60 * 1000)) + date + ')'; // TRANSLATE HERE
       }
-
+      bodyBuilder.push(whenIsIt, ':\n');
+      htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
       // Add each of the new birthdays for this timeInterval.
       newBirthdays.forEach(
         function (event, i) {
