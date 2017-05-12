@@ -39,13 +39,16 @@ var anticipateDays = [0, 1, 7];
 // For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
 var indentSize = 4;
 
+// For internationalization (translation) enter the two-digit lang-code here (to add your language just fill in the
+// 'i18n' hash below and change lang here to match that).
+var lang = 'en';
+
 // When debugging and you want the logs emailed too, set this to true.
 var sendLog = false;
 
 // END MANDATORY CUSTOMIZATION
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
-// If you want to translate the email notifications look for lines with this comment: // TRANSLATE HERE.
 
 if (typeof Array.prototype.extend === "undefined") {
   Array.prototype.extend = function (array) {
@@ -73,8 +76,40 @@ if (typeof String.prototype.format === "undefined") {
 }
 
 var indent = Array(indentSize + 1).join(' ');
+var i18n = {
+  // For all languages, if a translation is not present the untranslated string
+  // is returned, so just leave out translations which are the same as the English.
+
+  // An entry for 'en' marks it as a valid lang config-option, but leave it empty
+  // to just return unaltered phrases.
+  'en': {},
+  'el': {
+    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+    'Age': 'Ηλικία',
+    'Birthday': 'Γενέθλια',
+    'Birthday today': 'Γενέθλια σήμερα',
+    'Birthday tomorrow': 'Γενέθλια αύριο',
+    'Birthday in {0} days': 'Γενέθλια σε {0} ημέρες',
+    'Hey!, Don\'t forget these birthdays': 'Μην ξεχνάτε αυτά τα γενέθλια',
+    'Google Calendar Contacts Birthday Notification': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
+    'by': 'από τον',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'send email now': 'στείλτε email τώρα',
+  },
+  /* To add a language:
+  '[lang-code]': {
+    '[first phrase]': '[translation here]',
+    '[second phrase]': '[translation here]',
+    ...
+  }
+  */
+};
 var calendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = calendar.getTimeZone();
+
+function _(string) {
+  return i18n[lang][string] || string;
+}
 
 function getContactContent(event, now, timeInterval) {
   var eventData = event.gadget.preferences;
@@ -94,7 +129,7 @@ function getContactContent(event, now, timeInterval) {
     line.push('&lt;', email, '&gt;');
   } else {
     Logger.log('Has no email or full name');
-    line.push('&lt;', 'UNKNOWN', '&gt;'); // TRANSLATE HERE
+    line.push('&lt;', _('UNKNOWN'), '&gt;');
   }
   // If the contact's birthday does have the year.
   if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
@@ -102,7 +137,7 @@ function getContactContent(event, now, timeInterval) {
     // For example the age of the contact.
     currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
     birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-    line.push(' - Age: ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN'); // TRANSLATE HERE
+    line.push(' - ', _('Age'), ': ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : _('UNKNOWN')));
   }
   var contactPhones = contact.getPhones();
   if (email !== '' || contactPhones.length > 0) {
@@ -143,11 +178,11 @@ function checkBirthdays (testDate) {
   }
 
   // Email notification text.
-  var subjectPrefix = 'Birthday: '; // TRANSLATE HERE
+  var subjectPrefix = _('Birthday') + ': ';
   var subjectBuilder = [];
-  var bodyPrefix = 'Hey! Don\'t forget these birthdays:'; // TRANSLATE HERE
-  var bodySuffix1 = 'Google Calendar Contacts Birthday Notification'; // TRANSLATE HERE
-  var bodySuffix2 = 'by Giorgio Bonvicini'; // TRANSLATE HERE
+  var bodyPrefix = _('Hey!, Don\'t forget these birthdays') + ':';
+  var bodySuffix1 = _('Google Calendar Contacts Birthday Notification');
+  var bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
   var bodyBuilder = [];
   var htmlBodyBuilder = [];
 
@@ -181,18 +216,18 @@ function checkBirthdays (testDate) {
       if (newBirthdays.length < 1) {
         return;
       }
-      var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
+      var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, _('dd-MM-yyyy'));
       bodyBuilder.push(' * ');
       htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
       switch (timeInterval / (24 * 60 * 60 * 1000)) {
         case 0:
-          whenIsIt = 'Birthday today (' + date + ')'; // TRANSLATE HERE
+          whenIsIt = _('Birthday today') + ' (' + date + ')';
           break;
         case 1:
-          whenIsIt = 'Birthday tomorrow (' + date + ')'; // TRANSLATE HERE
+          whenIsIt = _('Birthday tomorrow') + ' (' + date + ')';
           break;
         default:
-          whenIsIt = 'Birthday in {0} days ('.format(timeInterval / (24 * 60 * 60 * 1000)) + date + ')'; // TRANSLATE HERE
+          whenIsIt = _('Birthday in {0} days').format(timeInterval / (24 * 60 * 60 * 1000)) + ' (' + date + ')';
       }
       bodyBuilder.push(whenIsIt, ':\n');
       htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
@@ -214,7 +249,7 @@ function checkBirthdays (testDate) {
           }
           htmlBodyBuilder.extend(contactContent[1]);
           if (contactContent[3] !== '') {
-            htmlBodyBuilder.push(' <a href="mailto:' + contactContent[3] + '">[' + 'send email now' + ']</a>'); // TRANSLATE HERE
+            htmlBodyBuilder.push(' <a href="mailto:' + contactContent[3] + '">[' + _('send email now') + ']</a>');
           }
           htmlBodyBuilder.push('</li>');
         }
