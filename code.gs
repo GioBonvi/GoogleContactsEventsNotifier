@@ -128,7 +128,7 @@ function getContactContent(event, now, timeInterval) {
   if (photo !== '') {
     Logger.log('Has photo.');
   }
-  return [fullName, line, photo];
+  return [fullName, line, photo, email];
 }
 
 function checkBirthdays (testDate) {
@@ -213,6 +213,9 @@ function checkBirthdays (testDate) {
             imgCount += 1;
           }
           htmlBodyBuilder.extend(contactContent[1]);
+          if (contactContent[3] !== '') {
+            htmlBodyBuilder.push(' <a href="mailto:' + contactContent[3] + '">[' + 'send email now' + ']</a>'); // TRANSLATE HERE
+          }
           htmlBodyBuilder.push('</li>');
         }
       );
