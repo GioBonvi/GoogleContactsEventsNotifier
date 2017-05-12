@@ -74,28 +74,38 @@ var calendarTimeZone = calendar.getTimeZone();
 
 function getContactContent(event, now, timeInterval) {
   var eventData = event.gadget.preferences;
+  var contactId = eventData['goo.contactsContactId'];
   var fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
   var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
+  var contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myEmail) + '/base/' + contactId);
   var line = ['<li>', fullName];
   if (email !== '') {
     Logger.log('Has email.');
-    // If the contact has an email we can retrieve some more information.
-    var contact = ContactsApp.getContact(eventData['goo.contactsEmail']);
-
-    // If the contact's birthday does have the year.
-    if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-      Logger.log('Has birthday year.');
-      // For example the age of the contact.
-      currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
-      birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-      var age = (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN') // TRANSLATE HERE
-      line.push(' - Age: ', age); // TRANSLATE HERE
+  }
+  if (fullName !== '') {
+    Logger.log('Has full name');
+    line.push(fullName);
+  } else if (email !== '') {
+    line.push('&lt;', email, '&gt;');
+  } else {
+    Logger.log('Has no email or full name');
+    line.push('&lt;', 'UNKNOWN', '&gt;'); // TRANSLATE HERE
+  }
+  // If the contact's birthday does have the year.
+  if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
+    Logger.log('Has birthday year.');
+    // For example the age of the contact.
+    currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
+    birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
+    var age = (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN') // TRANSLATE HERE
+    line.push(' - Age: ', age); // TRANSLATE HERE
+  }
+  if (email !== '' || contact.getPhones().length > 0) {
+    line.push(' (');
+    if (email !== '') {
+      Logger.log('Has email.');
+      line.push(email);
     }
-
-    // Or the email itself.
-    line.push(' (', email);
-
-    // And even the mobile phone number if specified.
     if (contact.getPhones().length > 0) {
       Logger.log('Has phone.');
       contact.getPhones().forEach(
@@ -108,7 +118,6 @@ function getContactContent(event, now, timeInterval) {
         }
       );
     }
-
     line.push(')');
   }
   line.push('</li>');
