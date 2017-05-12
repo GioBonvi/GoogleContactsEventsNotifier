@@ -36,6 +36,9 @@ var notificationHour = 6;
 // Note: in any case you will receive maximum one email per day: notification will be grouped in that email.
 var anticipateDays = [0, 1, 7];
 
+// When debugging and you want the logs emailed too, set this to true.
+var sendLog = false;
+
 // END MANDATORY CUSTOMIZATION
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
@@ -166,6 +169,13 @@ function checkBirthdays (testDate) {
       }
     );
     Logger.log('Email sent.');
+  }
+  if (sendLog) {
+    MailApp.sendEmail({
+      to: myEmail,
+      subject: 'Logs for birthday-notification run',
+      body: Logger.getLog(),
+    });
   }
 }
 
