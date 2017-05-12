@@ -99,19 +99,21 @@ function getContactContent(event, now, timeInterval) {
     birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
     line.push(' - Age: ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN'); // TRANSLATE HERE
   }
-  if (email !== '' || contact.getPhones().length > 0) {
+  var contactPhones = contact.getPhones();
+  if (email !== '' || contactPhones.length > 0) {
     line.push(' (');
     if (email !== '') {
       Logger.log('Has email.');
       line.push(email);
     }
-    if (contact.getPhones().length > 0) {
+    if (contactPhones.length > 0) {
       Logger.log('Has phone.');
-      contact.getPhones().forEach(
+      contactPhones.forEach(
         function(phoneField) {
           line.push(' - ');
-          if (phoneField.getLabel() !== '') {
-            line.push('[', phoneField.getLabel(), '] ');
+          var phoneLabel = phoneField.getLabel();
+          if (phoneLabel !== '') {
+            line.push('[', phoneLabel, '] ');
           }
           line.push(phoneField.getPhoneNumber());
         }
