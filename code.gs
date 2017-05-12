@@ -97,8 +97,7 @@ function getContactContent(event, now, timeInterval) {
     // For example the age of the contact.
     currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
     birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-    var age = (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN') // TRANSLATE HERE
-    line.push(' - Age: ', age); // TRANSLATE HERE
+    line.push(' - Age: ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN'); // TRANSLATE HERE
   }
   if (email !== '' || contact.getPhones().length > 0) {
     line.push(' (');
