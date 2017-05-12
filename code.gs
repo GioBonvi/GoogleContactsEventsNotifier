@@ -170,42 +170,43 @@ function checkBirthdays (testDate) {
       Logger.log('Found ' + newBirthdays.length + ' birthdays in this time range.');
 
       // Get the correct formulation.
-      if (newBirthdays.length > 0) {
-        var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
-        bodyBuilder.push(' * ');
-        htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
-        switch (timeInterval / (24 * 60 * 60 * 1000)) {
-          case 0:
-            bodyBuilder.push('Birthday today (' + date + '):\n'); // TRANSLATE HERE
-            htmlBodyBuilder.push('Birthday today (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
-            break;
-          case 1:
-            bodyBuilder.push('Birthday tomorrow (' + date + '):\n'); // TRANSLATE HERE
-            htmlBodyBuilder.push('Birthday tomorrow (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
-            break;
-          default:
-            bodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):\n'); // TRANSLATE HERE
-            htmlBodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
-        }
-
-        // Add each of the new birthdays for this timeInterval.
-        newBirthdays.forEach(
-          function (event, i) {
-            Logger.log('Contact #' + i);
-            var contactContent = getContactContent(event, now, timeInterval);
-            subjectBuilder.push(contactContent[0]);
-            bodyBuilder.push('\n', indent);
-            bodyBuilder.extend(contactContent[1]);
-            bodyBuilder.push('\n');
-            htmlBodyBuilder.push('<li>');
-            htmlBodyBuilder.extend(contactContent[1]);
-            htmlBodyBuilder.push('</li>');
-          }
-        );
-
-        bodyBuilder.push('\n');
-        htmlBodyBuilder.push('</ul></dd>');
+      if (newBirthdays.length < 1) {
+        return;
       }
+      var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
+      bodyBuilder.push(' * ');
+      htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
+      switch (timeInterval / (24 * 60 * 60 * 1000)) {
+        case 0:
+          bodyBuilder.push('Birthday today (' + date + '):\n'); // TRANSLATE HERE
+          htmlBodyBuilder.push('Birthday today (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+          break;
+        case 1:
+          bodyBuilder.push('Birthday tomorrow (' + date + '):\n'); // TRANSLATE HERE
+          htmlBodyBuilder.push('Birthday tomorrow (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+          break;
+        default:
+          bodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):\n'); // TRANSLATE HERE
+          htmlBodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
+      }
+
+      // Add each of the new birthdays for this timeInterval.
+      newBirthdays.forEach(
+        function (event, i) {
+          Logger.log('Contact #' + i);
+          var contactContent = getContactContent(event, now, timeInterval);
+          subjectBuilder.push(contactContent[0]);
+          bodyBuilder.push('\n', indent);
+          bodyBuilder.extend(contactContent[1]);
+          bodyBuilder.push('\n');
+          htmlBodyBuilder.push('<li>');
+          htmlBodyBuilder.extend(contactContent[1]);
+          htmlBodyBuilder.push('</li>');
+        }
+      );
+
+      bodyBuilder.push('\n');
+      htmlBodyBuilder.push('</ul></dd>');
     }
   );
 
