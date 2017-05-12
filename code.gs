@@ -69,19 +69,62 @@ if (typeof String.prototype.format === "undefined") {
   };
 }
 
+var calendar = CalendarApp.getCalendarById(calendarId);
+var calendarTimeZone = calendar.getTimeZone();
+
+function getContactContent(event, now, timeInterval) {
+  var eventData = event.gadget.preferences;
+  var fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
+  var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
+  var line = ['<li>', fullName];
+  if (email !== '') {
+    Logger.log('Has email.');
+    // If the contact has an email we can retrieve some more information.
+    var contact = ContactsApp.getContact(eventData['goo.contactsEmail']);
+
+    // If the contact's birthday does have the year.
+    if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
+      Logger.log('Has birthday year.');
+      // For example the age of the contact.
+      currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
+      birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
+      var age = (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : 'UNKNOWN') // TRANSLATE HERE
+      line.push(' - Age: ', age); // TRANSLATE HERE
+    }
+
+    // Or the email itself.
+    line.push(' (', email);
+
+    // And even the mobile phone number if specified.
+    if (contact.getPhones().length > 0) {
+      Logger.log('Has phone.');
+      contact.getPhones().forEach(
+        function(phoneField) {
+          line.push(' - ');
+          if (phoneField.getLabel() !== '') {
+            line.push('[', phoneField.getLabel(), '] ');
+          }
+          line.push(phoneField.getPhoneNumber());
+        }
+      );
+    }
+
+    line.push(')');
+  }
+  line.push('</li>');
+  return [fullName, line];
+}
+
 function checkBirthdays (testDate) {
   // The script needs this value in milliseconds while it was given in days.
   var anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
 
   // Verify that the birthday calendar exists.
-  if (!CalendarApp.getCalendarById(calendarId)) {
+  if (!calendar) {
     Logger.log('Error: Birthday calendar not found!');
     Logger.log('Please follow the instructions at this page to activate it: https://support.google.com/calendar/answer/6084659?hl=en');
     return;
   }
-
-  // Set timezone.
-  var calendarTimeZone = CalendarApp.getCalendarById(calendarId).getTimeZone();
 
   // Email notification text.
   var subjectPrefix = 'Birthday: '; // TRANSLATE HERE
@@ -130,46 +173,9 @@ function checkBirthdays (testDate) {
         newBirthdays.forEach(
           function (event, i) {
             Logger.log('Contact #' + i);
-            var eventData = event.gadget.preferences;
-            var line = ['<li>', eventData['goo.contactsFullName']];
-            var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
-            if (email !== '') {
-              Logger.log('Has email.');
-              // If the contact has an email we can retrieve some more information.
-              var contact = ContactsApp.getContact(eventData['goo.contactsEmail']);
-
-              // If the contact's birthday does have the year.
-              if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-                Logger.log('Has birthday year.');
-                // For example the age of the contact.
-                var currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
-                var birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-                var age = (currentYear - birthdayYear).toFixed(0);
-                line.push(' - Age: ', age); // TRANSLATE HERE
-              }
-
-              // Or the email itself.
-              line.push(' (', email);
-
-              // And even the mobile phone number if specified.
-              if (contact.getPhones().length > 0) {
-                Logger.log('Has phone.');
-                contact.getPhones().forEach(
-                  function (phoneField) {
-                    line.push(' - ');
-                    if (phoneField.getLabel() !== '') {
-                      line.push('[', phoneField.getLabel(), '] ');
-                    }
-                    line.push(phoneField.getPhoneNumber());
-                  }
-                );
-              }
-
-              line.push(')');
-            }
-            line.push('</li>');
-            subjectBuilder.push(eventData['goo.contactsFullName']);
-            bodyBuilder.push(line.join(''));
+            var contactContent = getContactContent(event, now, timeInterval);
+            subjectBuilder.push(contactContent[0]);
+            bodyBuilder.extend(contactContent[1]);
           }
         );
 
