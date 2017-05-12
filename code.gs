@@ -110,10 +110,9 @@ function getContactContent(event, now, timeInterval) {
       Logger.log('Has phone.');
       contactPhones.forEach(
         function(phoneField) {
-          line.push(' - ');
           var phoneLabel = phoneField.getLabel();
           if (phoneLabel !== '') {
-            line.push('[', phoneLabel, '] ');
+            line.push(' - [', phoneLabel, '] ');
           }
           line.push(phoneField.getPhoneNumber());
         }
