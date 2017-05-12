@@ -36,6 +36,9 @@ var notificationHour = 6;
 // Note: in any case you will receive maximum one email per day: notification will be grouped in that email.
 var anticipateDays = [0, 1, 7];
 
+// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
+var indentSize = 4;
+
 // When debugging and you want the logs emailed too, set this to true.
 var sendLog = false;
 
@@ -69,6 +72,7 @@ if (typeof String.prototype.format === "undefined") {
   };
 }
 
+var indent = Array(indentSize + 1).join(' ');
 var calendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = calendar.getTimeZone();
 
@@ -78,7 +82,7 @@ function getContactContent(event, now, timeInterval) {
   var fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
   var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
   var contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myEmail) + '/base/' + contactId);
-  var line = ['<li>', fullName];
+  line = [];
   if (email !== '') {
     Logger.log('Has email.');
   }
@@ -120,7 +124,6 @@ function getContactContent(event, now, timeInterval) {
     }
     line.push(')');
   }
-  line.push('</li>');
   return [fullName, line];
 }
 
@@ -138,9 +141,11 @@ function checkBirthdays (testDate) {
   // Email notification text.
   var subjectPrefix = 'Birthday: '; // TRANSLATE HERE
   var subjectBuilder = [];
-  var bodyPrefix = '<p>Hey! Don\'t forget these birthdays:</p>'; // TRANSLATE HERE
+  var bodyPrefix = 'Hey! Don\'t forget these birthdays:'; // TRANSLATE HERE
+  var bodySuffix1 = 'Google Calendar Contacts Birthday Notification'; // TRANSLATE HERE
+  var bodySuffix2 = 'by Giorgio Bonvicini'; // TRANSLATE HERE
   var bodyBuilder = [];
-  var bodySuffix = '<br><br><p><center>Google Calendar Contacts Birthday Notification<br>by Giorgio Bonvicini<center></p>'; // TRANSLATE HERE
+  var htmlBodyBuilder = [];
 
   // Use the testDate if specified, otherwise use todays' date.
   var now = testDate || new Date();
@@ -167,15 +172,20 @@ function checkBirthdays (testDate) {
       // Get the correct formulation.
       if (newBirthdays.length > 0) {
         var date = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'dd-MM-yyyy'); // TRANSLATE HERE (Date format)
+        bodyBuilder.push(' * ');
+        htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
         switch (timeInterval / (24 * 60 * 60 * 1000)) {
           case 0:
-            bodyBuilder.push('<p>Birthday today (' + date + '):</p><ul>'); // TRANSLATE HERE
+            bodyBuilder.push('Birthday today (' + date + '):\n'); // TRANSLATE HERE
+            htmlBodyBuilder.push('Birthday today (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
             break;
           case 1:
-            bodyBuilder.push('<p>Birthday tomorrow (' + date + '):</p><ul>'); // TRANSLATE HERE
+            bodyBuilder.push('Birthday tomorrow (' + date + '):\n'); // TRANSLATE HERE
+            htmlBodyBuilder.push('Birthday tomorrow (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
             break;
           default:
-            bodyBuilder.push('<p>Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):</p><ul>'); // TRANSLATE HERE
+            bodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):\n'); // TRANSLATE HERE
+            htmlBodyBuilder.push('Birthday in ' + timeInterval / (24 * 60 * 60 * 1000) + ' days (' + date + '):</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">'); // TRANSLATE HERE
         }
 
         // Add each of the new birthdays for this timeInterval.
@@ -184,11 +194,17 @@ function checkBirthdays (testDate) {
             Logger.log('Contact #' + i);
             var contactContent = getContactContent(event, now, timeInterval);
             subjectBuilder.push(contactContent[0]);
+            bodyBuilder.push('\n', indent);
             bodyBuilder.extend(contactContent[1]);
+            bodyBuilder.push('\n');
+            htmlBodyBuilder.push('<li>');
+            htmlBodyBuilder.extend(contactContent[1]);
+            htmlBodyBuilder.push('</li>');
           }
         );
 
-        bodyBuilder.push('</ul>');
+        bodyBuilder.push('\n');
+        htmlBodyBuilder.push('</ul></dd>');
       }
     }
   );
@@ -196,7 +212,14 @@ function checkBirthdays (testDate) {
   // If there is an email to send...
   if (bodyBuilder.length > 0) {
     var subject = subjectPrefix + subjectBuilder.join(' - ');
-    var body = bodyPrefix + bodyBuilder.join('') + bodySuffix;
+    var body = [bodyPrefix, '\n\n']
+           .concat(bodyBuilder)
+           .concat(['\n\n', indent, bodySuffix1, '\n', indent, bodySuffix2, '\n'])
+           .join('');
+    var htmlBody = ['<h3>', bodyPrefix, '</h3><dl>']
+               .concat(htmlBodyBuilder)
+               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications">', bodySuffix1, '</a><br/>', bodySuffix2, '</p>'])
+               .join('');
 
     // ...send the email notification.
     Logger.log('Sending email...');
