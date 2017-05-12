@@ -81,6 +81,7 @@ function getContactContent(event, now, timeInterval) {
   var contactId = eventData['goo.contactsContactId'];
   var fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
   var email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
+  var photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
   var contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myEmail) + '/base/' + contactId);
   line = [];
   if (email !== '') {
@@ -124,7 +125,10 @@ function getContactContent(event, now, timeInterval) {
     }
     line.push(')');
   }
-  return [fullName, line];
+  if (photo !== '') {
+    Logger.log('Has photo.');
+  }
+  return [fullName, line, photo];
 }
 
 function checkBirthdays (testDate) {
@@ -151,6 +155,8 @@ function checkBirthdays (testDate) {
   var now = testDate || new Date();
   Logger.log('Date used: ' + now);
 
+  var imgCount = 0;
+  var inlineImages = {};
   // For each of the interval to check:
   anticipate.forEach(
     function (timeInterval) {
@@ -200,6 +206,12 @@ function checkBirthdays (testDate) {
           bodyBuilder.extend(contactContent[1]);
           bodyBuilder.push('\n');
           htmlBodyBuilder.push('<li>');
+          if (contactContent[2] !== '') {
+            Logger.log('Has photo.');
+            inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(contactContent[2]).getBlob().setName('contact-img-' + imgCount);
+            htmlBodyBuilder.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+            imgCount += 1;
+          }
           htmlBodyBuilder.extend(contactContent[1]);
           htmlBodyBuilder.push('</li>');
         }
@@ -229,6 +241,7 @@ function checkBirthdays (testDate) {
       subject: subject,
       body: body,
       htmlBody: htmlBody,
+      inlineImages: inlineImages,
     });
     Logger.log('Email sent.');
   }
