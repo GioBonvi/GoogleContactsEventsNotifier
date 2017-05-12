@@ -44,6 +44,31 @@ var sendLog = false;
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 // If you want to translate the email notifications look for lines with this comment: // TRANSLATE HERE.
 
+if (typeof Array.prototype.extend === "undefined") {
+  Array.prototype.extend = function (array) {
+    var i;
+
+    for (i = 0; i < array.length; ++i) {
+      this.push(array[i]);
+    };
+    return this;
+  };
+}
+
+if (typeof String.prototype.format === "undefined") {
+  String.prototype.format = function () {
+    var args;
+
+    args = arguments;
+    return this.replace(/\{(\d+)\}/g, function (match, number) {
+      return typeof args[number] != 'undefined'
+        ? args[number]
+        : match
+      ;
+    });
+  };
+}
+
 function checkBirthdays (testDate) {
   // The script needs this value in milliseconds while it was given in days.
   var anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
