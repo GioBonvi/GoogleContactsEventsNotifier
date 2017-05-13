@@ -50,13 +50,17 @@ var indentSize = 4;
 // 'i18n' hash below and change lang here to match that).
 var lang = 'en';
 
+// END MANDATORY CUSTOMIZATION
+
+// START DEBUGGING OPTIONS
+
 // When debugging is not wanted you can set this true to disable debugging calls, for a slight speedup.
 var noLog = false;
 
 // When debugging (noLog == false) and you want the logs emailed too, set this to true.
 var sendLog = false;
 
-// END MANDATORY CUSTOMIZATION
+// END DEBUGGING OPTIONS
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 

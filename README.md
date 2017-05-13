@@ -14,11 +14,13 @@ Open [Google Script](https://script.google.com) and login if requested, then pas
 Now read carefully the code you've pasted. At the beginning of the file you will find some lines you need to modify along with many lines of instructions. Edit the values as explained.  
 You must adjust the values of these variables:
 
+-   myGoogleEmail
 -   myEmail
 -   calendarId
 -   myTimeZone
 -   notificationHour
 -   anticipateDays
+-   lang
 
 Now click File->Save in the menu and enter a name for the script (it doesn't really matter, just name it so that you'll recognize if you find it in the future).
 
@@ -32,7 +34,46 @@ You might receive a first email immediately: the following ones will be sent at 
 From this moment on you will always receive an email before any of your contacts' birthday (You should have set how many hours before at the beginning).
 
 ### Bonus (Translation)
-As written in the script you can translate the email notification into your own language by editing the text at the lines marked with ````// TRANSLATE HERE````.
+I fyou want to add a new translation of the notifications, open your script, find the line ```var i18n``` and have a look at the structure of the translation object and at the instructions at the end.
+
+To add a new language:
+
+-   find the block of code which represents one existing translation and copy it, for example:
+```
+'el' : {
+  'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  ...
+  'send email now': 'στείλτε email τώρα',
+},
+```
+-   paste it just below itself, like this:
+```
+'el' : {
+  'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  ...
+  'send email now': 'στείλτε email τώρα',
+},
+'el' : {
+  'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  ...
+  'send email now': 'στείλτε email τώρα',
+},
+```
+-   replace the language code of your translation with your language code and proceed to translate every item in the list, leaving the string on the left of the `:` unchanged and translating the one on the right, like this:
+```
+'el' : {
+  'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  ...
+  'send email now': 'στείλτε email τώρα',
+},
+'it' : {
+  'UNKNOWN': 'SCONOSCIUTO',
+  ...
+  'send email now': 'invia email ora',
+},
+```
+
+If you want to share your translation with other users please open an issue or a pull request on the [GoogleCalendarBirthdayNotifications GitHub's project page](https://githu.com/GioBonvi/GoogleCalendarBirthdayNotifications). I will be glad to add your translation to the script.
 
 ### Bonus (Stop notifications)
 To stop receiving these notifications simply open the script (which you'll find [in Google Drive](https://drive.google.com/drive/) if you haven't moved it) and click the menu Run->stop.
@@ -45,8 +86,9 @@ I will be notified immediately and will provide help as soon as possible.
 
 In the text of the message please include:
 -   A __meaningful description of the problem__. What did you do? What happened? What did you expect to happen instead?
--   A __full copy of any error message you received__. Please be advised that it could contain personal information such as your email: obscure or remove them as alla the issues and relative messages are publicly visible.
--   The __full _execution transcript_ and _log_ of the script___. To obtain them open your script, click "Run" > "checkBirthdays" in the menu at the top of the page: when the execution ends (the yellow message saying "Execution of the function..." will disappear) click "View" > "Execution transcript" and copy all the text in the window that will pop up, then click "View" > "Log" and copy all that text as well.
+-   A __full copy of any error message you received or of the thing that went wrong__. Please be advised that it could contain personal information such as your email: obscure or remove them as alla the issues and relative messages are publicly visible.
+-   The __complete _log_ of the script__. To obtain it open your script, find the line which reads `var sendLog = false;` (it is in the _DEBUGGING OPTIONS_ part, just below the _MANDATORY CUSTOMIZATION_ at the top of the script) and change it to read `var sendLog = true;`. Now click "Run" > "normal" in the menu at the top of the page. You should now receive an email with the complete log of the script.
+-   To disable the logging and stop receiving log emails just change `var sendLog = true;` back to `var sendLog = false;` again.
 
 I really need these informations: without them I will not be able to help you.
 
@@ -59,3 +101,8 @@ If everything went right you should receive a birthday notification exactly like
 
 ## License
 GoogleCalendarBirthdayNotifications is licensed under the MIT license (see the [LICENSE FILE](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/blob/master/LICENSE)).
+
+## Credits
+The main idea of this script was inspired by ajparag's response to this exact problem, which he posted in the [Google Help Forum](https://productforums.google.com/d/msg/calendar/OaaO2og9m5w/2VgNNNF5BwAJ).
+
+Huge thanks to [rowanthorpe](https://github.com/rowanthorpe), who completely refactored the code adding many amazing features I had never thought of.
