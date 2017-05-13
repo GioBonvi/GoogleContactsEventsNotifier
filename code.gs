@@ -6,7 +6,7 @@
 // You need to personalize these values, otherwise the script won't work.
 
 // First of all, the script needs to know your email address (Notifications will be sent to this address).
-var myEmail = 'insertyouremailhere@gmail.com';
+var myEmail = 'insertyouremailhere@gmail.com';;
 
 /*
  * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the birthday calendar
@@ -140,36 +140,41 @@ function getContactContent(event, now, timeInterval) {
     doLog('Has no email or full name');
     line.push('&lt;', _('UNKNOWN'), '&gt;');
   }
-  // If the contact's birthday does have the year.
-  if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-    doLog('Has birthday year.');
-    // For example the age of the contact.
-    currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
-    birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-    line.push(' - ', _('Age'), ': ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : _('UNKNOWN')));
-  }
-  contactPhones = contact.getPhones();
-  if (email !== '' || contactPhones.length > 0) {
-    line.push(' (');
-    if (email !== '') {
-      doLog('Has email.');
-      line.push(email);
+  if (contact) {
+    // If the contact's birthday does have the year.
+    if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
+      doLog('Has birthday year.');
+      // For example the age of the contact.
+      currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
+      birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
+      line.push(' - ', _('Age'), ': ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : _('UNKNOWN')));
     }
-    if (contactPhones.length > 0) {
-      doLog('Has phone.');
-      contactPhones.forEach(
-        function(phoneField) {
-          var phoneLabel;
+    contactPhones = contact.getPhones();
+    if (email !== '' || contactPhones.length > 0) {
+      line.push(' (');
+      if (email !== '') {
+        doLog('Has email.');
+        line.push(email);
+      }
+      if (contactPhones.length > 0) {
+        doLog('Has phone.');
+        contactPhones.forEach(
+          function(phoneField) {
+            var phoneLabel;
 
-          phoneLabel = phoneField.getLabel();
-          if (phoneLabel !== '') {
-            line.push(' - [', phoneLabel, '] ');
+            phoneLabel = phoneField.getLabel();
+            if (phoneLabel !== '') {
+              line.push(' - [', phoneLabel, '] ');
+            }
+            line.push(phoneField.getPhoneNumber());
           }
-          line.push(phoneField.getPhoneNumber());
-        }
-      );
+        );
+      }
+      line.push(')');
     }
-    line.push(')');
+  } else if (email !== '') {
+    // Contact not found (event generated from a Google Plus contact)
+    line.push(' (', email, ')');
   }
   if (photo !== '') {
     doLog('Has photo.');
