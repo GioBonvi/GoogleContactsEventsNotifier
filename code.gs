@@ -104,7 +104,7 @@ var i18n = {
     'Birthday today': 'Γενέθλια σήμερα',
     'Birthday tomorrow': 'Γενέθλια αύριο',
     'Birthday in {0} days': 'Γενέθλια σε {0} ημέρες',
-    'Hey!, Don\'t forget these birthdays': 'Μην ξεχνάτε αυτά τα γενέθλια',
+    'Hey! Don\'t forget these birthdays': 'Μην ξεχνάτε αυτά τα γενέθλια',
     'Google Calendar Contacts Birthday Notification': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
     'by': 'από τον',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -209,7 +209,7 @@ function checkBirthdays (testDate) {
   // Email notification text.
   subjectPrefix = _('Birthday') + ': ';
   subjectBuilder = [];
-  bodyPrefix = _('Hey!, Don\'t forget these birthdays') + ':';
+  bodyPrefix = _('Hey! Don\'t forget these birthdays') + ':';
   bodySuffix1 = _('Google Calendar Contacts Birthday Notification');
   bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
   bodyBuilder = [];
