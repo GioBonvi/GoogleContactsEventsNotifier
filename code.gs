@@ -108,7 +108,7 @@ var i18n = {
   */
 };
 var calendar = CalendarApp.getCalendarById(calendarId);
-var calendarTimeZone = calendar.getTimeZone();
+var calendarTimeZone = calendar ? calendar.getTimeZone() : null;
 
 function _(string) {
   return i18n[lang][string] || string;
