@@ -5,8 +5,13 @@
 
 // You need to personalize these values, otherwise the script won't work.
 
-// First of all, the script needs to know your email address (Notifications will be sent to this address).
-var myEmail = 'insertyouremailhere@gmail.com';;
+// First of all specify the gmail address of your Google Account.
+// This is needed to retrieve informations about your contacts.
+var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
+
+// Now specify to which email address the notifications should be sent.
+// This can be the same email address of the previous line or any other email address.
+var myEmail = 'insertyouremailhere@someemail.com';
 
 /*
  * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the birthday calendar
@@ -126,7 +131,7 @@ function getContactContent(event, now, timeInterval) {
   fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
   email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
   photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
-  contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myEmail) + '/base/' + contactId);
+  contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myGoogleEmail) + '/base/' + contactId);
   line = [];
   if (email !== '') {
     doLog('Has email.');
