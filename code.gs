@@ -1,3 +1,5 @@
+/* global Logger CalendarApp ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp */
+
 // Thanks to this script you are going to receive an email before the birthday of each of your contacts.
 // The script is easily customizable via some variables listed below.
 
@@ -58,24 +60,24 @@ var sendLog = false;
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 
-if (typeof Array.prototype.extend === "undefined") {
+if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) {
     var i;
 
     for (i = 0; i < array.length; ++i) {
       this.push(array[i]);
-    };
+    }
     return this;
   };
 }
 
-if (typeof String.prototype.format === "undefined") {
+if (typeof String.prototype.format === 'undefined') {
   String.prototype.format = function () {
     var args;
 
     args = arguments;
     return this.replace(/\{(\d+)\}/g, function (match, number) {
-      return typeof args[number] != 'undefined'
+      return typeof args[number] !== 'undefined'
         ? args[number]
         : match
       ;
@@ -115,15 +117,15 @@ var i18n = {
 var calendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = calendar ? calendar.getTimeZone() : null;
 
-function _(string) {
+function _ (string) {
   return i18n[lang][string] || string;
 }
 
-function doLog(arg) {
-  noLog || Logger.log(arg)
+function doLog (arg) {
+  noLog || Logger.log(arg);
 }
 
-function getContactContent(event, now, timeInterval) {
+function getContactContent (event, now, timeInterval) {
   var eventData, contactId, fullName, email, photo, contact, line, currentYear, birthdayYear, contactPhones;
 
   eventData = event.gadget.preferences;
@@ -164,7 +166,7 @@ function getContactContent(event, now, timeInterval) {
       if (contactPhones.length > 0) {
         doLog('Has phone.');
         contactPhones.forEach(
-          function(phoneField) {
+          function (phoneField) {
             var phoneLabel;
 
             phoneLabel = phoneField.getLabel();
@@ -187,9 +189,9 @@ function getContactContent(event, now, timeInterval) {
   return [fullName, line, photo, email];
 }
 
-function checkBirthdays(testDate) {
+function checkBirthdays (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
-      bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
+    bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody, imgCount, inlineImages;
 
   // The script needs this value in milliseconds while it was given in days.
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
@@ -303,7 +305,7 @@ function checkBirthdays(testDate) {
       subject: subject,
       body: body,
       htmlBody: htmlBody,
-      inlineImages: inlineImages,
+      inlineImages: inlineImages
     });
     doLog('Email sent.');
   }
@@ -311,13 +313,13 @@ function checkBirthdays(testDate) {
     MailApp.sendEmail({
       to: myEmail,
       subject: 'Logs for birthday-notification run',
-      body: Logger.getLog(),
+      body: Logger.getLog()
     });
   }
 }
 
 // Start the notifications.
-function start() {
+function start () {
   stop();
   ScriptApp.newTrigger('normal')
   .timeBased()
@@ -328,7 +330,7 @@ function start() {
 }
 
 // Stop the notifications.
-function stop() {
+function stop () {
   var triggers;
 
   triggers = ScriptApp.getProjectTriggers();
@@ -338,7 +340,7 @@ function stop() {
 }
 
 // Normal function call.
-function normal() {
+function normal () {
   checkBirthdays();
 }
 
@@ -346,7 +348,7 @@ function normal() {
  * Use this function to test the script. Insert a meaningful date below and
  * click "Run"->"test" in the menu at the top.
  */
-function test() {
+function test () {
   var testDate;
 
   // Date format: YEAR/MONTH/DAY
