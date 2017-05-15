@@ -313,7 +313,7 @@ function checkBirthdays (testDate) {
     });
     doLog('Email sent.');
   }
-  if (doLog && sendLog) {
+  if (!noLog && sendLog) {
     MailApp.sendEmail({
       to: myEmail,
       subject: 'Logs for birthday-notification run',
