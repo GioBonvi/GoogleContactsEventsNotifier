@@ -64,6 +64,8 @@ var sendLog = false;
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 
+var version = '0.1.0';
+
 if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) {
     var i;
@@ -106,6 +108,7 @@ var i18n = {
     'Birthday in {0} days': 'Γενέθλια σε {0} ημέρες',
     'Hey! Don\'t forget these birthdays': 'Μην ξεχνάτε αυτά τα γενέθλια',
     'Google Calendar Contacts Birthday Notification': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
+    'version': 'εκδοχή',
     'by': 'από τον',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'send email now': 'στείλτε email τώρα',
@@ -197,6 +200,7 @@ function checkBirthdays (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
     bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody, imgCount, inlineImages;
 
+  doLog('Starting run of GoogleCalendarBirthdayNotifications version ' + version + '.');
   // The script needs this value in milliseconds while it was given in days.
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
   // Verify that the birthday calendar exists.
@@ -210,7 +214,7 @@ function checkBirthdays (testDate) {
   subjectPrefix = _('Birthday') + ': ';
   subjectBuilder = [];
   bodyPrefix = _('Hey! Don\'t forget these birthdays') + ':';
-  bodySuffix1 = _('Google Calendar Contacts Birthday Notification');
+  bodySuffix1 = _('Google Calendar Contacts Birthday Notification') + ' (' + _('version') + ' ' + version + ')';
   bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
   bodyBuilder = [];
   htmlBodyBuilder = [];

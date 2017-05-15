@@ -34,7 +34,7 @@ You might receive a first email immediately: the following ones will be sent at 
 From this moment on you will always receive an email before any of your contacts' birthday (You should have set how many hours before at the beginning).
 
 ### Bonus (Translation)
-I fyou want to add a new translation of the notifications, open your script, find the line ```var i18n``` and have a look at the structure of the translation object and at the instructions at the end.
+If you want to add a new translation of the notifications, open your script, find the line ```var i18n``` and have a look at the structure of the translation object and at the instructions at the end.
 
 To add a new language:
 
@@ -81,8 +81,9 @@ To stop receiving these notifications simply open the script (which you'll find 
 ## Bug and error reporting, help requests
 First of all _before submitting a new error, bug or help request_, please, __verify that you followed [the instructions](https://giobonvi.github.io/GoogleCalendarBirthdayNotifications/) to the letter.__
 
-To report a bug or an error or to request help with this script please use [this project GitHub issue page](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues).  
-I will be notified immediately and will provide help as soon as possible.
+To report a bug or an error or to request help with this script please use [this project GitHub issue page](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues).
+I will be notified immediately and will provide help as soon as possible. It is easier for me if you test the latest version from the master branch
+of the github repo for the bug, but if that is too confusing I should still be able to help as the logs will include the version number you are using.
 
 In the text of the message please include:
 -   A __meaningful description of the problem__. What did you do? What happened? What did you expect to happen instead?
