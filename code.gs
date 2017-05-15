@@ -343,6 +343,24 @@ function stop () {
   }
 }
 
+// Check if notifications are running.
+function status () {
+  var toLog = 'Notifications are';
+
+  if (ScriptApp.getProjectTriggers().length < 1) {
+    toLog += ' not';
+  }
+  toLog += ' running.';
+  Logger.log(toLog);
+  if (!noLog && sendLog) {
+    MailApp.sendEmail({
+      to: myEmail,
+      subject: 'Status for birthday-notification',
+      body: Logger.getLog()
+    });
+  }
+}
+
 // Normal function call.
 function normal () {
   checkBirthdays();
