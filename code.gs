@@ -60,6 +60,10 @@ var noLog = false;
 // When debugging (noLog == false) and you want the logs emailed too, set this to true.
 var sendLog = false;
 
+// The test() function can be run on a specified date as if it is "today". Specify that date here in the format
+// YEAR/MONTH/DAY. Choose a date you know should trigger a birthday notification.
+var fakeTestDate = '2017/01/01';
+
 // END DEBUGGING OPTIONS
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
@@ -349,15 +353,14 @@ function normal () {
 }
 
 /*
- * Use this function to test the script. Insert a meaningful date below and
- * click "Run"->"test" in the menu at the top.
+ * Use this function to test the script. Edit the date in the debugging
+ * configuration above and click "Run"->"test" in the menu at the top
+ * of the Google script interface.
  */
 function test () {
   var testDate;
 
-  // Date format: YEAR/MONTH/DAY
-  // Insert here a date you want to test. Choose a date you know should trigger a birthday notification.
-  testDate = new Date('2017/01/01');
+  testDate = new Date(fakeTestDate);
   doLog('Testing.');
   doLog('Test date: ' + testDate);
   checkBirthdays(testDate);

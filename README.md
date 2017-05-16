@@ -95,9 +95,9 @@ I really need these informations: without them I will not be able to help you.
 ### Bonus (Test)
 If you want to test the script, but in these days none of your contacts have a birthday you can use the ```test()``` function.
 
-To do so, open the script and scroll to the bottom: you will find the ```test()``` function there, with some instructions.  
-You just need to replace the date you will see written in the function with the date you want to test, then click "Run" > "test" in the menu at the top of the page.  
-If everything went right you should receive a birthday notification exactly like if today was the date you set.
+To do so, open the script and edit the `fakeTestDate` variable in the debugging configuration section. You just need to replace the example date
+with the date you want to test, then click "Run" > "test" in the menu at the top of the page. If everything went right you should receive a
+birthday notification exactly like if today was the date you set.
 
 ## License
 GoogleCalendarBirthdayNotifications is licensed under the MIT license (see the [LICENSE FILE](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/blob/master/LICENSE)).
