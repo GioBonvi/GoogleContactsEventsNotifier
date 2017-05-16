@@ -117,6 +117,19 @@ var i18n = {
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'send email now': 'στείλτε email τώρα',
   },
+  'it': {
+    'UNKNOWN': 'SCONOSCIUTO',
+    'Age': 'Et&agrave;',
+    'Birthday': 'Compleanno',
+    'Birthday today': 'Compleanno oggi',
+    'Birthday tomorrow': 'Compleanno domani',
+    'Birthday in {0} days': 'Compleanno fra {0} giorni',
+    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni',
+    'version': 'versione',
+    'by': 'by',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'send email now': 'invia email ora',
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
