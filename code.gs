@@ -64,7 +64,7 @@ var sendLog = false;
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 
-var version = '0.1.0';
+var version = '2.0';
 
 if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) {
