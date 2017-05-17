@@ -61,8 +61,8 @@ var noLog = false;
 var sendLog = false;
 
 // The test() function can be run on a specified date as if it is "today". Specify that date here in the format
-// YEAR/MONTH/DAY. Choose a date you know should trigger a birthday notification.
-var fakeTestDate = '2017/01/01';
+// YEAR/MONTH/DAY HOUR:MINUTE:SECOND. Choose a date you know should trigger a birthday notification.
+var fakeTestDate = '2017/01/01 06:00:00';
 
 // END DEBUGGING OPTIONS
 
