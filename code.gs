@@ -129,6 +129,10 @@ var i18n = {
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'send email now': 'invia email ora',
+    'Mobile phone': 'Cellulare',
+    'Work phone': 'Telefono di lavoro',
+    'Home phone': 'Telefono di casa',
+    'Main phone': 'Telefono principale',
   },
   /* To add a language:
   '[lang-code]': {
@@ -140,6 +144,21 @@ var i18n = {
 };
 var calendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = calendar ? calendar.getTimeZone() : null;
+
+function beautifyLabel (label) {
+  switch (label) {
+    case ContactsApp.Field.MOBILE_PHONE:
+      return _('Mobile phone');
+    case ContactsApp.Field.WORK_PHONE:
+      return _('Work phone');
+    case ContactsApp.Field.HOME_PHONE:
+      return _('Home phone');
+    case ContactsApp.Field.MAIN_PHONE:
+      return _('Main phone');
+    default:
+      return label;
+  }
+}
 
 function _ (string) {
   return i18n[lang][string] || string;
@@ -195,7 +214,7 @@ function getContactContent (event, now, timeInterval) {
 
             phoneLabel = phoneField.getLabel();
             if (phoneLabel !== '') {
-              line.push(' - [', phoneLabel, '] ');
+              line.push(' - [', beautifyLabel(phoneLabel), '] ');
             }
             line.push(phoneField.getPhoneNumber());
           }
