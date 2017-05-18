@@ -116,6 +116,10 @@ var i18n = {
     'by': 'από τον',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'send email now': 'στείλτε email τώρα',
+    'Mobile phone': 'Κινητό',
+    'Work phone': 'Τηλέφωνο εργασίας',
+    'Home phone': 'Τηλέφωνο Οικίας',
+    'Main phone': 'Κύριο τηλέφωνο',
   },
   'it': {
     'UNKNOWN': 'SCONOSCIUTO',
