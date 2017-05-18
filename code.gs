@@ -123,7 +123,7 @@ var i18n = {
   },
   'it': {
     'UNKNOWN': 'SCONOSCIUTO',
-    'Age': 'Et&agrave;',
+    'Age': 'Età',
     'Birthday': 'Compleanno',
     'Birthday today': 'Compleanno oggi',
     'Birthday tomorrow': 'Compleanno domani',
