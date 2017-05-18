@@ -104,21 +104,21 @@ var i18n = {
   // to just return unaltered phrases.
   'en': {},
   'el': {
-    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+    'UNKNOWN': 'ΑΓΝΩΣΤΟ',
     'Age': 'Ηλικία',
     'Birthday': 'Γενέθλια',
     'Birthday today': 'Γενέθλια σήμερα',
     'Birthday tomorrow': 'Γενέθλια αύριο',
     'Birthday in {0} days': 'Γενέθλια σε {0} ημέρες',
-    'Hey! Don\'t forget these birthdays': 'Μην ξεχνάτε αυτά τα γενέθλια',
+    'Hey! Don\'t forget these birthdays': 'Μην ξεχάσετε αυτά τα γενέθλια',
     'Google Calendar Contacts Birthday Notification': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
     'version': 'εκδοχή',
-    'by': 'από τον',
+    'by': 'από τον', // τον=masculine,την=feminine (using the masculine, in one place, for now but may need more context in future)
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'send email now': 'στείλτε email τώρα',
     'Mobile phone': 'Κινητό',
     'Work phone': 'Τηλέφωνο εργασίας',
-    'Home phone': 'Τηλέφωνο Οικίας',
+    'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
   },
   'it': {
