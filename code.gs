@@ -68,7 +68,7 @@ var fakeTestDate = '2017/01/01 06:00:00';
 
 // There is no need to edit anything below this line: the script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
 
-var version = '2.0';
+var version = '2.1';
 
 if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) {
@@ -146,8 +146,10 @@ var i18n = {
   }
   */
 };
+
 var calendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = calendar ? calendar.getTimeZone() : null;
+var inlineImages;
 
 function beautifyLabel (label) {
   switch (label) {
@@ -172,73 +174,9 @@ function doLog (arg) {
   noLog || Logger.log(arg);
 }
 
-function getContactContent (event, now, timeInterval) {
-  var eventData, contactId, fullName, email, photo, contact, line, currentYear, birthdayYear, contactPhones;
-
-  eventData = event.gadget.preferences;
-  contactId = eventData['goo.contactsContactId'];
-  fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
-  email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
-  photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
-  contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myGoogleEmail) + '/base/' + contactId);
-  line = [];
-  if (email !== '') {
-    doLog('Has email.');
-  }
-  if (fullName !== '') {
-    doLog('Has full name');
-    line.push(fullName);
-  } else if (email !== '') {
-    line.push('&lt;', email, '&gt;');
-  } else {
-    doLog('Has no email or full name');
-    line.push('&lt;', _('UNKNOWN'), '&gt;');
-  }
-  if (contact) {
-    // If the contact's birthday does have the year.
-    if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-      doLog('Has birthday year.');
-      // For example the age of the contact.
-      currentYear = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy');
-      birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-      line.push(' - ', _('Age'), ': ', (birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : _('UNKNOWN')));
-    }
-    contactPhones = contact.getPhones();
-    if (email !== '' || contactPhones.length > 0) {
-      line.push(' (');
-      if (email !== '') {
-        doLog('Has email.');
-        line.push(email);
-      }
-      if (contactPhones.length > 0) {
-        doLog('Has phone.');
-        contactPhones.forEach(
-          function (phoneField) {
-            var phoneLabel;
-
-            phoneLabel = phoneField.getLabel();
-            if (phoneLabel !== '') {
-              line.push(' - [', beautifyLabel(phoneLabel), '] ');
-            }
-            line.push(phoneField.getPhoneNumber());
-          }
-        );
-      }
-      line.push(')');
-    }
-  } else if (email !== '') {
-    // Contact not found (event generated from a Google Plus contact)
-    line.push(' (', email, ')');
-  }
-  if (photo !== '') {
-    doLog('Has photo.');
-  }
-  return [fullName, line, photo, email];
-}
-
 function checkBirthdays (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
-    bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody, imgCount, inlineImages;
+    bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
 
   doLog('Starting run of GoogleCalendarBirthdayNotifications version ' + version + '.');
   // The script needs this value in milliseconds while it was given in days.
@@ -263,7 +201,6 @@ function checkBirthdays (testDate) {
   now = testDate || new Date();
   doLog('Date used: ' + now);
 
-  imgCount = 0;
   inlineImages = {};
   // For each of the interval to check:
   anticipate.forEach(
@@ -306,26 +243,13 @@ function checkBirthdays (testDate) {
       // Add each of the new birthdays for this timeInterval.
       newBirthdays.forEach(
         function (event, i) {
-          var contactContent;
+          var contact;
 
           doLog('Contact #' + i);
-          contactContent = getContactContent(event, now, timeInterval);
-          subjectBuilder.push(contactContent[0]);
-          bodyBuilder.push('\n', indent);
-          bodyBuilder.extend(contactContent[1]);
-          bodyBuilder.push('\n');
-          htmlBodyBuilder.push('<li>');
-          if (contactContent[2] !== '') {
-            doLog('Has photo.');
-            inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(contactContent[2]).getBlob().setName('contact-img-' + imgCount);
-            htmlBodyBuilder.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
-            imgCount += 1;
-          }
-          htmlBodyBuilder.extend(contactContent[1]);
-          if (contactContent[3] !== '') {
-            htmlBodyBuilder.push(' <a href="mailto:' + contactContent[3] + '">[' + _('send email now') + ']</a>');
-          }
-          htmlBodyBuilder.push('</li>');
+          contact = new Contact(event);
+          subjectBuilder.push(contact.fullName);
+          bodyBuilder.extend(contact.getPlainTextLine());
+          htmlBodyBuilder.extend(contact.getHtmlLine());
         }
       );
 
@@ -365,6 +289,117 @@ function checkBirthdays (testDate) {
     });
   }
 }
+
+var Contact = function (event) {
+  var eventData, contact, currentYear, birthdayYear, phoneFields;
+
+  eventData = event.gadget.preferences;
+  this.id = (typeof eventData['goo.contactsContactId'] === 'undefined') ? '' : eventData['goo.contactsContactId'];
+  this.fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
+  this.email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
+  this.photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
+  this.age = '';
+  this.phoneFields = [];
+  if (this.email !== '') {
+    doLog('Has email.');
+  }
+  if (this.fullName !== '') {
+    doLog('Has full name');
+  }
+  if (this.photo !== '') {
+    doLog('Has photo.');
+  }
+
+
+  contact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myGoogleEmail) + '/base/' + this.id);
+  if (contact) {
+    // If the contact's birthday does have the year.
+    if (contact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
+      doLog('Has birthday year.');
+      currentYear = Utilities.formatDate(new Date(event.start.date.replace(/-/g, '/')), calendarTimeZone, 'yyyy');
+      birthdayYear = contact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
+      this.age = birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : '';
+    }
+    phoneFields = contact.getPhones();
+    if (phoneFields.length > 0) {
+      this.phoneFields = phoneFields;
+      doLog('Has phones.');
+    }
+  }
+
+  this.getPlainTextLine = function () {
+    var line;
+
+    line = [];
+    line.push('\n', indent, this.fullName);
+    if (this.age !== '') {
+      line.push(' - ', _('Age'), ': ', this.age);
+    }
+    if (this.email !== '' || typeof this.phoneFields !== 'undefined') {
+      line.push(' (');
+      if (this.email !== '') {
+        line.push(this.email);
+      }
+      this.phoneFields.forEach(function (phoneField, i) {
+        var label;
+
+        if (i !== 0 || this.email !== '') {
+          line.push(' - ');
+        }
+        label = phoneField.getLabel();
+        if (label !== '') {
+          line.push('[', beautifyLabel(label), '] ');
+        }
+        line.push(phoneField.getPhoneNumber());
+      });
+      line.push(')');
+    }
+    line.push('\n');
+    return line;
+  };
+
+  this.getHtmlLine = function () {
+    var line, imgCount;
+
+    line = [];
+
+    line.push('<li>');
+    if (this.photo !== '') {
+      imgCount = Object.keys(inlineImages).length;
+      inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(this.photo).getBlob().setName('contact-img-' + imgCount);
+      line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+    }
+    line.push(this.fullName);
+    if (this.age !== '') {
+      line.push(' - ', _('Age'), ': ', this.age);
+    }
+    if (this.email !== '' || typeof this.phoneFields !== 'undefined') {
+      line.push(' (');
+      if (this.email !== '') {
+        line.push(this.email);
+      }
+      this.phoneFields.forEach(function (phoneField, i) {
+        var label;
+
+        if (i !== 0 || this.email !== '') {
+          line.push(' - ');
+        }
+        label = phoneField.getLabel();
+        if (label !== '') {
+          line.push('[', beautifyLabel(label), '] ');
+        }
+        line.push('<a href="tel:', phoneField.getPhoneNumber(), '">', phoneField.getPhoneNumber(), '</a>');
+      });
+      line.push(')');
+    }
+
+    if (this.email !== '') {
+      line.push(' <a href="mailto:', this.email, '">', _('send email now'), '</a>');
+    }
+
+    return line;
+  };
+};
 
 // Start the notifications.
 function start () {
