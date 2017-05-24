@@ -40,7 +40,7 @@ var calendarId = '#contacts@group.v.calendar.google.com';
  * If you need to adjust the timezone of the email notifications use this variable.
  *
  * Accepted values:
- *  GMT/UTC - examples: 'UTC+2' 'GMT-4'
+ *  GMT - examples: 'GMT-4'
  *  regional timezones: 'Europe/Berlin' (See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
  */
 var myTimeZone = 'Europe/Rome';
@@ -106,7 +106,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '2.1';
+var version = '2.1.1';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -233,8 +233,7 @@ function checkBirthdays (testDate) {
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
   // Verify that the birthday calendar exists.
   if (!birthdayCalendar) {
-    doLog('Error: Birthday calendar not found!');
-    doLog('Please follow the instructions at this page to activate it: https://support.google.com/calendar/answer/6084659?hl=en');
+    throw new Error('Birthday calendar not found! Please follow the instructions (step "Enable the calendar").');
     return;
   }
 
@@ -488,13 +487,20 @@ var Contact = function (event) {
 
 // Start the notification service.
 function start () {
+  if (notificationHour < 0 || notificationHour > 23 || parseInt(Number(notificationHour)) !== notificationHour) {
+    throw new Error('Invalid parameter: notificationHour. Must be an integer between 0 and 23.');
+  }
   stop();
-  ScriptApp.newTrigger('normal')
-  .timeBased()
-  .atHour(notificationHour)
-  .everyDays(1)
-  .inTimezone(myTimeZone)
-  .create();
+  try {
+    ScriptApp.newTrigger('normal')
+    .timeBased()
+    .atHour(notificationHour)
+    .everyDays(1)
+    .inTimezone(myTimeZone)
+    .create();
+  } catch (err) {
+    throw new Error('Failed to start the notification service: make sure that myTimeZone is a valid value.');
+  }
 }
 
 // Stop the notification service.
