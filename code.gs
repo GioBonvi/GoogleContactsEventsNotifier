@@ -106,7 +106,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '2.1.1';
+var version = '2.1.2';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -119,7 +119,6 @@ if (typeof Array.prototype.extend === 'undefined') {
     return this;
   };
 }
-
 
 if (typeof String.prototype.format === 'undefined') {
   String.prototype.format = function () {
@@ -234,7 +233,6 @@ function checkBirthdays (testDate) {
   // Verify that the birthday calendar exists.
   if (!birthdayCalendar) {
     throw new Error('Birthday calendar not found! Please follow the instructions (step "Enable the calendar").');
-    return;
   }
 
   // Start building the email notification text.
@@ -362,6 +360,8 @@ var Contact = function (event) {
   this.photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
   this.age = '';
   this.phoneFields = [];
+  this.nickname = '';
+
   if (this.email !== '') {
     doLog('Has email.');
   }
@@ -371,7 +371,6 @@ var Contact = function (event) {
   if (this.photo !== '') {
     doLog('Has photo.');
   }
-
   // If the contact has a contactId field try to get the Google Contact corresponding to that contactId.
   if (this.id !== '') {
     googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myGoogleEmail) + '/base/' + this.id);
@@ -392,6 +391,8 @@ var Contact = function (event) {
       this.phoneFields = phoneFields;
       doLog('Has phones.');
     }
+    // Extract contact's nickname.
+    this.nickname = googleContact.getNickname();
   }
 
   /*
@@ -404,6 +405,10 @@ var Contact = function (event) {
     line = [];
     // Full name.
     line.push('\n', indent, this.fullName);
+    // Nickname.
+    if (this.nickname !== '') {
+      line.push(' "', this.nickname, '"');
+    }
     // Age.
     if (this.age !== '') {
       line.push(' - ', _('Age'), ': ', this.age);
@@ -451,6 +456,10 @@ var Contact = function (event) {
     }
     // Full name.
     line.push(this.fullName);
+    // Nickname.
+    if (this.nickname !== '') {
+      line.push(' &quot;', this.nickname, '&quot;');
+    }
     // Age.
     if (this.age !== '') {
       line.push(' - ', _('Age'), ': ', this.age);
