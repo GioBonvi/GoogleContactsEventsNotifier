@@ -73,7 +73,7 @@ To add a new language:
 },
 ```
 
-If you want to share your translation with other users please open an issue or a pull request on the [GoogleCalendarBirthdayNotifications GitHub's project page](https://githu.com/GioBonvi/GoogleCalendarBirthdayNotifications). I will be glad to add your translation to the script.
+If you want to share your translation with other users please open an issue or a pull request on the [GoogleCalendarBirthdayNotifications GitHub's project page](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications). I will be glad to add your translation to the script.
 
 ### Bonus (Stop notifications)
 To stop receiving these notifications simply open the script (which you'll find [in Google Drive](https://drive.google.com/drive/) if you haven't moved it) and click the menu Run->stop.
