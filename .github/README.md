@@ -100,8 +100,12 @@ To do so, open the script and edit the `fakeTestDate` variable in the debugging 
 with the date you want to test, then click "Run" > "test" in the menu at the top of the page. If everything went right you should receive a
 birthday notification exactly like if today was the date you set.
 
+## Contributing
+
+Google Calendar Birthday Notifications is an open source project: if you want to know how to contribute please read the [CONTRIBUTING](CONTRIBUTING.md) file.
+
 ## License
-GoogleCalendarBirthdayNotifications is licensed under the MIT license (see the [LICENSE FILE](LICENSE)).
+GoogleCalendarBirthdayNotifications is licensed under the [MIT license](/LICENSE).
 
 ## Credits
 The main idea of this script was inspired by ajparag's response to this exact problem, which he posted in the [Google Help Forum](https://productforums.google.com/d/msg/calendar/OaaO2og9m5w/2VgNNNF5BwAJ).
