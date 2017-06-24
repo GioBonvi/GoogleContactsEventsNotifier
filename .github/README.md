@@ -101,7 +101,7 @@ with the date you want to test, then click "Run" > "test" in the menu at the top
 birthday notification exactly like if today was the date you set.
 
 ## License
-GoogleCalendarBirthdayNotifications is licensed under the MIT license (see the [LICENSE FILE](https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/blob/master/LICENSE)).
+GoogleCalendarBirthdayNotifications is licensed under the MIT license (see the [LICENSE FILE](LICENSE)).
 
 ## Credits
 The main idea of this script was inspired by ajparag's response to this exact problem, which he posted in the [Google Help Forum](https://productforums.google.com/d/msg/calendar/OaaO2og9m5w/2VgNNNF5BwAJ).
