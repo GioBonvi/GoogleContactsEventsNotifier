@@ -12,8 +12,8 @@
 /*
  * GOOGLE EMAIL ADDRESS
  *
- * First of all specify the gmail address of your Google Account.
- * This is needed to retrieve informations about your contacts.
+ * First of all specify the Gmail address of your Google Account.
+ * This is needed to retrieve information about your contacts.
  */
 var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
 
@@ -35,7 +35,7 @@ var myEmail = 'insertyouremailhere@someemail.com';
 var calendarId = '#contacts@group.v.calendar.google.com';
 
 /*
- * YOUR TIMEZIONE
+ * YOUR TIMEZONE
  *
  * If you need to adjust the timezone of the email notifications use this variable.
  *
@@ -162,21 +162,21 @@ var i18n = {
     'Main phone': 'Κύριο τηλέφωνο',
   },
   'es': {
-  'UNKNOWN': 'DESCONOCIDO',
-  'Age': 'Edad',
-  'Birthday': 'Cumpleaños',
-  'Birthday today': 'Cumpleaños hoy',
-  'Birthday tomorrow': 'Cumpleaños mañana',
-  'Birthday in {0} days': 'Cumpleaños en {0} días',
-  'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños',
-  'version': 'versión',
-  'by': 'por',
-  'dd-MM-yyyy': 'dd-MM-yyyy',
-  'send email now': 'enviar mail ahora',
-  'Mobile phone': 'Celular',
-  'Work phone': 'Teléfono del trabajo',
-  'Home phone': 'Teléfono del hogar',
-  'Main phone': 'Teléfono principal',
+    'UNKNOWN': 'DESCONOCIDO',
+    'Age': 'Edad',
+    'Birthday': 'Cumpleaños',
+    'Birthday today': 'Cumpleaños hoy',
+    'Birthday tomorrow': 'Cumpleaños mañana',
+    'Birthday in {0} days': 'Cumpleaños en {0} días',
+    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños',
+    'version': 'versión',
+    'by': 'por',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'send email now': 'enviar mail ahora',
+    'Mobile phone': 'Celular',
+    'Work phone': 'Teléfono del trabajo',
+    'Home phone': 'Teléfono del hogar',
+    'Main phone': 'Teléfono principal',
   },
   'it': {
     'UNKNOWN': 'SCONOSCIUTO',

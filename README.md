@@ -179,6 +179,7 @@ file].
   - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe] - Greek;
   - [lboullo0 (Lucas)][Github lboullo0] - Spanish;
   - [muzavan (Muhammad Reza Irvanda)][Github muzavan] - Indonesian;
+  - [DrKrakower][Github DrKrakower] - German;
 - all of the contributors that you can find [here][Project contributors page];
 
 [Project main page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications
@@ -196,3 +197,4 @@ file].
 [GitHub rowanthorpe]: https://github.com/rowanthorpe
 [Github lboullo0]: https://github.com/lboullo0
 [Github muzavan]: https://github.com/muzavan
+[Github DrKrakower]: https://github.com/DrKrakower
