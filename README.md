@@ -1,6 +1,9 @@
-# GoogleCalendarBirthdayNotifications
+# Google Birthday Notifier
 
-Receive email notifications before your contacts birthday.
+![Logo](images/Logo_alpha.png)
+
+Receive customized email notifications to alert you about incoming birthday of
+your Google contacts.
 
 Have you ever wondered why on Earth would Google Calendar provide a calendar to
 remind you of your contact birthdays, but without letting you set up notifications
@@ -161,12 +164,12 @@ if today was the date you set.
 
 ## Contributing
 
-Google Calendar Birthday Notifications is an open source project: if you want to
+Google Birthday Notifier is an open source project: if you want to
 know how to contribute please read the [CONTRIBUTING][Contributing file] file.
 
 ## License
 
-GoogleCalendarBirthdayNotifications is licensed under the [MIT license][License
+Google Birthday Notifier is licensed under the [MIT license][License
 file].
 
 ## Credits
@@ -182,10 +185,10 @@ file].
   - [DrKrakower][Github DrKrakower] - German;
 - all of the contributors that you can find [here][Project contributors page];
 
-[Project main page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications
-[Project documentation]: https://giobonvi.github.io/GoogleCalendarBirthdayNotifications
-[Project issue page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues
-[Project contributors page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/graphs/contributors
+[Project main page]: https://github.com/GioBonvi/GoogleBirthdayNotifier
+[Project documentation]: https://giobonvi.github.io/GoogleBirthdayNotifier
+[Project issue page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues
+[Project contributors page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/graphs/contributors
 [Main code file]: code.gs
 [Issue template file]: .github/ISSUE_TEMPLATE.md
 [Contributing file]: .github/CONTRIBUTING.md

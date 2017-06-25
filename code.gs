@@ -106,7 +106,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '2.1.2';
+var version = '2.1.3';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -151,7 +151,7 @@ var i18n = {
     'Birthday tomorrow': 'Γενέθλια αύριο',
     'Birthday in {0} days': 'Γενέθλια σε {0} ημέρες',
     'Hey! Don\'t forget these birthdays': 'Μην ξεχάσετε αυτά τα γενέθλια',
-    'Google Calendar Contacts Birthday Notification': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
+    'Google Birthday Notifier': 'Ενημερώσεις Γενεθλίων του Ημερολογίου Google',
     'version': 'εκδοχή',
     'by': 'από τον', // τον=masculine,την=feminine (using the masculine, in one place, for now but may need more context in future)
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -278,7 +278,7 @@ function checkBirthdays (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
     bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
 
-  doLog('Starting run of GoogleCalendarBirthdayNotifications version ' + version + '.');
+  doLog('Starting run of Google Birthday Notifier version ' + version + '.');
   // The script needs this value in milliseconds, but the user entered it in days.
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
   // Verify that the birthday calendar exists.
@@ -290,7 +290,7 @@ function checkBirthdays (testDate) {
   subjectPrefix = _('Birthday') + ': ';
   subjectBuilder = [];
   bodyPrefix = _('Hey! Don\'t forget these birthdays') + ':';
-  bodySuffix1 = _('Google Calendar Contacts Birthday Notification') + ' (' + _('version') + ' ' + version + ')';
+  bodySuffix1 = _('Google Birthday Notifier') + ' (' + _('version') + ' ' + version + ')';
   bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
   // The email is built both with plain text and HTML text.
   bodyBuilder = [];
@@ -372,7 +372,7 @@ function checkBirthdays (testDate) {
            .join('');
     htmlBody = ['<h3>', bodyPrefix, '</h3><dl>']
                .concat(htmlBodyBuilder)
-               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications">', bodySuffix1, '</a><br/>', bodySuffix2, '</p>'])
+               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleBirthdayNotifier">', bodySuffix1, '</a><br/>', bodySuffix2, '</p>'])
                .join('');
 
     // ...send the email notification.

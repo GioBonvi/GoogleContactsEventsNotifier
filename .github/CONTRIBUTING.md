@@ -1,8 +1,8 @@
 # Contributing
 
 Welcome, user!  
-As you might know Google Calendar Birthday Notifications is an open source
-project: any kind of help or contribution is therefore warmly welcomed.  
+As you might know Google Birthday Notifier is an open source project: any kind
+of help or contribution is therefore warmly welcomed.  
 When I started working on this project I just wanted to solve a problem that I
 was experiencing with Google Calendar, but it all went much further than I could
 expect: people liked the idea and helped making it even better.  
@@ -63,10 +63,10 @@ Pull Requests complies with these rules:
     file][Markdown linter config]
   - additionally, links should be in the reference format, not in the in-text format
 
-[Project main page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications
-[Project documentation]: https://giobonvi.github.io/GoogleCalendarBirthdayNotifications
-[Project issue page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues
-[Project contributors page]: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/graphs/contributors
+[Project main page]: https://github.com/GioBonvi/GoogleBirthdayNotifier
+[Project documentation]: https://giobonvi.github.io/GoogleBirthdayNotifier
+[Project issue page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues
+[Project contributors page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/graphs/contributors
 [Contribute with translation]: ../README.md#bonus-translation
 [Code of conduct]: CODE_OF_CONDUCT.md
 [Coding guidelines]: #coding-guidelines

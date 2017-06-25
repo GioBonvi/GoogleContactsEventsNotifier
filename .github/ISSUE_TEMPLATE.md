@@ -1,9 +1,9 @@
 <!-- markdownlint-disable-->
 Before reporting a new issue please double check that:
 
-- that you followed the instructions at https://giobonvi.github.io/GoogleCalendarBirthdayNotifications correctly in every step;
-- there is no open issue discussing your problem (check here: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues);
-- there is no closed issue  which has solved or declared unsolvable your problem (check here: https://github.com/GioBonvi/GoogleCalendarBirthdayNotifications/issues?q=is%3Aissue+is%3Aclosed);
+- that you followed the instructions at https://giobonvi.github.io/GoogleBirthdayNotifier correctly in every step;
+- there is no open issue discussing your problem (check here: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues);
+- there is no closed issue  which has solved or declared unsolvable your problem (check here: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues?q=is%3Aissue+is%3Aclosed);
 
 If this issue is not about a bug or a problem you can delete all of this and write whatever you want.
 
