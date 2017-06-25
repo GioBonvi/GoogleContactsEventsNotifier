@@ -212,6 +212,23 @@ var i18n = {
     'Home phone': 'Telp. rumah',
     'Main phone': 'Telp. utama',
   },
+  'de': {
+    'UNKNOWN': 'Unbekannt',
+    'Age': 'Alter',
+    'Birthday': 'Geburtstag',
+    'Birthday today': 'Heute Geburtstag',
+    'Birthday tomorrow': 'Morgen Geburtstag',
+    'Birthday in {0} days': 'Geburtstag in {0} Tagen',
+    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht',
+    'version': 'Version',
+    'by': 'von',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'send email now': 'Jetzt eine E-Mail schicken',
+    'Mobile phone': 'Mobiltelefon',
+    'Work phone': 'Geschäftlich',
+    'Home phone': 'Privat',
+    'Main phone': 'Hauptnummer',
+  },    
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
