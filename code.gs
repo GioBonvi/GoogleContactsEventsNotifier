@@ -228,6 +228,23 @@ var i18n = {
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
     'Main phone': 'Hauptnummer',
+  },
+  'pl': {
+    'UNKNOWN': 'NIEZNANY',
+    'Age': 'Wiek',
+    'Birthday': 'Urodziny',
+    'Birthday today': 'Urodziny dzisiaj',
+    'Birthday tomorrow': 'Urodziny jutro',
+    'Birthday in {0} days': 'Urodziny za {0} dni',
+    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach',
+    'version': 'wersja',
+    'by': 'od',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'send email now': 'Wyślij e-mail teraz',
+    'Mobile phone': 'Telefon komórkowy',
+    'Work phone': 'Telefon praca',
+    'Home phone': 'Telefon domowy',
+    'Main phone': 'Telefon główny',
   },    
   /* To add a language:
   '[lang-code]': {
