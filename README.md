@@ -52,10 +52,14 @@ future).
 Now that the script is saved in your Google Drive folder we need to activate it.
 To do so click the menu "Resources" -> "Advanced Google services".  
 In the popup which will open set "Google Calendar API" to "enabled" (click the
-switch on its row on the right): we are almost done! Now click on the link which
-says "Google API Console": you will be taken to another page. In this page
-search for "Google Calendar API" and open it. Now click "Enable" at the top of
-the window and close this page.
+switch on its row on the right).  
+Once you have done this click on the link which says "Google API Console": you
+will be taken to another page. In this page search for "Google Calendar API" and
+open it. Now click "Enable" at the top of the window and close this page.  
+That's it for this step.
+
+**Important note**: please double check that you have performed **both** steps
+correctly as this step seems to be the cause of many reported errors.
 
 ### Grant rights to the script
 
@@ -150,6 +154,22 @@ file] and include:
   publicly visible.
 
 I really need these information: without them I will not be able to help you.
+
+### Unresponsive help requests
+
+If you open a help request issue please do not abandon it until it's been solved
+and closed. If you want to close it before explicitly state this intention with
+a message in the issue.
+
+Issues marked with the "help request" that are unresponsive will be sent a
+reminder message after three days since the last message from the user and the
+issue will be marked with the "unresponsive" tag. If the user still does not
+respond to the issue, after a month the issue will be closed.
+
+If you want to re-open a closed "help request" issue ask for this by commenting
+on it.  
+Only the user which has originally opened the issue can ask for it to be
+re-opened.
 
 ### Bonus (Test)
 

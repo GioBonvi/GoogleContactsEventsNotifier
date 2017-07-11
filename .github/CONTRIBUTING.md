@@ -47,6 +47,8 @@ This project has few rules regarding issues:
   else and nothing you have tried works;
 - when reporting an issue please follow the [template provided][Issue template
   file];
+- unresponsive help request issues are closed following [this
+  procedure][Unresponsive issues];
 
 ## Coding guidelines
 
@@ -68,6 +70,7 @@ Pull Requests complies with these rules:
 [Project issue page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues
 [Project contributors page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/graphs/contributors
 [Contribute with translation]: ../README.md#bonus-translation
+[Unresponsive issues]: ../README.md#unresponsive-help-requests
 [Code of conduct]: CODE_OF_CONDUCT.md
 [Coding guidelines]: #coding-guidelines
 [Issue template file]: ISSUE_TEMPLATE.md
