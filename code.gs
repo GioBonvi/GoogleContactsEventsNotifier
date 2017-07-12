@@ -26,6 +26,15 @@ var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
 var myEmail = 'insertyouremailhere@someemail.com';
 
 /*
+ * EMAIL SENDER NAME
+ *
+ * This is the name you will see as the sender of the email.
+ * If you leave it blank it will default to your Google account name.
+ * Note: this may not work when using a Gmail address sending emails to itself.
+ */
+var emailSenderName = 'Birthday Notifications';
+
+/*
  * ID OF THE BIRTHDAY CALENDAR
  *
  * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the birthday calendar
@@ -324,7 +333,7 @@ function checkBirthdays (testDate) {
    */
   anticipate.forEach(
     function (timeInterval) {
-      var optionalArgs, birthdays, formattedDate, whenIsIt;
+      var optionalArgs, events, birthdays, formattedDate, whenIsIt;
 
       // Set the search filter to include only events happening 'timeInterval' milliseconds after now.
       optionalArgs = {
@@ -337,10 +346,11 @@ function checkBirthdays (testDate) {
       };
       doLog('Checking birthdays from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
 
-      // Get all the matching events.
-      birthdays = Calendar.Events.list(calendarId, optionalArgs).items;
+      // Get all the matching BIRTHDAY events.
+      events = Calendar.Events.list(calendarId, optionalArgs).items;
+      birthdays = events.filter(function (e) { return e.gadget.preferences['goo.contactsEventType'] === 'BIRTHDAY'; });
       doLog('Found ' + birthdays.length + ' birthdays in this time range.');
-      // If no event is found for this particular timeInterval skip it.
+      // If no BIRTHDAY event is found for this particular timeInterval skip it.
       if (birthdays.length < 1) {
         return;
       }
@@ -399,7 +409,8 @@ function checkBirthdays (testDate) {
       subject: subject,
       body: body,
       htmlBody: htmlBody,
-      inlineImages: inlineImages
+      inlineImages: inlineImages,
+      name: emailSenderName
     });
     doLog('Email sent.');
   }
@@ -408,7 +419,8 @@ function checkBirthdays (testDate) {
     MailApp.sendEmail({
       to: myEmail,
       subject: 'Logs for birthday-notification run',
-      body: Logger.getLog()
+      body: Logger.getLog(),
+      name: emailSenderName
     });
   }
 }
@@ -603,7 +615,8 @@ function status () {
     MailApp.sendEmail({
       to: myEmail,
       subject: 'Status for birthday-notification',
-      body: Logger.getLog()
+      body: Logger.getLog(),
+      name: emailSenderName
     });
   }
 }

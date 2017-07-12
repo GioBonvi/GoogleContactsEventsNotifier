@@ -37,6 +37,7 @@ You must adjust the values of these variables:
 
 - `myGoogleEmail`
 - `myEmail`
+- `emailSenderName`
 - `calendarId`
 - `myTimeZone`
 - `notificationHour`
