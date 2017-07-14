@@ -183,7 +183,6 @@ var i18n = {
     'version': 'εκδοχή',
     'by': 'από τον', // τον=masculine,την=feminine (using the masculine, in one place, for now but may need more context in future)
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'στείλε email τώρα',
     'Mobile phone': 'Κινητό',
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
@@ -206,7 +205,6 @@ var i18n = {
     'version': 'versión',
     'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'enviar mail ahora',
     'Mobile phone': 'Celular',
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
@@ -229,7 +227,6 @@ var i18n = {
     'version': 'versione',
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'invia email ora',
     'Mobile phone': 'Cellulare',
     'Work phone': 'Telefono di lavoro',
     'Home phone': 'Telefono di casa',
@@ -252,7 +249,6 @@ var i18n = {
     'version': 'versi',
     'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'kirim email sekarang',
     'Mobile phone': 'Telp. selular',
     'Work phone': 'Telp. kantor',
     'Home phone': 'Telp. rumah',
@@ -275,7 +271,6 @@ var i18n = {
     'version': 'Version',
     'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'Jetzt eine E-Mail schicken',
     'Mobile phone': 'Mobiltelefon',
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
@@ -298,7 +293,6 @@ var i18n = {
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'send email now': 'Wyślij e-mail teraz',
     'Mobile phone': 'Telefon komórkowy',
     'Work phone': 'Telefon praca',
     'Home phone': 'Telefon domowy',
@@ -665,7 +659,7 @@ var Contact = function (event, eventType) {
         line.push(' (');
         // Email address.
         if (self.email !== '') {
-          line.push(self.email);
+          line.push('<a href="mailto:', self.email, '">', self.email, '</a>');
         }
         // Phone fields.
         self.phoneFields.forEach(function (phoneField, i) {
@@ -680,10 +674,6 @@ var Contact = function (event, eventType) {
           line.push('<a href="tel:', phoneField.getPhoneNumber(), '">', phoneField.getPhoneNumber(), '</a>');
         });
         line.push(')');
-      }
-      // Mailto link.
-      if (self.email !== '') {
-        line.push(' <a href="mailto:', self.email, '">', _('send email now'), '</a>');
       }
       lines.push(line);
     });
