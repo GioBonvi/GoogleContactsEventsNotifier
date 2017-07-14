@@ -26,15 +26,6 @@ var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
 var myEmail = 'insertyouremailhere@someemail.com';
 
 /*
- * EMAIL SENDER NAME
- *
- * This is the name you will see as the sender of the email.
- * If you leave it blank it will default to your Google account name.
- * Note: this may not work when using a Gmail address sending emails to itself.
- */
-var emailSenderName = 'Contacts Events Notifications';
-
-/*
  * ID OF THE CONTACTS EVENTS CALENDAR
  *
  * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the contacts events
@@ -43,6 +34,22 @@ var emailSenderName = 'Contacts Events Notifications';
  * #contacts@group.v.calendar.google.com): copy and paste it between the quotes in the next line.
  */
 var calendarId = '#contacts@group.v.calendar.google.com';
+
+// END MANDATORY CUSTOMIZATION
+
+// START OPTIONAL CUSTOMIZATION
+
+// It is a good idea to edit these options to adapt the script to your needs,
+// however you can just leave the default values and the script will work fine.
+
+/*
+ * EMAIL SENDER NAME
+ *
+ * This is the name you will see as the sender of the email.
+ * If you leave it blank it will default to your Google account name.
+ * Note: this may not work when using a Gmail address sending emails to itself.
+ */
+var emailSenderName = 'Contacts Events Notifications';
 
 /*
  * YOUR TIMEZONE
@@ -89,18 +96,21 @@ var anticipateDays = [0, 1, 7];
  */
 var lang = 'en';
 
-// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
-var indentSize = 4;
-
-// END MANDATORY CUSTOMIZATION
-
-// START OPTIONAL CUSTOMIZATION
+/*
+ * TYPE OF EVENTS
+ *
+ * This script can track any Google Contact Event: you can decide which one by placing true or false next to each type.
+ * By default the script only tracks birthday events.
+ */
 
 var eventTypes = {
   BIRTHDAY: true,
   ANNIVERSARY: false,
   CUSTOM: false
 };
+
+// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
+var indentSize = 4;
 
 // END OPTIONAL CUSTOMIZATION
 
@@ -126,7 +136,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '2.1.3';
+var version = '3.0.0-alpha';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -189,13 +199,19 @@ var i18n = {
     'Main phone': 'Κύριο τηλέφωνο',
   },
   'es': {
-    'UNKNOWN': 'DESCONOCIDO',
     'Age': 'Edad',
-    'Birthday': 'Cumpleaños',
-    'Birthday today': 'Cumpleaños hoy',
-    'Birthday tomorrow': 'Cumpleaños mañana',
-    'Birthday in {0} days': 'Cumpleaños en {0} días',
-    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños',
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    // TODO 'Birthdays today': '',
+    // TODO 'Birthdays tomorrow': '',
+    // TODO 'Birthdays in {0} days': '',
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    // TODO 'Hey! Don\'t forget these events': '',
     'version': 'versión',
     'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -205,13 +221,19 @@ var i18n = {
     'Main phone': 'Teléfono principal',
   },
   'it': {
-    'UNKNOWN': 'SCONOSCIUTO',
     'Age': 'Età',
-    'Birthday': 'Compleanno',
-    'Birthday today': 'Compleanno oggi',
-    'Birthday tomorrow': 'Compleanno domani',
-    'Birthday in {0} days': 'Compleanno fra {0} giorni',
-    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni',
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    // TODO 'Birthdays today': '',
+    // TODO 'Birthdays tomorrow': '',
+    // TODO 'Birthdays in {0} days': '',
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    // TODO 'Hey! Don\'t forget these events': '',
     'version': 'versione',
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -221,13 +243,19 @@ var i18n = {
     'Main phone': 'Telefono principale',
   },
   'id': {
-    'UNKNOWN': 'Tidak diketahui',
     'Age': 'Usia',
-    'Birthday': 'Ulang tahun',
-    'Birthday today': 'Ulang tahun hari ini',
-    'Birthday tomorrow': 'Ulang tahun besok',
-    'Birthday in {0} days': 'Ulang tahun dalam {0} hari',
-    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut',
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    // TODO 'Birthdays today': '',
+    // TODO 'Birthdays tomorrow': '',
+    // TODO 'Birthdays in {0} days': '',
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    // TODO 'Hey! Don\'t forget these events': '',
     'version': 'versi',
     'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -237,13 +265,19 @@ var i18n = {
     'Main phone': 'Telp. utama',
   },
   'de': {
-    'UNKNOWN': 'Unbekannt',
     'Age': 'Alter',
-    'Birthday': 'Geburtstag',
-    'Birthday today': 'Heute Geburtstag',
-    'Birthday tomorrow': 'Morgen Geburtstag',
-    'Birthday in {0} days': 'Geburtstag in {0} Tagen',
-    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht',
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    // TODO 'Birthdays today': '',
+    // TODO 'Birthdays tomorrow': '',
+    // TODO 'Birthdays in {0} days': '',
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    // TODO 'Hey! Don\'t forget these events': '',
     'version': 'Version',
     'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -253,13 +287,19 @@ var i18n = {
     'Main phone': 'Hauptnummer',
   },
   'pl': {
-    'UNKNOWN': 'NIEZNANY',
     'Age': 'Wiek',
-    'Birthday': 'Urodziny',
-    'Birthday today': 'Urodziny dzisiaj',
-    'Birthday tomorrow': 'Urodziny jutro',
-    'Birthday in {0} days': 'Urodziny za {0} dni',
-    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach',
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    // TODO 'Birthdays today': '',
+    // TODO 'Birthdays tomorrow': '',
+    // TODO 'Birthdays in {0} days': '',
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    // TODO 'Hey! Don\'t forget these events': '',
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -267,7 +307,7 @@ var i18n = {
     'Work phone': 'Telefon praca',
     'Home phone': 'Telefon domowy',
     'Main phone': 'Telefon główny',
-  },    
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
