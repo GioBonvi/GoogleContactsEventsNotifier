@@ -190,13 +190,19 @@ var i18n = {
     'Main phone': 'Κύριο τηλέφωνο',
   },
   'es': {
-    'UNKNOWN': 'DESCONOCIDO',
     'Age': 'Edad',
-    'Birthday': 'Cumpleaños',
-    'Birthday today': 'Cumpleaños hoy',
-    'Birthday tomorrow': 'Cumpleaños mañana',
-    'Birthday in {0} days': 'Cumpleaños en {0} días',
-    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños',
+    //TODO: 'Years': '',
+    //TODO: 'Events': '',
+    'Birthday today': 'Cumpleaños hoy', //TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Cumpleaños mañana', //TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Cumpleaños en {0} días', //TODO: Birthday -> Birthdays (plural)
+    //TODO: 'Anniversaries today': '',
+    //TODO: 'Anniversaries tomorrow': '',
+    //TODO: 'Anniversaries in {0} days': '',
+    //TODO: 'Custom events today': '',
+    //TODO: 'Custom events tomorrow': '',
+    //TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños', //TODO: birthdays -> events
     'version': 'versión',
     'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -207,13 +213,19 @@ var i18n = {
     'Main phone': 'Teléfono principal',
   },
   'it': {
-    'UNKNOWN': 'SCONOSCIUTO',
     'Age': 'Età',
-    'Birthday': 'Compleanno',
-    'Birthday today': 'Compleanno oggi',
-    'Birthday tomorrow': 'Compleanno domani',
-    'Birthday in {0} days': 'Compleanno fra {0} giorni',
-    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni',
+    //TODO: 'Years': '',
+    //TODO: 'Events': '',
+    'Birthday today': 'Compleanno oggi', //TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Compleanno domani', //TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Compleanno fra {0} giorni', //TODO: Birthday -> Birthdays (plural)
+    //TODO: 'Anniversaries today': '',
+    //TODO: 'Anniversaries tomorrow': '',
+    //TODO: 'Anniversaries in {0} days': '',
+    //TODO: 'Custom events today': '',
+    //TODO: 'Custom events tomorrow': '',
+    //TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni', //TODO: birthdays -> events
     'version': 'versione',
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -224,13 +236,19 @@ var i18n = {
     'Main phone': 'Telefono principale',
   },
   'id': {
-    'UNKNOWN': 'Tidak diketahui',
     'Age': 'Usia',
-    'Birthday': 'Ulang tahun',
-    'Birthday today': 'Ulang tahun hari ini',
-    'Birthday tomorrow': 'Ulang tahun besok',
-    'Birthday in {0} days': 'Ulang tahun dalam {0} hari',
-    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut',
+    //TODO: 'Years': '',
+    //TODO: 'Events': '',
+    'Birthday today': 'Ulang tahun hari ini', //TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Ulang tahun besok', //TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Ulang tahun dalam {0} hari', //TODO: Birthday -> Birthdays (plural)
+    //TODO: 'Anniversaries today': '',
+    //TODO: 'Anniversaries tomorrow': '',
+    //TODO: 'Anniversaries in {0} days': '',
+    //TODO: 'Custom events today': '',
+    //TODO: 'Custom events tomorrow': '',
+    //TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut', //TODO: birthdays -> events
     'version': 'versi',
     'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -241,13 +259,19 @@ var i18n = {
     'Main phone': 'Telp. utama',
   },
   'de': {
-    'UNKNOWN': 'Unbekannt',
     'Age': 'Alter',
-    'Birthday': 'Geburtstag',
-    'Birthday today': 'Heute Geburtstag',
-    'Birthday tomorrow': 'Morgen Geburtstag',
-    'Birthday in {0} days': 'Geburtstag in {0} Tagen',
-    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht',
+    //TODO: 'Years': '',
+    //TODO: 'Events': '',
+    'Birthday today': 'Heute Geburtstag', //TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Morgen Geburtstag', //TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Geburtstag in {0} Tagen', //TODO: Birthday -> Birthdays (plural)
+    //TODO: 'Anniversaries today': '',
+    //TODO: 'Anniversaries tomorrow': '',
+    //TODO: 'Anniversaries in {0} days': '',
+    //TODO: 'Custom events today': '',
+    //TODO: 'Custom events tomorrow': '',
+    //TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht', //TODO: birthdays -> events
     'version': 'Version',
     'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -258,13 +282,19 @@ var i18n = {
     'Main phone': 'Hauptnummer',
   },
   'pl': {
-    'UNKNOWN': 'NIEZNANY',
     'Age': 'Wiek',
-    'Birthday': 'Urodziny',
-    'Birthday today': 'Urodziny dzisiaj',
-    'Birthday tomorrow': 'Urodziny jutro',
-    'Birthday in {0} days': 'Urodziny za {0} dni',
-    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach',
+    //TODO: 'Years': '',
+    //TODO: 'Events': '',
+    'Birthday today': 'Urodziny dzisiaj', //TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Urodziny jutro', //TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Urodziny za {0} dni', //TODO: Birthday -> Birthdays (plural)
+    //TODO: 'Anniversaries today': '',
+    //TODO: 'Anniversaries tomorrow': '',
+    //TODO: 'Anniversaries in {0} days': '',
+    //TODO: 'Custom events today': '',
+    //TODO: 'Custom events tomorrow': '',
+    //TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach', //TODO: birthdays -> events
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
