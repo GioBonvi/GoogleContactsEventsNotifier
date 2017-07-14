@@ -338,7 +338,7 @@ function checkEvents (testDate) {
   subjectBuilder = [];
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffix1 = _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version + ')';
-  bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
+  bodySuffix2 = _('by') + ' Giorgio Bonvicini';
   // The email is built both with plain text and HTML text.
   bodyBuilder = [];
   htmlBodyBuilder = [];
