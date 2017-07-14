@@ -1,7 +1,7 @@
 /* global Logger CalendarApp ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp */
 
 /*
- * Thanks to this script you are going to receive an email before the birthday of each of your contacts.
+ * Thanks to this script you are going to receive an email before events of each of your contacts.
  * The script is easily customizable via some variables listed below.
  */
 
@@ -32,13 +32,14 @@ var myEmail = 'insertyouremailhere@someemail.com';
  * If you leave it blank it will default to your Google account name.
  * Note: this may not work when using a Gmail address sending emails to itself.
  */
-var emailSenderName = 'Birthday Notifications';
+var emailSenderName = 'Contacts Events Notifications';
 
 /*
- * ID OF THE BIRTHDAY CALENDAR
+ * ID OF THE CONTACTS EVENTS CALENDAR
  *
- * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the birthday calendar
- * and choose 'Calendar settings', finally look for a the "Calendar ID field" (it should be something similar to
+ * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the contacts events
+ * calendar (which should have a default name like 'Birthdays and events') and choose 'Calendar settings',
+ * finally look for the "Calendar ID field" (it should be something similar to
  * #contacts@group.v.calendar.google.com): copy and paste it between the quotes in the next line.
  */
 var calendarId = '#contacts@group.v.calendar.google.com';
@@ -63,17 +64,17 @@ var myTimeZone = 'Europe/Rome';
 var notificationHour = 6;
 
 /*
- * HOW MANY DAYS BEFORE BIRTHDAY
+ * HOW MANY DAYS BEFORE EVENT
  *
  * Here you have to decide when you want to receive the email notification.
  * Insert between the square brackets a comma-separated list of numbers, where each number
- * represents how many day before a birthday you want to be notified.
+ * represents how many days before an event you want to be notified.
  * If you want to be notified only once then enter a single number between the brackets.
  *
  * Examples:
- *  [0] means "Notify me the day of the birthday";
- *  [0, 7] means "Notify me the day of the birthday and 7 days before";
- *  [0, 1, 7] means "Notify me the day of the birthday, the day before and 7 days before";
+ *  [0] means "Notify me the day of the event";
+ *  [0, 7] means "Notify me the day of the event and 7 days before";
+ *  [0, 1, 7] means "Notify me the day of the event, the day before and 7 days before";
  *
  * Note: in any case you will receive one email per day: all the notifications will be grouped
  * together in that email.
@@ -104,7 +105,7 @@ var sendLog = false;
 /*
  * The test() function can be run on a specified date as if it is "today". Specify that date here in the format
  * YEAR/MONTH/DAY HOUR:MINUTE:SECOND
- * Choose a date you know should trigger a birthday notification.
+ * Choose a date you know should trigger an event notification.
  */
 var fakeTestDate = '2017/02/14 06:00:00';
 
@@ -264,8 +265,8 @@ var i18n = {
   */
 };
 
-var birthdayCalendar = CalendarApp.getCalendarById(calendarId);
-var calendarTimeZone = birthdayCalendar ? birthdayCalendar.getTimeZone() : null;
+var eventCalendar = CalendarApp.getCalendarById(calendarId);
+var calendarTimeZone = eventCalendar ? eventCalendar.getTimeZone() : null;
 var inlineImages;
 
 // Replace a Field.Label object with its "beautified" text representation.
@@ -297,26 +298,26 @@ function doLog (arg) {
 }
 
 /*
- * Look for birthdays on a certain date.
+ * Look for events on a certain date.
  * If testDate is not specified Date.now() will be used.
  */
-function checkBirthdays (testDate) {
+function checkEvents (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
     bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
 
-  doLog('Starting run of Google Birthday Notifier version ' + version + '.');
+  doLog('Starting run of Google Contacts Events Notifier version ' + version + '.');
   // The script needs this value in milliseconds, but the user entered it in days.
   anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
-  // Verify that the birthday calendar exists.
-  if (!birthdayCalendar) {
-    throw new Error('Birthday calendar not found! Please follow the instructions (step "Enable the calendar").');
+  // Verify that the contacts events calendar exists.
+  if (!eventCalendar) {
+    throw new Error('Contacts events calendar not found! Please follow the instructions (step "Enable the calendar").');
   }
 
   // Start building the email notification text.
-  subjectPrefix = _('Birthday') + ': ';
+  subjectPrefix = _('Events') + ': ';
   subjectBuilder = [];
-  bodyPrefix = _('Hey! Don\'t forget these birthdays') + ':';
-  bodySuffix1 = _('Google Birthday Notifier') + ' (' + _('version') + ' ' + version + ')';
+  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
+  bodySuffix1 = _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version + ')';
   bodySuffix2 = _('by ') + 'Giorgio Bonvicini';
   // The email is built both with plain text and HTML text.
   bodyBuilder = [];
@@ -328,12 +329,12 @@ function checkBirthdays (testDate) {
 
   inlineImages = {};
   /*
-   * Look for birthdays on each of the days specified by the user.
+   * Look for events on each of the days specified by the user.
    * timeInterval represents how many milliseconds in the future to check.
    */
   anticipate.forEach(
     function (timeInterval) {
-      var optionalArgs, events, birthdays, formattedDate, whenIsIt;
+      var optionalArgs, events, theseEvents, formattedDate, whenIsIt;
 
       // Set the search filter to include only events happening 'timeInterval' milliseconds after now.
       optionalArgs = {
@@ -341,39 +342,39 @@ function checkBirthdays (testDate) {
         timeMin: Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
         // ... and 'now + timeInterval + 1 sec'.
         timeMax: Utilities.formatDate(new Date(now.getTime() + timeInterval + 1000), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
-        // Treat recurring (like birthdays) events as single events.
+        // Treat recurring events (like birthdays) as single events.
         singleEvents: true
       };
-      doLog('Checking birthdays from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
+      doLog('Checking events from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
 
-      // Get all the matching BIRTHDAY events.
+      // Get all the matching 'eventType' events.
       events = Calendar.Events.list(calendarId, optionalArgs).items;
-      birthdays = events.filter(function (e) { return e.gadget.preferences['goo.contactsEventType'] === 'BIRTHDAY'; });
-      doLog('Found ' + birthdays.length + ' birthdays in this time range.');
-      // If no BIRTHDAY event is found for this particular timeInterval skip it.
-      if (birthdays.length < 1) {
+      theseEvents = events.filter(function (e) { return e.gadget.preferences['goo.contactsEventType'] === 'BIRTHDAY'; });
+      doLog('Found ' + theseEvents.length + ' events in this time range.');
+      // If no 'eventType' event is found for this particular timeInterval skip it.
+      if (theseEvents.length < 1) {
         return;
       }
 
       formattedDate = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, _('dd-MM-yyyy'));
-      // Build the headers of birthday grouping by date.
+      // Build the headers of event grouping by date.
       bodyBuilder.push(' * ');
       htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
       switch (timeInterval / (24 * 60 * 60 * 1000)) {
         case 0:
-          whenIsIt = _('Birthday today') + ' (' + formattedDate + ')';
+          whenIsIt = _('Event today') + ' (' + formattedDate + ')';
           break;
         case 1:
-          whenIsIt = _('Birthday tomorrow') + ' (' + formattedDate + ')';
+          whenIsIt = _('Event tomorrow') + ' (' + formattedDate + ')';
           break;
         default:
-          whenIsIt = _('Birthday in {0} days').format(timeInterval / (24 * 60 * 60 * 1000)) + ' (' + formattedDate + ')';
+          whenIsIt = _('Event in {0} days').format(timeInterval / (24 * 60 * 60 * 1000)) + ' (' + formattedDate + ')';
       }
       bodyBuilder.push(whenIsIt, ':\n');
       htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
 
-      // Add each of the birthdays for this timeInterval.
-      birthdays.forEach(
+      // Add each of the 'eventType' events for this timeInterval.
+      theseEvents.forEach(
         function (event, i) {
           var contact;
 
@@ -418,7 +419,7 @@ function checkBirthdays (testDate) {
   if (!noLog && sendLog) {
     MailApp.sendEmail({
       to: myEmail,
-      subject: 'Logs for birthday-notification run',
+      subject: 'Logs for contact-events-notification run',
       body: Logger.getLog(),
       name: emailSenderName
     });
@@ -426,11 +427,11 @@ function checkBirthdays (testDate) {
 }
 
 /*
- * Extract contact data from a birthday event and integrate it with additional data
+ * Extract contact data from a contact event and integrate it with additional data
  * recovered directly from Google Contact through the contactId field if present.
  */
 var Contact = function (event) {
-  var eventData, googleContact, currentYear, birthdayYear, phoneFields;
+  var eventData, googleContact, currentYear, startYear, phoneFields;
 
   // Extract basic data from the event description.
   eventData = event.gadget.preferences;
@@ -458,12 +459,12 @@ var Contact = function (event) {
 
   // If a valid Google Contact exists extract some additional data.
   if (googleContact) {
-    // Extract contact's age if the contact has the birthday year.
+    // Extract contact's birthday/anniversary/custom "age" if the contact's relevant field has the year.
     if (googleContact.getDates(ContactsApp.Field.BIRTHDAY)[0]) {
-      doLog('Has birthday year.');
+      doLog('Has year.');
       currentYear = Utilities.formatDate(new Date(event.start.date.replace(/-/g, '/')), calendarTimeZone, 'yyyy');
-      birthdayYear = googleContact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
-      this.age = birthdayYear !== '' ? (currentYear - birthdayYear).toFixed(0) : '';
+      startYear = googleContact.getDates(ContactsApp.Field.BIRTHDAY)[0].getYear();
+      this.age = startYear !== '' ? (currentYear - startYear).toFixed(0) : '';
     }
     // Extract contact's phone numbers.
     phoneFields = googleContact.getPhones();
@@ -614,7 +615,7 @@ function status () {
   if (!noLog && sendLog) {
     MailApp.sendEmail({
       to: myEmail,
-      subject: 'Status for birthday-notification',
+      subject: 'Status for contact-event-notification',
       body: Logger.getLog(),
       name: emailSenderName
     });
@@ -623,7 +624,7 @@ function status () {
 
 // Normal function call (This function is called by the timed trigger).
 function normal () {
-  checkBirthdays();
+  checkEvents();
 }
 
 /*
@@ -637,5 +638,5 @@ function test () {
   testDate = new Date(fakeTestDate);
   doLog('Testing.');
   doLog('Test date: ' + testDate);
-  checkBirthdays(testDate);
+  checkEvents(testDate);
 }
