@@ -26,15 +26,6 @@ var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
 var myEmail = 'insertyouremailhere@someemail.com';
 
 /*
- * EMAIL SENDER NAME
- *
- * This is the name you will see as the sender of the email.
- * If you leave it blank it will default to your Google account name.
- * Note: this may not work when using a Gmail address sending emails to itself.
- */
-var emailSenderName = 'Contacts Events Notifications';
-
-/*
  * ID OF THE CONTACTS EVENTS CALENDAR
  *
  * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the contacts events
@@ -43,6 +34,22 @@ var emailSenderName = 'Contacts Events Notifications';
  * #contacts@group.v.calendar.google.com): copy and paste it between the quotes in the next line.
  */
 var calendarId = '#contacts@group.v.calendar.google.com';
+
+// END MANDATORY CUSTOMIZATION
+
+// START OPTIONAL CUSTOMIZATION
+
+// It is a good idea to edit these options to adapt the script to your needs,
+// however you can just leave the default values and the script will work fine.
+
+/*
+ * EMAIL SENDER NAME
+ *
+ * This is the name you will see as the sender of the email.
+ * If you leave it blank it will default to your Google account name.
+ * Note: this may not work when using a Gmail address sending emails to itself.
+ */
+var emailSenderName = 'Contacts Events Notifications';
 
 /*
  * YOUR TIMEZONE
@@ -89,18 +96,21 @@ var anticipateDays = [0, 1, 7];
  */
 var lang = 'en';
 
-// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
-var indentSize = 4;
-
-// END MANDATORY CUSTOMIZATION
-
-// START OPTIONAL CUSTOMIZATION
+/*
+ * TYPE OF EVENTS
+ *
+ * This script can track any Google Contact Event: you can decide which one by placing true or false next to each type.
+ * By default the script only tracks birthday events.
+ */
 
 var eventTypes = {
   BIRTHDAY: true,
   ANNIVERSARY: false,
-  CUSTOM: false,
-}
+  CUSTOM: false
+};
+
+// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
+var indentSize = 4;
 
 // END OPTIONAL CUSTOMIZATION
 
@@ -126,7 +136,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '2.1.3';
+var version = '3.0.0-alpha';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -155,7 +165,7 @@ if (typeof String.prototype.format === 'undefined') {
 }
 
 // Convert user-configured hash to an array
-eventTypes = Object.keys(eventTypes).filter(function(x) { return eventTypes[x]; });
+eventTypes = Object.keys(eventTypes).filter(function (x) { return eventTypes[x]; });
 
 var indent = Array(indentSize + 1).join(' ');
 
@@ -190,18 +200,18 @@ var i18n = {
   },
   'es': {
     'Age': 'Edad',
-    //TODO: 'Years': '',
-    //TODO: 'Events': '',
-    'Birthday today': 'Cumpleaños hoy', //TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Cumpleaños mañana', //TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Cumpleaños en {0} días', //TODO: Birthday -> Birthdays (plural)
-    //TODO: 'Anniversaries today': '',
-    //TODO: 'Anniversaries tomorrow': '',
-    //TODO: 'Anniversaries in {0} days': '',
-    //TODO: 'Custom events today': '',
-    //TODO: 'Custom events tomorrow': '',
-    //TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños', //TODO: birthdays -> events
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    'Birthday today': 'Cumpleaños hoy', // TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Cumpleaños mañana', // TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Cumpleaños en {0} días', // TODO: Birthday -> Birthdays (plural)
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños', // TODO: birthdays -> events
     'version': 'versión',
     'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -212,18 +222,18 @@ var i18n = {
   },
   'it': {
     'Age': 'Età',
-    //TODO: 'Years': '',
-    //TODO: 'Events': '',
-    'Birthday today': 'Compleanno oggi', //TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Compleanno domani', //TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Compleanno fra {0} giorni', //TODO: Birthday -> Birthdays (plural)
-    //TODO: 'Anniversaries today': '',
-    //TODO: 'Anniversaries tomorrow': '',
-    //TODO: 'Anniversaries in {0} days': '',
-    //TODO: 'Custom events today': '',
-    //TODO: 'Custom events tomorrow': '',
-    //TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni', //TODO: birthdays -> events
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    'Birthday today': 'Compleanno oggi', // TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Compleanno domani', // TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Compleanno fra {0} giorni', // TODO: Birthday -> Birthdays (plural)
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni', // TODO: birthdays -> events
     'version': 'versione',
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -234,18 +244,18 @@ var i18n = {
   },
   'id': {
     'Age': 'Usia',
-    //TODO: 'Years': '',
-    //TODO: 'Events': '',
-    'Birthday today': 'Ulang tahun hari ini', //TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Ulang tahun besok', //TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Ulang tahun dalam {0} hari', //TODO: Birthday -> Birthdays (plural)
-    //TODO: 'Anniversaries today': '',
-    //TODO: 'Anniversaries tomorrow': '',
-    //TODO: 'Anniversaries in {0} days': '',
-    //TODO: 'Custom events today': '',
-    //TODO: 'Custom events tomorrow': '',
-    //TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut', //TODO: birthdays -> events
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    'Birthday today': 'Ulang tahun hari ini', // TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Ulang tahun besok', // TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Ulang tahun dalam {0} hari', // TODO: Birthday -> Birthdays (plural)
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut', // TODO: birthdays -> events
     'version': 'versi',
     'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -256,18 +266,18 @@ var i18n = {
   },
   'de': {
     'Age': 'Alter',
-    //TODO: 'Years': '',
-    //TODO: 'Events': '',
-    'Birthday today': 'Heute Geburtstag', //TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Morgen Geburtstag', //TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Geburtstag in {0} Tagen', //TODO: Birthday -> Birthdays (plural)
-    //TODO: 'Anniversaries today': '',
-    //TODO: 'Anniversaries tomorrow': '',
-    //TODO: 'Anniversaries in {0} days': '',
-    //TODO: 'Custom events today': '',
-    //TODO: 'Custom events tomorrow': '',
-    //TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht', //TODO: birthdays -> events
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    'Birthday today': 'Heute Geburtstag', // TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Morgen Geburtstag', // TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Geburtstag in {0} Tagen', // TODO: Birthday -> Birthdays (plural)
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht', // TODO: birthdays -> events
     'version': 'Version',
     'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -278,18 +288,18 @@ var i18n = {
   },
   'pl': {
     'Age': 'Wiek',
-    //TODO: 'Years': '',
-    //TODO: 'Events': '',
-    'Birthday today': 'Urodziny dzisiaj', //TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Urodziny jutro', //TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Urodziny za {0} dni', //TODO: Birthday -> Birthdays (plural)
-    //TODO: 'Anniversaries today': '',
-    //TODO: 'Anniversaries tomorrow': '',
-    //TODO: 'Anniversaries in {0} days': '',
-    //TODO: 'Custom events today': '',
-    //TODO: 'Custom events tomorrow': '',
-    //TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach', //TODO: birthdays -> events
+    // TODO: 'Years': '',
+    // TODO: 'Events': '',
+    'Birthday today': 'Urodziny dzisiaj', // TODO: Birthday -> Birthdays (plural)
+    'Birthday tomorrow': 'Urodziny jutro', // TODO: Birthday -> Birthdays (plural)
+    'Birthday in {0} days': 'Urodziny za {0} dni', // TODO: Birthday -> Birthdays (plural)
+    // TODO: 'Anniversaries today': '',
+    // TODO: 'Anniversaries tomorrow': '',
+    // TODO: 'Anniversaries in {0} days': '',
+    // TODO: 'Custom events today': '',
+    // TODO: 'Custom events tomorrow': '',
+    // TODO: 'Custom events in {0} days': '',
+    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach', // TODO: birthdays -> events
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -297,7 +307,7 @@ var i18n = {
     'Work phone': 'Telefon praca',
     'Home phone': 'Telefon domowy',
     'Main phone': 'Telefon główny',
-  },    
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
@@ -311,9 +321,9 @@ var eventCalendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = eventCalendar ? eventCalendar.getTimeZone() : null;
 var inlineImages;
 
-function unique_strings(x) {
+function uniqueStrings (x) {
   var seen = {};
-  return x.filter(function(str) {
+  return x.filter(function (str) {
     return seen.hasOwnProperty(str) ? false : (seen[str] = true);
   });
 }
@@ -427,13 +437,13 @@ function checkEvents (testDate) {
           whenIsIt = eventTypeNamePlural.charAt(0).toUpperCase() + eventTypeNamePlural.slice(1);
           switch (timeInterval / (24 * 60 * 60 * 1000)) {
             case 0:
-              whenIsIt += ' today'
+              whenIsIt += ' today';
               break;
             case 1:
-              whenIsIt += ' tomorrow'
+              whenIsIt += ' tomorrow';
               break;
             default:
-              whenIsIt += ' in {0} days'
+              whenIsIt += ' in {0} days';
           }
           whenIsIt = _(whenIsIt).format(timeInterval / (24 * 60 * 60 * 1000)) + ' (' + formattedDate + ')';
           bodyBuilder.push(whenIsIt, ':\n');
@@ -461,7 +471,7 @@ function checkEvents (testDate) {
 
   // If there is an email to send...
   if (bodyBuilder.length > 0) {
-    subject = subjectPrefix + unique_strings(subjectBuilder).join(' - ');
+    subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
            .concat(bodyBuilder)
            .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
@@ -499,7 +509,7 @@ function checkEvents (testDate) {
  * recovered directly from Google Contact through the contactId field if present.
  */
 var Contact = function (event, eventType) {
-  var eventData, googleContact, currentYear, startYear, phoneFields, dates, dateLabel, dateObj, i, self;
+  var eventData, googleContact, currentYear, startYear, phoneFields, dates, dateObj, self;
 
   self = this; // for consistent access from sub-functions
 
@@ -542,7 +552,7 @@ var Contact = function (event, eventType) {
       dateObj = googleContact.getDates();
       dates = Object.keys(dateObj)
       .map(function (key) { return dateObj[key]; })
-      .filter(function (x) { return typeof(x.getLabel()) === 'string'}); // for BIRTHDAY/ANNIVERSARY getLabel() returns object
+      .filter(function (x) { return typeof (x.getLabel()) === 'string'; }); // for BIRTHDAY/ANNIVERSARY getLabel() returns object
     }
 
     dates.forEach(function (eachDate) {
