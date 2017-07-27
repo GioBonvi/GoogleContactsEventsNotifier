@@ -211,7 +211,7 @@ var i18n = {
     // TODO: 'Custom events today': '',
     // TODO: 'Custom events tomorrow': '',
     // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! No olvides estos cumpleaños', // TODO: birthdays -> events
+    'Hey! Don\'t forget these events': 'Hey! No olvides estos cumpleaños', // TODO: birthdays -> events
     'version': 'versión',
     'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -222,18 +222,18 @@ var i18n = {
   },
   'it': {
     'Age': 'Età',
-    // TODO: 'Years': '',
-    // TODO: 'Events': '',
-    'Birthday today': 'Compleanno oggi', // TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Compleanno domani', // TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Compleanno fra {0} giorni', // TODO: Birthday -> Birthdays (plural)
-    // TODO: 'Anniversaries today': '',
-    // TODO: 'Anniversaries tomorrow': '',
-    // TODO: 'Anniversaries in {0} days': '',
-    // TODO: 'Custom events today': '',
-    // TODO: 'Custom events tomorrow': '',
-    // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! Non dimenticare questi compleanni', // TODO: birthdays -> events
+    'Years': 'Anni',
+    'Events': 'Eventi',
+    'Birthday today': 'Compleanni oggi',
+    'Birthday tomorrow': 'Compleanni domani',
+    'Birthday in {0} days': 'Compleanni fra {0} giorni',
+    'Anniversaries today': 'Anniversari oggi',
+    'Anniversaries tomorrow': 'Anniversari domani',
+    'Anniversaries in {0} days': 'Anniversari fra {0} giorni',
+    'Custom events today': 'Eventi personalizzati oggi',
+    'Custom events tomorrow': 'Eventi personalizzati domani',
+    'Custom events in {0} days': 'Eventi personalizzati fra {0} giorni',
+    'Hey! Don\'t forget these events': 'Hey! Non dimenticare questi eventi',
     'version': 'versione',
     'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -255,7 +255,7 @@ var i18n = {
     // TODO: 'Custom events today': '',
     // TODO: 'Custom events tomorrow': '',
     // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hai! Jangan lupa hari ulang tahun berikut', // TODO: birthdays -> events
+    'Hey! Don\'t forget these events': 'Hai! Jangan lupa hari ulang tahun berikut', // TODO: birthdays -> events
     'version': 'versi',
     'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -277,7 +277,7 @@ var i18n = {
     // TODO: 'Custom events today': '',
     // TODO: 'Custom events tomorrow': '',
     // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hey! Vergiss diese Geburtstage nicht', // TODO: birthdays -> events
+    'Hey! Don\'t forget these events': 'Hey! Vergiss diese Geburtstage nicht', // TODO: birthdays -> events
     'version': 'Version',
     'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
@@ -299,7 +299,7 @@ var i18n = {
     // TODO: 'Custom events today': '',
     // TODO: 'Custom events tomorrow': '',
     // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these birthdays': 'Hej! Nie zapomnij o tych urodzinach', // TODO: birthdays -> events
+    'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych urodzinach', // TODO: birthdays -> events
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
