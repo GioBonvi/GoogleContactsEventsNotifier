@@ -202,9 +202,9 @@ var i18n = {
     'Age': 'Edad',
     // TODO: 'Years': '',
     // TODO: 'Events': '',
-    'Birthday today': 'Cumpleaños hoy', // TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Cumpleaños mañana', // TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Cumpleaños en {0} días', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays today': 'Cumpleaños hoy', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays tomorrow': 'Cumpleaños mañana', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays in {0} days': 'Cumpleaños en {0} días', // TODO: Birthday -> Birthdays (plural)
     // TODO: 'Anniversaries today': '',
     // TODO: 'Anniversaries tomorrow': '',
     // TODO: 'Anniversaries in {0} days': '',
@@ -224,9 +224,9 @@ var i18n = {
     'Age': 'Età',
     'Years': 'Anni',
     'Events': 'Eventi',
-    'Birthday today': 'Compleanni oggi',
-    'Birthday tomorrow': 'Compleanni domani',
-    'Birthday in {0} days': 'Compleanni fra {0} giorni',
+    'Birthdays today': 'Compleanni oggi',
+    'Birthdays tomorrow': 'Compleanni domani',
+    'Birthdays in {0} days': 'Compleanni fra {0} giorni',
     'Anniversaries today': 'Anniversari oggi',
     'Anniversaries tomorrow': 'Anniversari domani',
     'Anniversaries in {0} days': 'Anniversari fra {0} giorni',
@@ -246,9 +246,9 @@ var i18n = {
     'Age': 'Usia',
     // TODO: 'Years': '',
     // TODO: 'Events': '',
-    'Birthday today': 'Ulang tahun hari ini', // TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Ulang tahun besok', // TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Ulang tahun dalam {0} hari', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays today': 'Ulang tahun hari ini', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays tomorrow': 'Ulang tahun besok', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays in {0} days': 'Ulang tahun dalam {0} hari', // TODO: Birthday -> Birthdays (plural)
     // TODO: 'Anniversaries today': '',
     // TODO: 'Anniversaries tomorrow': '',
     // TODO: 'Anniversaries in {0} days': '',
@@ -268,9 +268,9 @@ var i18n = {
     'Age': 'Alter',
     'Years': 'Jahre',
     'Events': 'Termine',
-    'Birthday today': 'Geburtstage heute',
-    'Birthday tomorrow': 'Geburtstage morgen',
-    'Birthday in {0} days': 'Geburtstage in {0} Tagen',
+    'Birthdays today': 'Geburtstage heute',
+    'Birthdays tomorrow': 'Geburtstage morgen',
+    'Birthdays in {0} days': 'Geburtstage in {0} Tagen',
     'Anniversaries today': 'Jahrestage heute',
     'Anniversaries tomorrow': 'Jahrestage morgen',
     'Anniversaries in {0} days': 'Jahrestage in {0} Tagen',
@@ -290,9 +290,9 @@ var i18n = {
     'Age': 'Wiek',
     // TODO: 'Years': '',
     // TODO: 'Events': '',
-    'Birthday today': 'Urodziny dzisiaj', // TODO: Birthday -> Birthdays (plural)
-    'Birthday tomorrow': 'Urodziny jutro', // TODO: Birthday -> Birthdays (plural)
-    'Birthday in {0} days': 'Urodziny za {0} dni', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays today': 'Urodziny dzisiaj', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays tomorrow': 'Urodziny jutro', // TODO: Birthday -> Birthdays (plural)
+    'Birthdays in {0} days': 'Urodziny za {0} dni', // TODO: Birthday -> Birthdays (plural)
     // TODO: 'Anniversaries today': '',
     // TODO: 'Anniversaries tomorrow': '',
     // TODO: 'Anniversaries in {0} days': '',
