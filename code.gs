@@ -321,6 +321,16 @@ var eventCalendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = eventCalendar ? eventCalendar.getTimeZone() : null;
 var inlineImages;
 
+function htmlEscape (str) {
+  return str
+         .replace(/&/g, '&amp;')
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&#39;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/\//g, '&#x2F;');
+};
+
 function uniqueStrings (x) {
   var seen = {};
   return x.filter(function (str) {
@@ -476,9 +486,9 @@ function checkEvents (testDate) {
            .concat(bodyBuilder)
            .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
            .join('');
-    htmlBody = ['<h3>', bodyPrefix, '</h3><dl>']
+    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
                .concat(htmlBodyBuilder)
-               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleBirthdayNotifier">', bodySuffix1, '</a><br/>', bodySuffix2, '</p>'])
+               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleBirthdayNotifier">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2), '</p>'])
                .join('');
 
     // ...send the email notification.
@@ -648,13 +658,13 @@ var Contact = function (event, eventType) {
       }
       // Custom label
       if (self.eventType === 'CUSTOM') {
-        line.push('&lt;' + dateLabel + '&gt; ');
+        line.push('&lt;' + htmlEscape(dateLabel) + '&gt; ');
       }
       // Full name.
-      line.push(self.fullName);
+      line.push(htmlEscape(self.fullName));
       // Nickname.
       if (self.nickname !== '') {
-        line.push(' &quot;', self.nickname, '&quot;');
+        line.push(' &quot;', htmlEscape(self.nickname), '&quot;');
       }
       // Age.
       if (self.age.hasOwnProperty(dateLabel) && self.age[dateLabel] !== '') {
@@ -679,7 +689,7 @@ var Contact = function (event, eventType) {
           }
           label = phoneField.getLabel();
           if (label !== '') {
-            line.push('[', beautifyLabel(label), '] ');
+            line.push('[', htmlEscape(beautifyLabel(label)), '] ');
           }
           line.push('<a href="tel:', phoneField.getPhoneNumber(), '">', phoneField.getPhoneNumber(), '</a>');
         });
