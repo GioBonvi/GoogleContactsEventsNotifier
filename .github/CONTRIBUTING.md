@@ -22,7 +22,7 @@ Now let the fun begin! There are many ways you can contribute to this project:
 - have you thought of a feature which would improve this project but don't know
   how to code it? You can create an issue with a feature request detailing what
   you thought and your proposal will be evaluated by the developers;
-- are you a developer yourself? You can fork the project and the create a Pull
+- are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
 - do you speak a foreign language? You can [contribute][contribute with
