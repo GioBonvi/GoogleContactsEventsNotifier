@@ -288,25 +288,25 @@ var i18n = {
   },
   'pl': {
     'Age': 'Wiek',
-    // TODO: 'Years': '',
-    // TODO: 'Events': '',
-    'Birthdays today': 'Urodziny dzisiaj', // TODO: Birthday -> Birthdays (plural)
-    'Birthdays tomorrow': 'Urodziny jutro', // TODO: Birthday -> Birthdays (plural)
-    'Birthdays in {0} days': 'Urodziny za {0} dni', // TODO: Birthday -> Birthdays (plural)
-    // TODO: 'Anniversaries today': '',
-    // TODO: 'Anniversaries tomorrow': '',
-    // TODO: 'Anniversaries in {0} days': '',
-    // TODO: 'Custom events today': '',
-    // TODO: 'Custom events tomorrow': '',
-    // TODO: 'Custom events in {0} days': '',
-    'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych urodzinach', // TODO: birthdays -> events
+    'Years': 'Lata',
+    'Events': 'Wydarzenia',
+    'Birthdays today': 'Urodziny dzisiaj',
+    'Birthdays tomorrow': 'Urodziny jutro',
+    'Birthdays in {0} days': 'Urodziny za {0} dni',
+    'Anniversaries today': 'Rocznice dzisiaj',
+    'Anniversaries tomorrow': 'Rocznice jutro',
+    'Anniversaries in {0} days': 'Rocznice za {0} dni',
+    'Custom events today': 'Inne wydarzenia dzisiaj',
+    'Custom events tomorrow': 'Inne wydarzenia jutro',
+    'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
+    'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
     'by': 'od',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telefon komórkowy',
-    'Work phone': 'Telefon praca',
-    'Home phone': 'Telefon domowy',
-    'Main phone': 'Telefon główny',
+    'Work phone': 'Telefon (praca)',
+    'Home phone': 'Telefon (domowy)',
+    'Main phone': 'Telefon (główny)',
   },
   /* To add a language:
   '[lang-code]': {
