@@ -1,16 +1,16 @@
-# Google Birthday Notifier
+# Google Contacts Events Notifier
 
 ![Logo](images/Logo_alpha.png)
 
-Receive customized email notifications to alert you about incoming birthday of
-your Google contacts.
+Receive customized email notifications to alert you about incoming birthdays or
+other events of your Google contacts.
 
 Have you ever wondered why on Earth would Google Calendar provide a calendar to
 remind you of your contact birthdays, but without letting you set up notifications
 for its events?  
-I did. And after much frustrated searching and browsing found a post in the
-Google Help Forum which seemed to provide a solution, however it did not quite
-work.
+I did. And after hours of fruitless searching and browsing I found [a post in
+the Google Help Forum][Original Google Help Forum Post] which seemed to provide
+a solution, however it did not quite work.
 
 This project takes inspiration from that code to solve the problem of the
 missing notifications on Google Calendar Birthday Calendar.
@@ -19,8 +19,9 @@ missing notifications on Google Calendar Birthday Calendar.
 
 ### Enable the calendar
 
-First of all you need to enable your contacts birthday calendar in you Google
-Calendar (read [this Google help page][Google setup birthday calendar]).
+First of all you need to enable your contacts birthday and events calendar in
+you Google Calendar (read [this Google help page][Google setup birthday
+calendar] to know how to do it).
 
 ### Create the script
 
@@ -33,20 +34,49 @@ the code into the page.
 Now read carefully the code you've pasted. At the top of the file you will find
 some lines you need to modify along with many lines of instructions. Edit the
 values as explained by the instructions.  
-You must adjust the values of these variables:
+
+Once you're done editing the variables click File->Save in the menu and enter a
+name for the script (it doesn't really matter, just name it so that you'll
+recognize if you find it in the future).
+
+The customization variables are divided in three lists.
+
+#### Mandatory customization
+
+This is the first list you will find and contains some variables than you
+**must** initialize correctly, otherwise the script will not work at all.  
+These variables are:
 
 - `myGoogleEmail`
 - `myEmail`
-- `emailSenderName`
 - `calendarId`
+
+#### Optional customization
+
+This second list of variables contains some variables than you could leave as
+they are, but you are warmly encouraged to edit them, so as to fit your exact
+needs.  
+These variables are:
+
+- `emailSenderName`
 - `myTimeZone`
 - `notificationHour`
 - `anticipateDays`
 - `lang`
+- `eventTypes`
+- `identSize`
 
-Now click File->Save in the menu and enter a name for the script (it doesn't
-really matter, just name it so that you'll recognize if you find it in the
-future).
+#### Debugging options
+
+This list only contains some variables used to debug and troubleshoot the
+script when it does not work as intended. Generally you should not need to
+edit these values, but you may be asked to do so if you submit a help
+request.  
+These variables are:
+
+- `noLog`
+- `sendLog`
+- `fakeTestDate`
 
 ### Activate API for the script
 
@@ -85,25 +115,25 @@ To add a new language:
   for example:  
 
   ```javascript
-  'el' : {
-    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  'it': {
+    'Age': 'Età',
     ...
-    'send email now': 'στείλτε email τώρα',
+    'Main phone': 'Telefono principale',
   },
   ```
 
 - paste it just below itself, like this:
 
   ```javascript
-  'el' : {
-    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  'it': {
+    'Age': 'Età',
     ...
-    'send email now': 'στείλτε email τώρα',
+    'Main phone': 'Telefono principale',
   },
-  'el' : {
-    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  'it': {
+    'Age': 'Età',
     ...
-    'send email now': 'στείλτε email τώρα',
+    'Main phone': 'Telefono principale',
   },
   ```
 
@@ -112,15 +142,15 @@ To add a new language:
   the `:` unchanged and translating the one on the right, like this:
 
   ```javascript
-  'el' : {
-    'UNKNOWN': 'ΑΓΝΩΣΤΟΣ',
+  'it': {
+    'Age': 'Età',
     ...
-    'send email now': 'στείλτε email τώρα',
+    'Main phone': 'Telefono principale',
   },
-  'it' : {
-    'UNKNOWN': 'SCONOSCIUTO',
+  'de' : {
+    'Age': 'Alter',
     ...
-    'send email now': 'invia email ora',
+    'Main phone': 'Hauptnummer',
   },
   ```
 
@@ -190,7 +220,7 @@ know how to contribute please read the [CONTRIBUTING][Contributing file] file.
 
 ## License
 
-Google Birthday Notifier is licensed under the [MIT license][License
+Google Contacts Events Notifier is licensed under the [MIT license][License
 file].
 
 ## Credits
@@ -204,13 +234,14 @@ file].
   - [lboullo0 (Lucas)][Github lboullo0] - Spanish;
   - [muzavan (Muhammad Reza Irvanda)][Github muzavan] - Indonesian;
   - [DrKrakower][Github DrKrakower] - German;
-  - [cezarylaksa][Github cezarylaksa] - Polish;
+  - [cezarylaksa][Github cezarylaksa] and [baatochan (Bartosz
+    Rodziewicz)][Github baatochan] - Polish;
 - all of the contributors that you can find [here][Project contributors page];
 
-[Project main page]: https://github.com/GioBonvi/GoogleBirthdayNotifier
-[Project documentation]: https://giobonvi.github.io/GoogleBirthdayNotifier
-[Project issue page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues
-[Project contributors page]: https://github.com/GioBonvi/GoogleBirthdayNotifier/graphs/contributors
+[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
+[Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
+[Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
+[Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
 [Main code file]: code.gs
 [Issue template file]: .github/ISSUE_TEMPLATE.md
 [Contributing file]: .github/CONTRIBUTING.md
@@ -224,3 +255,4 @@ file].
 [Github muzavan]: https://github.com/muzavan
 [Github DrKrakower]: https://github.com/DrKrakower
 [Github cezarylaksa]: https://github.com/cezarylaksa
+[Github baatochan]: https://github.com/baatochan

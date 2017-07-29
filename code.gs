@@ -488,7 +488,7 @@ function checkEvents (testDate) {
            .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
                .concat(htmlBodyBuilder)
-               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleBirthdayNotifier">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2), '</p>'])
+               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleContactsEventsNotifier">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2), '</p>'])
                .join('');
 
     // ...send the email notification.
