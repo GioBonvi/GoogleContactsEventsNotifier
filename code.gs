@@ -136,7 +136,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '3.0.0-alpha';
+var version = '3.0.0';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
