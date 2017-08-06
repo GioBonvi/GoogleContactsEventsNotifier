@@ -570,8 +570,8 @@ var Contact = function (event, eventType) {
   if (self.photo !== '') {
     doLog('Has photo.');
   }
-  // If the contact has a contactId field try to get the Google Contact corresponding to that contactId.
-  if (self.id === '') {
+  // If the contact is a Google contact and not just a Google Plus contact try to get the Google Contact via the contactId.
+  if (eventData['goo.contactsIsMyContact'] === 'false' || self.id === '') {
     self.dateLabels.push(self.eventType);
   } else {
     doLog('Has Google ID.');
