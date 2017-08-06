@@ -354,6 +354,31 @@ function beautifyLabel (label) {
   }
 }
 
+// Get a a ContactsApp.Month's numerical representation (JAN = 0).
+function monthToInt (month) {
+  var i;
+  var months = [
+    ContactsApp.Month.JANUARY,
+    ContactsApp.Month.FEBRUARY,
+    ContactsApp.Month.MARCH,
+    ContactsApp.Month.APRIL,
+    ContactsApp.Month.MAY,
+    ContactsApp.Month.JUNE,
+    ContactsApp.Month.JULY,
+    ContactsApp.Month.AUGUST,
+    ContactsApp.Month.SEPTEMBER,
+    ContactsApp.Month.OCTOBER,
+    ContactsApp.Month.NOVEMBER,
+    ContactsApp.Month.DECEMBER
+  ];
+  for (i = 0; i < 12; i++) {
+    if (month === months[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /*
  * Get the translation of a string.
  * If the language or the chosen string is invalid return the string itself.
@@ -519,12 +544,12 @@ function checkEvents (testDate) {
  * recovered directly from Google Contact through the contactId field if present.
  */
 var Contact = function (event, eventType) {
-  var eventData, googleContact, currentYear, startYear, phoneFields, dates, dateObj, self;
+  var eventData, googleContact, currentYear, startYear, phoneFields, dates, self;
 
   self = this; // for consistent access from sub-functions
-
   // Extract basic data from the event description.
   eventData = event.gadget.preferences;
+  self.eventDate = (typeof event.start.date === 'undefined') ? null : new Date(event.start.date);
   self.id = (typeof eventData['goo.contactsContactId'] === 'undefined') ? '' : eventData['goo.contactsContactId'];
   self.fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
   self.email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
@@ -534,6 +559,7 @@ var Contact = function (event, eventType) {
   self.phoneFields = [];
   self.nickname = '';
   self.eventType = eventType;
+  self.eventTypeCustomString = typeof eventData['goo.contactsCustomEventType'] === 'undefined' ? '' : eventData['goo.contactsCustomEventType'];
 
   if (self.email !== '') {
     doLog('Has email.');
@@ -554,17 +580,17 @@ var Contact = function (event, eventType) {
 
   // If a valid Google Contact exists extract some additional data.
   if (googleContact) {
-    // Extract contact's birthday/anniversary/custom "age" if the contact's relevant field has the year.
     currentYear = Utilities.formatDate(new Date(event.start.date.replace(/-/g, '/')), calendarTimeZone, 'yyyy');
+    // Get all the events for this day from the contact.
     if (self.eventType === 'BIRTHDAY' || self.eventType === 'ANNIVERSARY') {
       dates = [googleContact.getDates(ContactsApp.Field[self.eventType])[0]];
     } else if (self.eventType === 'CUSTOM') {
-      dateObj = googleContact.getDates();
-      dates = Object.keys(dateObj)
-      .map(function (key) { return dateObj[key]; })
-      .filter(function (x) { return typeof (x.getLabel()) === 'string'; }); // for BIRTHDAY/ANNIVERSARY getLabel() returns object
+      dates = googleContact.getDates(self.eventTypeCustomString).filter(function (x) {
+        return (x.getDay() === self.eventDate.getDate() && monthToInt(x.getMonth()) === self.eventDate.getMonth());
+      });
     }
 
+    // Store information for each event (name and years passed).
     dates.forEach(function (eachDate) {
       var dateLabel = eachDate.getLabel();
       doLog('Has ' + dateLabel + ' year.');
