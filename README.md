@@ -215,7 +215,7 @@ if today was the date you set.
 
 ## Contributing
 
-Google Birthday Notifier is an open source project: if you want to
+Google Contacts Events Notifier is an open source project: if you want to
 know how to contribute please read the [CONTRIBUTING][Contributing file] file.
 
 ## License
