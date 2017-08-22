@@ -136,10 +136,11 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
-var version = '3.0.0';
+var version = '3.1.0';
 
-// This URL is used to access the files in the repository from outside GitHub.
+// These URsL are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
+var baseGitHubProjectURL = 'https://github.com/GioBonvi/GoogleContactsEventsNotifier/';
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -200,6 +201,8 @@ var i18n = {
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
+    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
+    // TODO: 'here': '',
   },
   'es': {
     'Age': 'Edad',
@@ -222,6 +225,8 @@ var i18n = {
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
     'Main phone': 'Teléfono principal',
+    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
+    // TODO: 'here': '',
   },
   'it': {
     'Age': 'Età',
@@ -244,6 +249,8 @@ var i18n = {
     'Work phone': 'Telefono di lavoro',
     'Home phone': 'Telefono di casa',
     'Main phone': 'Telefono principale',
+    'It looks like you are using an outdated version of this script. You can find the latest one': 'Sembra che tu stia usando una vecchia versione di questo script. Puoi trovare l\'ultima',
+    'here': 'qui',
   },
   'id': {
     'Age': 'Usia',
@@ -266,6 +273,8 @@ var i18n = {
     'Work phone': 'Telp. Kantor',
     'Home phone': 'Telp. Rumah',
     'Main phone': 'Telp. Utama',
+    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
+    // TODO: 'here': '',
   },
   'de': {
     'Age': 'Alter',
@@ -288,6 +297,8 @@ var i18n = {
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
     'Main phone': 'Hauptnummer',
+    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
+    // TODO: 'here': '',
   },
   'pl': {
     'Age': 'Wiek',
@@ -310,6 +321,8 @@ var i18n = {
     'Work phone': 'Telefon (praca)',
     'Home phone': 'Telefon (domowy)',
     'Main phone': 'Telefon (główny)',
+    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
+    // TODO: 'here': '',
   },
   /* To add a language:
   '[lang-code]': {
@@ -383,6 +396,29 @@ function monthToInt (month) {
 }
 
 /*
+ * Get the last version number from the GitHub file and compare it with the script's one.
+ * If they do not match the user is running an outdated version of the script.
+ * If there is any problem retrieving the latest version number just return false.
+ */
+function isRunningOutdatedVersion () {
+  var response, latestVersion;
+
+  response = UrlFetchApp.fetch(baseRawFilesURL + 'code.gs');
+  if (response.getResponseCode() !== 200) {
+    doLog('Unable to get the latest version number: the requested URL returned a ' + response.getResponseCode() + ' response.');
+    return false;
+  }
+
+  latestVersion = /var version = '(.+)';/.exec(response.getContentText('UTF-8'));
+  if (latestVersion === null) {
+    doLog('Unable to get the latest version number: the version number could not be found in the text file.');
+    return false;
+  }
+
+  return latestVersion[1] !== version;
+}
+
+/*
  * Get the translation of a string.
  * If the language or the chosen string is invalid return the string itself.
  */
@@ -400,7 +436,7 @@ function doLog (arg) {
  */
 function checkEvents (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
-    bodyPrefix, bodySuffix1, bodySuffix2, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
+    bodyPrefix, bodySuffix1, bodySuffix2, bodySuffix3, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
 
   doLog('Starting run of Google Contacts Events Notifier version ' + version + '.');
   // The script needs this value in milliseconds, but the user entered it in days.
@@ -416,6 +452,7 @@ function checkEvents (testDate) {
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffix1 = _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version + ')';
   bodySuffix2 = _('by') + ' Giorgio Bonvicini';
+  bodySuffix3 = _('It looks like you are using an outdated version of this script. You can find the latest one');
   // The email is built both with plain text and HTML text.
   bodyBuilder = [];
   htmlBodyBuilder = [];
@@ -511,13 +548,15 @@ function checkEvents (testDate) {
   if (bodyBuilder.length > 0) {
     subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
-           .concat(bodyBuilder)
-           .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
-           .join('');
+        .concat(bodyBuilder)
+        .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
+        .concat('\n', isRunningOutdatedVersion() ? [bodySuffix3, ' ', _('here'), ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+        .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
-               .concat(htmlBodyBuilder)
-               .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="https://github.com/GioBonvi/GoogleContactsEventsNotifier">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2), '</p>'])
-               .join('');
+        .concat(htmlBodyBuilder)
+        .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2)])
+        .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffix3), ' ', '<a href="', baseGitHubProjectURL + 'releases/latest', '">', _('here'), '</a>.</b></p>'] : ['</p>'])
+        .join('');
 
     // ...send the email notification.
     doLog('Sending email...');
