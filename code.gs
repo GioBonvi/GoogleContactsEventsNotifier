@@ -138,6 +138,9 @@ var fakeTestDate = '2017/02/14 06:00:00';
 
 var version = '3.0.0';
 
+// This URL is used to access the files in the repository from outside GitHub.
+var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
+
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) {
@@ -569,6 +572,9 @@ var Contact = function (event, eventType) {
   }
   if (self.photo !== '') {
     doLog('Has photo.');
+  } else {
+    doLog('Using default profile image.');
+    self.photo = baseRawFilesURL + 'images/default_profile.jpg';
   }
   // If the contact is a Google contact and not just a Google Plus contact try to get the Google Contact via the contactId.
   if (eventData['goo.contactsIsMyContact'] === 'false' || self.id === '') {
