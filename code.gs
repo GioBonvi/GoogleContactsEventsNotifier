@@ -201,8 +201,8 @@ var i18n = {
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
-    // TODO: 'It looks like you are using an outdated version of this script': '',
-    // TODO: 'You can find the latest one here': '',
+    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
+    'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
   'es': {
     'Age': 'Edad',
