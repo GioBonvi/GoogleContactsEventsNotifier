@@ -225,8 +225,8 @@ var i18n = {
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
     'Main phone': 'Teléfono principal',
-    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
-    // TODO: 'here': '',
+    'It looks like you are using an outdated version of this script. You can find the latest one': 'Parece que estás usando una versión antigua de este script. Puedes encontrar la última',
+    'here': 'aquí',
   },
   'it': {
     'Age': 'Età',
