@@ -325,8 +325,8 @@ var i18n = {
     'Work phone': 'Telefon (praca)',
     'Home phone': 'Telefon (domowy)',
     'Main phone': 'Telefon (główny)',
-    // TODO: 'It looks like you are using an outdated version of this script': '',
-    // TODO: 'You can find the latest one here': '',
+    'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
+    'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
   /* To add a language:
   '[lang-code]': {
