@@ -277,8 +277,8 @@ var i18n = {
     'Work phone': 'Telp. Kantor',
     'Home phone': 'Telp. Rumah',
     'Main phone': 'Telp. Utama',
-    // TODO: 'It looks like you are using an outdated version of this script': '',
-    // TODO: 'You can find the latest one here': '',
+    'It looks like you are using an outdated version of this script': 'Sepertinya anda menggunakan versi lama dari skrip ini',
+    'You can find the latest one here': 'Anda bisa menemukan versi terbaru di sini',
   },
   'de': {
     'Age': 'Alter',
