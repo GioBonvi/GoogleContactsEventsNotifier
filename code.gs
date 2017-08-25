@@ -306,7 +306,7 @@ var i18n = {
   },
   'pl': {
     'Age': 'Wiek',
-    'Years': 'Lata',
+    'Years': 'Lat',
     'Events': 'Wydarzenia',
     'Birthdays today': 'Urodziny dzisiaj',
     'Birthdays tomorrow': 'Urodziny jutro',
@@ -319,7 +319,7 @@ var i18n = {
     'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
     'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
-    'by': 'od',
+    'by': 'Stworzone przez',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telefon komórkowy',
     'Work phone': 'Telefon (praca)',
