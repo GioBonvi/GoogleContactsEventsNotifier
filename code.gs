@@ -201,8 +201,8 @@ var i18n = {
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
-    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
-    // TODO: 'here': '',
+    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
+    'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
   'es': {
     'Age': 'Edad',
@@ -225,8 +225,8 @@ var i18n = {
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
     'Main phone': 'Teléfono principal',
-    'It looks like you are using an outdated version of this script. You can find the latest one': 'Parece que estás usando una versión antigua de este script. Puedes encontrar la última',
-    'here': 'aquí',
+    'It looks like you are using an outdated version of this script': 'Parece que estás usando una versión antigua de este script',
+    'You can find the latest one here': 'Puedes encontrar la última aquí',
   },
   'it': {
     'Age': 'Età',
@@ -249,8 +249,8 @@ var i18n = {
     'Work phone': 'Telefono di lavoro',
     'Home phone': 'Telefono di casa',
     'Main phone': 'Telefono principale',
-    'It looks like you are using an outdated version of this script. You can find the latest one': 'Sembra che tu stia usando una vecchia versione di questo script. Puoi trovare l\'ultima',
-    'here': 'qui',
+    'It looks like you are using an outdated version of this script': 'Sembra che tu stia usando una vecchia versione di questo script',
+    'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
   'id': {
     'Age': 'Usia',
@@ -273,8 +273,8 @@ var i18n = {
     'Work phone': 'Telp. Kantor',
     'Home phone': 'Telp. Rumah',
     'Main phone': 'Telp. Utama',
-    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
-    // TODO: 'here': '',
+    'It looks like you are using an outdated version of this script': 'Sepertinya anda menggunakan versi lama dari skrip ini',
+    'You can find the latest one here': 'Anda bisa menemukan versi terbaru di sini',
   },
   'de': {
     'Age': 'Alter',
@@ -297,12 +297,12 @@ var i18n = {
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
     'Main phone': 'Hauptnummer',
-    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
-    // TODO: 'here': '',
+    // TODO: 'It looks like you are using an outdated version of this script': '',
+    // TODO: 'You can find the latest one here': '',
   },
   'pl': {
     'Age': 'Wiek',
-    'Years': 'Lata',
+    'Years': 'Lat',
     'Events': 'Wydarzenia',
     'Birthdays today': 'Urodziny dzisiaj',
     'Birthdays tomorrow': 'Urodziny jutro',
@@ -315,14 +315,38 @@ var i18n = {
     'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
     'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
-    'by': 'od',
+    'by': 'Stworzone przez',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telefon komórkowy',
     'Work phone': 'Telefon (praca)',
     'Home phone': 'Telefon (domowy)',
     'Main phone': 'Telefon (główny)',
-    // TODO: 'It looks like you are using an outdated version of this script. You can find the latest one': '',
-    // TODO: 'here': '',
+    'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
+    'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
+  },
+  'fr': {
+    'Age': 'Age',
+    'Years': 'Années',
+    'Events': 'Evénements',
+    'Birthdays today': 'Anniversaire aujourd\'hui',
+    'Birthdays tomorrow': 'Anniversaire demain',
+    'Birthdays in {0} days': 'Anniversaire dans {0} jours',
+    'Anniversaries today': 'Anniversaire aujourd\'hui',
+    'Anniversaries tomorrow': 'Anniversaire demain',
+    'Anniversaries in {0} days': 'Anniversaire dans {0} jours',
+    'Custom events today': 'Autres événements aujourd\'hui',
+    'Custom events tomorrow': 'Autres événements demain',
+    'Custom events in {0} days': 'Autres événements dans {0} jours',
+    'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
+    'version': 'version',
+    'by': 'par',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Mobile',
+    'Work phone': 'Travail',
+    'Home phone': 'Maison',
+    'Main phone': 'Principal',
+    'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
+    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
   /* To add a language:
   '[lang-code]': {
@@ -436,7 +460,7 @@ function doLog (arg) {
  */
 function checkEvents (testDate) {
   var anticipate, subjectPrefix, subjectBuilder,
-    bodyPrefix, bodySuffix1, bodySuffix2, bodySuffix3, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
+    bodyPrefix, bodySuffix1, bodySuffix2, bodySuffix3, bodySuffix4, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
 
   doLog('Starting run of Google Contacts Events Notifier version ' + version + '.');
   // The script needs this value in milliseconds, but the user entered it in days.
@@ -452,7 +476,9 @@ function checkEvents (testDate) {
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffix1 = _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version + ')';
   bodySuffix2 = _('by') + ' Giorgio Bonvicini';
-  bodySuffix3 = _('It looks like you are using an outdated version of this script. You can find the latest one');
+  bodySuffix3 = _('It looks like you are using an outdated version of this script') + '.';
+  bodySuffix4 = _('You can find the latest one here');
+
   // The email is built both with plain text and HTML text.
   bodyBuilder = [];
   htmlBodyBuilder = [];
@@ -550,12 +576,12 @@ function checkEvents (testDate) {
     body = [bodyPrefix, '\n']
         .concat(bodyBuilder)
         .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
-        .concat('\n', isRunningOutdatedVersion() ? [bodySuffix3, ' ', _('here'), ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+        .concat('\n', isRunningOutdatedVersion() ? [bodySuffix3, ' ', bodySuffix4, ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
         .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
         .concat(htmlBodyBuilder)
         .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2)])
-        .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffix3), ' ', '<a href="', baseGitHubProjectURL + 'releases/latest', '">', _('here'), '</a>.</b></p>'] : ['</p>'])
+        .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffix3), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffix4), '</a>.</b></p>'] : ['</p>'])
         .join('');
 
     // ...send the email notification.
