@@ -76,4 +76,4 @@ Pull Requests complies with these rules:
 [Issue template file]: ISSUE_TEMPLATE.md
 [Javascript semistandard]: https://github.com/Flet/semistandard
 [Markdown linter]: https://github.com/DavidAnson/markdownlint
-[Markdown linter config]: .markdownlint.json
+[Markdown linter config]: ../.markdownlint.json
