@@ -301,8 +301,8 @@ var i18n = {
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
     'Main phone': 'Hauptnummer',
-    // TODO: 'It looks like you are using an outdated version of this script': '',
-    // TODO: 'You can find the latest one here': '',
+    'It looks like you are using an outdated version of this script': 'Es sieht aus wie du eine alte Version der Skript benutzt',
+    'You can find the latest one here': 'Du kannst hier die letzte finden', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
   'pl': {
     'Age': 'Wiek',
