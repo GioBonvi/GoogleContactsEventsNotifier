@@ -446,9 +446,9 @@ function SimplifiedSemanticVersion (versionNumber) {
 
   matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
   if (matches) {
-    self.numbers[0] = window.parseInt(matches[1]);
-    self.numbers[1] = window.parseInt(matches[2]);
-    self.numbers[2] = window.parseInt(matches[3]);
+    self.numbers[0] = parseInt(matches[1]);
+    self.numbers[1] = parseInt(matches[2]);
+    self.numbers[2] = parseInt(matches[3]);
     self.prerelease = typeof matches[4] === 'undefined' ? '' : matches[4];
     self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
   } else {
