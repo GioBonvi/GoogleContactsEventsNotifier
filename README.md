@@ -233,9 +233,10 @@ file].
   - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe] - Greek;
   - [lboullo0 (Lucas)][Github lboullo0] - Spanish;
   - [muzavan (Muhammad Reza Irvanda)][Github muzavan] - Indonesian;
-  - [DrKrakower][Github DrKrakower] - German;
+  - [DrKrakower][Github DrKrakower] and Simone Sottopietra - German;
   - [cezarylaksa][Github cezarylaksa] and [baatochan (Bartosz
     Rodziewicz)][Github baatochan] - Polish;
+  - [JayForce][GitHub JayForce] - French;
 - all of the contributors that you can find [here][Project contributors page];
 
 [Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
@@ -256,3 +257,4 @@ file].
 [Github DrKrakower]: https://github.com/DrKrakower
 [Github cezarylaksa]: https://github.com/cezarylaksa
 [Github baatochan]: https://github.com/baatochan
+[Github JayForce]: https://github.com/JayForce
