@@ -17,7 +17,7 @@ sense and being nice to other users will create you no problem at all.
 
 Now let the fun begin! There are many ways you can contribute to this project:
 
-- are there [unsolved issues][Project issue page]? Look around: there might be
+- are there [Unsolved issues][Project issue page]? Look around: there might be
   some you can solve or help closing;
 - have you thought of a feature which would improve this project but don't know
   how to code it? You can create an issue with a feature request detailing what
@@ -25,7 +25,7 @@ Now let the fun begin! There are many ways you can contribute to this project:
 - are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
-- do you speak a foreign language? You can [contribute][contribute with
+- do you speak a foreign language? You can [Contribute][contribute with
   translation] by submitting a new translation in the form of a Pull Request or
   by creating an issue if you don't know how to create Pull Requests;
 - if you wish to contribute by way of Pull Requests and have never used git
@@ -68,6 +68,13 @@ Pull Requests complies with these rules:
     file][Markdown linter config]
   - additionally, links should be in the reference format, not in the in-text format
 
+## Testing
+
+Before submitting a PR please verify that your code passes all the tests. To do
+so run the `unit-tests()` function along with any other function specified by the
+documentation in the [tests file][Tests file].
+
+
 ## Git mini-tutorial
 
 Before starting the tutorial, it is important to clarify definitions of the
@@ -90,19 +97,26 @@ instructions below are for the example-case of a first-time contributor adding a
 language to the translation-table.
 
 Text with preceding `##` is either for you to replace, for example:
+
 ```sh
 a_variable=## Replace this with your favourite food
 ```
+
 becomes:
+
 ```sh
 a_variable=banana
 ```
+
 or instructions to follow, for example:
+
 ```sh
 echo "silly command"
 ## Repeat the above 3 times
 ```
+
 becomes:
+
 ```sh
 echo "silly command"
 echo "silly command"
@@ -113,10 +127,10 @@ echo "silly command"
    shell. If on Windows and you haven't already installed a "POSIX compatible"
    shell ("command line"), the simplest thing is to install
    [the bundled git package][Git windows bundle] which includes its own shell.
-1. In your browser, logged into Github, in the top-right corner of
+2. In your browser, logged into Github, in the top-right corner of
    [this repo][Project main page], click the `Fork` icon which will create your
    own fork.
-1. In the shell do the following. Setting the variables at the beginning is just
+3. In the shell do the following. Setting the variables at the beginning is just
    to make this tutorial more readable, you can obviously enter the text
    directly each time instead of using variables if you prefer:
     ```sh
@@ -127,7 +141,7 @@ echo "silly command"
     mkdir -p "${common_dir}"
     cd "${common_dir}"
     ```
-1. In the shell clone your fork to a local directory. For the simpler https
+4. In the shell clone your fork to a local directory. For the simpler https
    method (but which requires you to enter your password whenever you do remote
    actions), do:
     ```sh
@@ -140,7 +154,7 @@ echo "silly command"
     ```sh
     git clone git@github.com:${user}/GoogleContactsEventsNotifier.git
     ```
-1. In the shell do the following to create the new branch with your changes. You
+5. In the shell do the following to create the new branch with your changes. You
    will need to know which existing upstream branch it should be based on.
    Although basing it on the upstream `master` branch is usually what you want,
    sometimes you may need to base it on an "upstream feature/fix branch" which
@@ -158,7 +172,7 @@ echo "silly command"
     git commit -m "${lang} translations"
     git push origin ${lang}-translations
     ```
-1. In your browser, logged into Github, visit your forked repo at
+6. In your browser, logged into Github, visit your forked repo at
    `https://github.com/${user}/GoogleContactsEventsNotifier`, and there will be
    a notification about a recently added branch, asking if you wish to open it
    as a Pull Request. Do that, remembering that if the Pull Request is based on
@@ -260,7 +274,7 @@ scope for this intro.
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
 [Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
 [Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
-[Contribute with translation]: ../README.md#bonus-translation
+[Contribute with translation]: ../README.md#translation
 [Git mini tutorial]: #git-mini-tutorial
 [Git]: https://git-scm.com
 [Git windows bundle]: https://git-for-windows.github.io
@@ -272,3 +286,4 @@ scope for this intro.
 [Javascript semistandard]: https://github.com/Flet/semistandard
 [Markdown linter]: https://github.com/DavidAnson/markdownlint
 [Markdown linter config]: ../.markdownlint.json
+[Tests file]: ../unit-tests.gs
