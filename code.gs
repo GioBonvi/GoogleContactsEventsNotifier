@@ -394,7 +394,7 @@ function beautifyLabel (label) {
     case ContactsApp.Field.MAIN_PHONE:
       return _('Main phone');
     default:
-      return label;
+      return String(label);
   }
 }
 
