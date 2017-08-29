@@ -516,7 +516,7 @@ function isRunningOutdatedVersion () {
   }
 
   try {
-    return (version).compare(new SimplifiedSemanticVersion(latestVersion)) === -1;
+    return (version).compare(new SimplifiedSemanticVersion(latestVersion[1])) === -1;
   } catch (err) {
     doLog(err.message);
     return false;
