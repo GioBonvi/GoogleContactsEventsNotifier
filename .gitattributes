@@ -1,0 +1,11 @@
+* text=auto
+
+*.md text
+*.json text
+*.gs text
+.gitattributes text
+.gitignore text
+LICENSE text
+
+*.png binary
+*.psd binary
