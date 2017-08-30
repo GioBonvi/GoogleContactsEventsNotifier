@@ -23,7 +23,7 @@ var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
  * Now specify to which email address the notifications should be sent.
  * This can be the same email address of the previous line or any other email address.
  */
-var myEmail = 'insertyouremailhere@someemail.com';
+var myEmail = 'insertyouremailhere@example.com';
 
 /*
  * ID OF THE CONTACTS EVENTS CALENDAR
