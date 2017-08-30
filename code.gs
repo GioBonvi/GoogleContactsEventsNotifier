@@ -462,7 +462,7 @@ function SimplifiedSemanticVersion (versionNumber) {
 SimplifiedSemanticVersion.prototype.toString = function () {
   return this.numbers.join('.') +
     (this.prerelease !== '' ? '-' + this.prerelease : '') +
-    (this.metadata !== '' ? '-' + this.metadata : '');
+    (this.metadata !== '' ? '+' + this.metadata : '');
 };
 
 /*
