@@ -171,7 +171,7 @@ __verify that you followed [the instructions][Project documentation] to the
 letter.__
 
 To report a bug or an error or to request help with this script please use [this
-project GitHub issue page](Project issue page): I will be notified immediately
+project GitHub issue page][Project issue page]: I will be notified immediately
 and will provide help as soon as possible.
 
 In the text of the message please follow the [template provided][Issue template
