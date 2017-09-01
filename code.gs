@@ -140,7 +140,7 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The version of the script.
  * It must be a valid SimplifiedSemanticVersion.
  */
-var version = new SimplifiedSemanticVersion('3.1.0');
+var version = new SimplifiedSemanticVersion('3.1.1');
 
 // These URsL are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
