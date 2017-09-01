@@ -743,15 +743,19 @@ var Contact = function (event, eventType) {
     }
 
     // Store information for each event (name and years passed).
-    dates.forEach(function (eachDate) {
-      var dateLabel = eachDate.getLabel();
-      doLog('Has ' + dateLabel + ' year.');
-      self.dateLabels.push(dateLabel);
-      startYear = eachDate.getYear();
-      if (startYear) {
-        self.age[dateLabel] = (currentYear - startYear).toFixed(0);
-      }
-    });
+    if(dates[0] !== undefined) { // When contact has birtday field only in G+ part dates variable is empty 
+      dates.forEach(function (eachDate) {  
+        var dateLabel = eachDate.getLabel();  
+        doLog('Has ' + dateLabel + ' year.');  
+        self.dateLabels.push(dateLabel);  
+        startYear = eachDate.getYear();  
+        if (startYear) {  
+          self.age[dateLabel] = (currentYear - startYear).toFixed(0);  
+        }  
+      });
+    } else {
+      self.dateLabels.push(self.eventType);
+    }
 
     // Extract contact's phone numbers.
     phoneFields = googleContact.getPhones();
