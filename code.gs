@@ -1,4 +1,4 @@
-/* global Logger CalendarApp ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp Session */
+/* global Logger Plus ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp Session */
 
 /*
  * Thanks to this script you are going to receive an email before events of each of your contacts.
@@ -165,6 +165,196 @@ var settings = {
  */
 
 // CLASSES
+
+/*
+ * A Contact object holds the data about a contact which has been collected from multiple
+ * sources (raw event data, Google Contacts, Google Plus profile).
+ */
+function Contact () {
+  var self;
+
+  self = this; // for consistent access from sub-functions
+  self.contactId = null;
+  self.gplusId = null;
+  self.data = new ContactDataDC(null, null, null);
+  self.emails = [];
+  self.phones = [];
+  self.events = [];
+}
+
+/*
+ * All the events listed from the calendar contain some data that can be
+ * used to describe the event in the notification.
+ * Extract all the available data from the raw event object and store them in the Contact.
+ */
+Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
+  var eventData, eventDate, eventLabel;
+
+  log.add('Extracting info from raw event object...', 'info');
+
+  if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
+    log.add(rawEvent, 'info');
+    log.add('The structure of this event cannot be parsed.', 'error');
+  }
+  eventData = rawEvent.gadget.preferences;
+
+  // The raw event can contain the full name a profile photo of the contact (no nickname).
+  this.data.merge(new ContactDataDC(
+    eventData['goo.contactsFullName'],
+    null, // Nickname.
+    eventData['goo.contactsPhotoUrl']
+  ));
+  // The raw event contains an email of the contact, but without label.
+  this.addToField('emails', new EmailAddressDC(
+    null,
+    eventData['goo.contactsEmail']
+  ));
+  // The raw event contains the type, day and month of the event, but not the year.
+  eventDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(rawEvent.start.date);
+  if (eventDate) {
+    eventLabel = eventData['goo.contactsEventType'];
+    if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+      eventLabel = eventData['goo.contactsCustomEventType'];
+    }
+    this.addToField('events', new EventDC(
+      eventLabel, // Label.
+      null, // Year.
+      (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null), // Month.
+      (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null) // Day.
+    ));
+  }
+  // Collect info from the contactId if not already collected and if contactsContactId exists.
+  if (this.contactId === null && eventData['goo.contactsContactId']) {
+    this.getInfoFromContact(eventData['goo.contactsContactId']);
+  }
+  // Collect info from the gplusProfileId if not already collected and if contactsProfileId exists.
+  if (this.gplusProfileId === null && eventData['goo.contactsProfileId']) {
+    this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
+  }
+};
+
+/*
+ * Some raw events will contain a Google Contact ID which gives access
+ * to a bunch of new data about the contact.
+ * This data is used to update the information collected from the raw event.
+ */
+Contact.prototype.getInfoFromContact = function (contactId) {
+  var self, googleContact;
+
+  self = this;
+
+  log.add('Extracting info from Google Contact...', 'info');
+
+  googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
+  if (googleContact === null) {
+    log.add('Invalid Google Contact ID: ' + contactId, 'warning');
+    return;
+  }
+
+  self.contactId = contactId;
+
+  self.data.merge(new ContactDataDC(
+    googleContact.getFullName(),
+    googleContact.getNickname(),
+    null // PhotoURL.
+  ));
+
+  googleContact.getDates().forEach(function (dateField) {
+    self.addToField('events', new EventDC(
+      String(dateField.getLabel()),
+      dateField.getYear(),
+      monthToInt(dateField.getMonth()) + 1,
+      dateField.getDay()
+    ));
+  });
+  googleContact.getEmails().forEach(function (emailField, i) {
+    if (settings.notifications.maxEmailsCount === -1 || i < settings.notifications.maxEmailsCount) {
+      self.addToField('emails', new EmailAddressDC(
+        String(emailField.getLabel()),
+        emailField.getAddress()
+      ));
+    }
+  });
+  googleContact.getPhones().forEach(function (phoneField, i) {
+    if (settings.notifications.maxPhonesCount === -1 || i < settings.notifications.maxPhonesCount) {
+      self.addToField('phones', new PhoneNumberDC(
+        String(phoneField.getLabel()),
+        phoneField.getPhoneNumber()
+      ));
+    }
+  });
+};
+
+/*
+ * Some raw events will contain a Google Plus Profile ID which
+ * gives access to a bunch of new data about the contact.
+ * This data is used to update the information collected from
+ * the raw event and the Google Contact.
+ */
+Contact.prototype.getInfoFromGPlus = function (gplusProfileId) {
+  var self, gplusProfile, birthdayDate;
+
+  self = this;
+
+  log.add('Extracting info from Google Plus Profile...', 'info');
+  try {
+    gplusProfile = Plus.People.get(gplusProfileId);
+    if (gplusProfile === null) {
+      throw new Error('Invalid Google Plus Profile ID!');
+    }
+  } catch (err) {
+    log.add('Invalid GPlus Profile ID: ' + gplusProfileId, 'warning');
+    return;
+  }
+
+  this.gplusProfileId = gplusProfileId;
+
+  this.data.merge(new ContactDataDC(
+    gplusProfile.name.formatted,
+    gplusProfile.nickname,
+    gplusProfile.image.url
+  ));
+
+  // Google Plus Profile can have a birthday field in the form of YYYY-MM-DD
+  // but part of the date can be missing replaced by a bunch of zeroes
+  // (especially the year).
+  if (gplusProfile.birthday && gplusProfile.birthday !== '0000-00-00') {
+    birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gplusProfile.birthday);
+    if (birthdayDate) {
+      self.addToField('events', new EventDC(
+        'BIRTHDAY', // Label.
+        (birthdayDate[1] !== '0000' ? parseInt(birthdayDate[1], 10) : null), // Year.
+        (birthdayDate[2] !== '00' ? parseInt(birthdayDate[2], 10) : null), // Month.
+        (birthdayDate[3] !== '00' ? parseInt(birthdayDate[3], 10) : null) // Day.
+      ));
+    }
+  }
+};
+
+/*
+ * This method is used to insert add a new DataCollector to an array of
+ * DataCollectors.
+ * For example take 'EventDC e' and 'EventDC[] arr'; This method checks
+ * all the elements of 'arr': if it finds one that is compatible with 'e'
+ * it merges 'e' into that element, otherwise, if no element in the array
+ * is compatible or if the array is empty, it just adds 'e' at the end of
+ * the array.
+ */
+Contact.prototype.addToField = function (field, incData) {
+  var self, merged;
+
+  self = this;
+  merged = false;
+  self[field].forEach(function (data) {
+    if (!merged && data.isCompatible(incData)) {
+      data.merge(incData);
+      merged = true;
+    }
+  });
+  if (!merged) {
+    self[field].push(incData);
+  }
+};
 
 /*
  * DataCollector is a structure used to collect data about any "object" (an event, an
@@ -851,7 +1041,7 @@ function getEventsOnDate (eventDate, calendarId) {
  * of his/her contacts scheduled for the next days.
  */
 function main (forceDate) {
-  var now, events;
+  var now, events, contactList;
 
   log.add('main() running.', 'info');
   now = forceDate || new Date();
@@ -872,7 +1062,54 @@ function main (forceDate) {
     log.add('No events found. Exiting now.', 'info');
     return;
   }
-  log.add('Found ' + events.length + 'events.', 'info');
+  log.add('Found ' + events.length + ' events.', 'info');
+
+  contactList = [];
+
+  /*
+   * Build a list of contacts (with complete information) from the event list.
+   * Note: multiple events can refer to the same contact.
+   */
+  events.forEach(function (rawEvent) {
+    var eventData, i;
+
+    if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
+      log.add(rawEvent, 'info');
+      log.add('The structure of this event cannot be parsed.', 'error');
+    }
+    eventData = rawEvent.gadget.preferences;
+
+    // Look if the contact of this event is already in the contact list.
+    for (i = 0; i < contactList.length; i++) {
+      if (
+        (
+          eventData['goo.contactsContactId'] !== null &&
+          eventData['goo.contactsContactId'] === contactList[i].contactId
+        ) ||
+        (
+          eventData['goo.contactsProfileId'] !== null &&
+          eventData['goo.contactsProfileId'] === contactList[i]
+        )
+      ) {
+        // FOUND!
+        // Integrate this event information into the contact.
+        contactList[i].getInfoFromRawEvent(rawEvent);
+        break;
+      }
+    }
+    if (i === contactList.length) {
+      // NOT FOUND!
+      // Ad a new contact to the contact list and store all the info in that contact.
+      contactList.push(new Contact());
+      contactList[i].getInfoFromRawEvent(rawEvent);
+    }
+  });
+
+  if (contactList.length === 0) {
+    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', 'error');
+  }
+  log.add('Built ' + contactList.length + ' contacts.', 'info');
+
   // TODO.
 }
 
