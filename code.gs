@@ -1,135 +1,163 @@
-/* global Logger CalendarApp ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp */
+/* global Logger CalendarApp ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp Session */
 
 /*
  * Thanks to this script you are going to receive an email before events of each of your contacts.
  * The script is easily customizable via some variables listed below.
  */
 
-// START MANDATORY CUSTOMIZATION
+// SETTINGS
 
-// You need to personalize these values, otherwise the script won't work.
-
-/*
- * GOOGLE EMAIL ADDRESS
- *
- * First of all specify the Gmail address of your Google Account.
- * This is needed to retrieve information about your contacts.
- */
-var myGoogleEmail = 'insertyourgoogleemailhere@gmail.com';
-
-/*
- * NOTIFICATION EMAIL ADDRESS
- *
- * Now specify to which email address the notifications should be sent.
- * This can be the same email address of the previous line or any other email address.
- */
-var myEmail = 'insertyouremailhere@example.com';
-
-/*
- * ID OF THE CONTACTS EVENTS CALENDAR
- *
- * Open up https://calendar.google.com, in the menu on the left click on the arrow next to the contacts events
- * calendar (which should have a default name like 'Birthdays and events') and choose 'Calendar settings',
- * finally look for the "Calendar ID field" (it should be something similar to
- * #contacts@group.v.calendar.google.com): copy and paste it between the quotes in the next line.
- */
-var calendarId = '#contacts@group.v.calendar.google.com';
-
-// END MANDATORY CUSTOMIZATION
-
-// START OPTIONAL CUSTOMIZATION
-
-// It is a good idea to edit these options to adapt the script to your needs,
-// however you can just leave the default values and the script will work fine.
-
-/*
- * EMAIL SENDER NAME
- *
- * This is the name you will see as the sender of the email.
- * If you leave it blank it will default to your Google account name.
- * Note: this may not work when using a Gmail address sending emails to itself.
- */
-var emailSenderName = 'Contacts Events Notifications';
-
-/*
- * YOUR TIMEZONE
- *
- * If you need to adjust the timezone of the email notifications use this variable.
- *
- * Accepted values:
- *  GMT - examples: 'GMT-4'
- *  regional timezones: 'Europe/Berlin' (See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
- */
-var myTimeZone = 'Europe/Rome';
-
-/*
- * HOUR OF THE NOTIFICATION
- *
- * Specify at which hour of the day would you like to receive the email notifications.
- * This must be a number between 0 and 23.
- */
-var notificationHour = 6;
-
-/*
- * HOW MANY DAYS BEFORE EVENT
- *
- * Here you have to decide when you want to receive the email notification.
- * Insert between the square brackets a comma-separated list of numbers, where each number
- * represents how many days before an event you want to be notified.
- * If you want to be notified only once then enter a single number between the brackets.
- *
- * Examples:
- *  [0] means "Notify me the day of the event";
- *  [0, 7] means "Notify me the day of the event and 7 days before";
- *  [0, 1, 7] means "Notify me the day of the event, the day before and 7 days before";
- *
- * Note: in any case you will receive one email per day: all the notifications will be grouped
- * together in that email.
- */
-var anticipateDays = [0, 1, 7];
-
-/*
- * LANGUAGE
- *
- * For internationalization (translation) enter the two-digit lang-code here (to add your language just fill in the
- * 'i18n' hash below and change lang here to match that).
- */
-var lang = 'en';
-
-/*
- * TYPE OF EVENTS
- *
- * This script can track any Google Contact Event: you can decide which one by placing true or false next to each type.
- * By default the script only tracks birthday events.
- */
-
-var eventTypes = {
-  BIRTHDAY: true,
-  ANNIVERSARY: false,
-  CUSTOM: false
+var settings = {
+  user: {
+    /*
+     * GOOGLE EMAIL ADDRESS
+     *
+     * Replace this fake Gmail address with the Gmail address of your own Google Account.
+     * This is needed to retrieve information about your contacts.
+     */
+    googleEmail: 'YOUREMAILHERE@gmail.com',
+    /*
+     * NOTIFICATION EMAIL ADDRESS
+     *
+     * Replace this fake email address with the one you want the notifications to be sent
+     * to. This can be the same email address as 'googleEmail' on or any other email
+     * address. Non-Gmail addresses are fine as well.
+     */
+    notificationEmail: 'YOUREMEAILHERE@example.com',
+    /*
+     * ID OF THE CONTACTS EVENTS CALENDAR
+     *
+     * Open https://calendar.google.com, in the menu on the left click on the arrow next to the
+     * the contacts events calendar (which should have a name like 'Birthdays and events'), choose
+     * 'Calendar settings' and finally look for the "Calendar ID field" (it could be something
+     * similar to the default value of '#contacts@group.v.calendar.google.com', but also really
+     * different from it): copy and paste it between the quotes in the next line.
+     */
+    calendarId: '#contacts@group.v.calendar.google.com',
+    /*
+     * EMAIL SENDER NAME
+     *
+     * This is the name you will see as the sender of the email: if you leave it blank it will
+     * default to your Google account name.
+     * Note: this may not work when notificationEmail is a Gmail address.
+     */
+    emailSenderName: 'Contacts Events Notifications',
+    /*
+     * LANGUAGE
+     *
+     * To translate the notifications messages into your language enter the two-letter language
+     * code here.
+     * Available languages are: el, es, it, de, id, pl, fr.
+     * If you want to add your own language find the variable called i18n below and follow the
+     * instructions: it's quite simple as long as you can translate from one of the available
+     * languages.
+     */
+    lang: 'en'
+  },
+  notifications: {
+    /*
+    * HOUR OF THE NOTIFICATION
+    *
+    * Specify at which hour of the day would you like to receive the email notifications.
+    * This must be an integer between 0 and 23.
+    */
+    hour: 6,
+    /*
+    * NOTIFICATION TIMEZONE
+    *
+    * To ensure the correctness of the notifications timing please set this variable to the
+    * timezone you are living in.
+    * Accepted values:
+    *  GMT (e.g. 'GMT-4', 'GMT+6')
+    *  regional timezones (e.g. 'Europe/Berlin' - See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
+    */
+    timeZone: 'Europe/Rome',
+    /*
+     * HOW MANY DAYS BEFORE EVENT
+     *
+     * Here you have to decide when you want to receive the email notification.
+     * Insert a comma-separated list of numbers between the square brackets, where each number
+     * represents how many days before an event you want to be notified.
+     * If you want to be notified only once then enter a single number between the brackets.
+     *
+     * Examples:
+     *  [0] means "Notify me the day of the event";
+     *  [0, 7] means "Notify me the day of the event and 7 days before";
+     *  [0, 1, 7] means "Notify me the day of the event, the day before and 7 days before";
+     *
+     * Note: in any case you will receive one email per day: all the notifications will be grouped
+     * together in that email.
+     */
+    anticipateDays: [0, 1, 7],
+    /*
+     * TYPE OF EVENTS
+     *
+     * This script can track any Google Contact Event: you can decide which ones by placing true
+     * or false next to each type in the following lines.
+     * By default the script only tracks birthday events.
+     */
+    eventTypes: {
+      BIRTHDAY: true,
+      ANNIVERSARY: true,
+      CUSTOM: true
+    },
+    /*
+     * MAXIMUM NUMBER OF EMAIL ADDRESSES
+     *
+     * You can limit the maximum number of email addresses displayed for each contact in the notification emails
+     * by changing this number. If you don't want to impose any limits change it to -1, if you don't want any
+     * email address to be shown change it to 0.
+     */
+    maxEmailsCount: -1,
+    /*
+     * MAXIMUM NUMBER OF PHONE NUMBERS
+     *
+     * You can limit the maximum number of phone numbers displayed for each contact in the notification emails
+     * by changing this number. If you don't want to impose any limits change it to -1, if you don't want any
+     * phone number to be shown change it to 0.
+     */
+    maxPhonesCount: -1,
+    /*
+     * INDENT SIZE
+     *
+     * Use this variable to determine how many spaces are used for indentation.
+     * This is used in plaintext emails only.
+     */
+    indentSize: 4
+  },
+  debug: {
+    log: {
+      /*
+       * LOGGING FILTER LEVEL
+       *
+       * This settings lets you filter which type of events will get logged:
+       *  - 'info' will log all types of events event (messages, warnings and errors);
+       *  - 'warning' will log warnings and errors only (discarding messages);
+       *  - 'error' will log errors only (discarding messages and warnings);
+       *  - 'none' will effectively disable the logging (nothing will be logged);
+       */
+      filterLevel: 'info',
+      /*
+       * Set this variable to: 'info', 'warning', 'error' or 'none'. You will be sent an
+       * email containing the full execution log of the script if at least one event of priority
+       * equal or greater to sendTrigger has been logged. 'none' means that such emails will
+       * never be sent.
+       * Note: filterLevel have precedence over this setting! For example if you set filterLevel
+       * to 'none' and sendTrigger to 'warning' you will never receive any email as nothing will
+       * be logged due to the filterLevel setting.
+       */
+      sendTrigger: 'warning'
+    },
+    /*
+     * TEST DATE
+     *
+     * When using the test() function this date will be used as "now". The date must be in the
+     * YYYY/MM/DD HH:MM:SS format.
+     * Choose a date you know should trigger an event notification.
+     */
+    testDate: new Date('2017/10/19 06:00:00')
+  }
 };
-
-// For places where an indent is used for display reasons (in plaintext email), this number of spaces is used.
-var indentSize = 4;
-
-// END OPTIONAL CUSTOMIZATION
-
-// START DEBUGGING OPTIONS
-
-// When debugging is not wanted you can set this true to disable debugging calls, for a slight speedup.
-var noLog = false;
-
-// When debugging (noLog == false) and you want the logs emailed too, set this to true.
-var sendLog = false;
-
-/*
- * The test() function can be run on a specified date as if it is "today". Specify that date here in the format
- * YEAR/MONTH/DAY HOUR:MINUTE:SECOND
- * Choose a date you know should trigger an event notification.
- */
-var fakeTestDate = '2017/02/14 06:00:00';
-
-// END DEBUGGING OPTIONS
 
 /*
  * There is no need to edit anything below this line.
@@ -139,15 +167,119 @@ var fakeTestDate = '2017/02/14 06:00:00';
 // CLASSES
 
 /*
+ * Manage a collection of logEvents {time, text, priority}.
+ *
+ * Parameters:
+ *  minimumPriority (string): events with lower priority than this will not be logged.
+ *  emailMinimumPriority (string): an email with the log output will be sent to the user if at least one
+ *                                 event was recorded with priority greater than or equal to this priority.
+ */
+function Log (minimumPriority, emailMinimumPriority) {
+  this.minimumPriority = this.evalPriority(minimumPriority);
+  this.emailMinimumPriority = this.evalPriority(emailMinimumPriority);
+  this.events = [];
+}
+
+/*
+ * Store a new event in the log. The default priority is the lowest one ('info').
+ */
+Log.prototype.add = function (data, priority) {
+  var text;
+
+  priority = priority || 'info';
+  if (typeof data === 'object') {
+    text = JSON.stringify(data);
+  } else if (typeof data !== 'string') {
+    text = String(data);
+  } else {
+    text = data;
+  }
+  if (this.evalPriority(priority) >= this.minimumPriority) {
+    this.events.push({
+      time: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone(),
+      priorityDescr: priority,
+      priorityVal: this.evalPriority(priority),
+      text: text
+    });
+  }
+
+  // Still log into the standard logger as a backup in case the program crashes.
+  Logger.log(priority[0].toUpperCase() + ': ' + text);
+
+  // Throw an Error and interrupt the execution if the log event had 'error' priority.
+  if (priority === 'error') {
+    this.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
+    throw new Error(text);
+  }
+};
+
+/*
+ * Calculate a numeric value for a textual description of a priority.
+ */
+Log.prototype.evalPriority = function (priority) {
+  switch (priority) {
+    case 'none':
+      return 100;
+    case 'error':
+      return 10;
+    case 'warning':
+      return 5;
+    case 'info':
+      // falls through
+    default:
+      return 1;
+  }
+};
+
+/*
+ * Get the output of the log as an array of messages.
+ */
+Log.prototype.getOutput = function () {
+  return this.events.map(function (e) {
+    return '[' + e.time + ']' + e.priorityDescr[0].toUpperCase() + ': ' + e.text;
+  });
+};
+
+/*
+ * Verify if the log contains at least an event with priority equal to or greater than
+ * the specified priority.
+ */
+Log.prototype.containsMinimumPriority = function (minimumPriority) {
+  var i;
+
+  for (i = 0; i < this.events.length; i++) {
+    if (this.events[i].priorityVal >= minimumPriority) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/*
+ * If the filter condition is met send all the logs collected to the specified email.
+ */
+Log.prototype.sendEmail = function (to, senderName) {
+  if (this.containsMinimumPriority(this.emailMinimumPriority)) {
+    this.add('Sending logs via email.');
+    MailApp.sendEmail({
+      to: to,
+      subject: 'Logs for Google Contacts Events Notifications',
+      body: this.getOutput().join('\n'),
+      name: senderName
+    });
+  }
+};
+
+/*
  * An object representing a simplified semantic version number.
  * It must be composed of:
  *  - three dot-separated positive integers (major version,
  *    minor version and patch number);
  *  - optionally a pre-release identifier, prefixed by a hyphen;
  *  - optionally a metadata identifier, prefixed by a plus sign;
- * This differes from the official SemVer style because the pre-release
+ * This differs from the official SemVer style because the pre-release
  * string is compared as a whole in version comparison instead of
- * being spliced into chuncks.
+ * being spliced into chunks.
  * Valid examples:
  *  4.6.2, 3.12.234-alpha,  0.11.0+20170827, 2.0.0-beta+20170827
  */
@@ -251,9 +383,14 @@ var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContacts
 var baseGitHubProjectURL = 'https://github.com/GioBonvi/GoogleContactsEventsNotifier/';
 
 // Convert user-configured hash to an array
-eventTypes = Object.keys(eventTypes).filter(function (x) { return eventTypes[x]; });
+var eventTypes = Object.keys(settings.notifications.eventTypes)
+  .filter(function (x) { return settings.notifications.eventTypes[x]; });
 
-var indent = Array(indentSize + 1).join(' ');
+var indent = Array(settings.notifications.indentSize + 1).join(' ');
+
+var inlineImages;
+
+var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
 
 var i18n = {
   // For all languages, if a translation is not present the untranslated string
@@ -439,10 +576,6 @@ var i18n = {
   */
 };
 
-var eventCalendar = CalendarApp.getCalendarById(calendarId);
-var calendarTimeZone = eventCalendar ? eventCalendar.getTimeZone() : null;
-var inlineImages;
-
 // HELPER FUNCTIONS
 
 /*
@@ -450,7 +583,7 @@ var inlineImages;
  * If the language or the chosen string is invalid return the string itself.
  */
 function _ (string) {
-  return i18n[lang][string] || string;
+  return i18n[settings.user.lang][string] || string;
 }
 
 // Replace a Field.Label object with its "beautified" text representation.
@@ -467,10 +600,6 @@ function beautifyLabel (label) {
     default:
       return String(label);
   }
-}
-
-function doLog (arg) {
-  noLog || Logger.log(arg);
 }
 
 function htmlEscape (str) {
@@ -493,20 +622,20 @@ function isRunningOutdatedVersion () {
 
   response = UrlFetchApp.fetch(baseRawFilesURL + 'code.gs');
   if (response.getResponseCode() !== 200) {
-    doLog('Unable to get the latest version number: the requested URL returned a ' + response.getResponseCode() + ' response.');
+    log.add('Unable to get the latest version number: the requested URL returned a ' + response.getResponseCode() + ' response.', 'warning');
     return false;
   }
 
   latestVersion = /var version = new SimplifiedSemanticVersion\('(.+)'\);/.exec(response.getContentText('UTF-8'));
   if (latestVersion === null) {
-    doLog('Unable to get the latest version number: the version number could not be found in the text file.');
+    log.add('Unable to get the latest version number: the version number could not be found in the text file.', 'warning');
     return false;
   }
 
   try {
     return (version).compare(new SimplifiedSemanticVersion(latestVersion[1])) === -1;
   } catch (err) {
-    doLog(err.message);
+    log.add(err.message, 'warning');
     return false;
   }
 }
