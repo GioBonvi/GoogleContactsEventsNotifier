@@ -262,6 +262,47 @@ DataCollector.prototype.merge = function (otherDataCollector) {
   });
 };
 
+// Implementations of DataCollector.
+
+// Event Data Collector.
+var EventDC = function (label, year, month, day) {
+  DataCollector.apply(this);
+  this.setProp('label', label);
+  this.setProp('year', year);
+  this.setProp('month', month);
+  this.setProp('day', day);
+};
+EventDC.prototype = Object.create(DataCollector.prototype);
+EventDC.prototype.constructor = EventDC;
+
+// EmailAddress Data Collector.
+var EmailAddressDC = function (label, address) {
+  DataCollector.apply(this);
+  this.setProp('label', label);
+  this.setProp('address', address);
+};
+EmailAddressDC.prototype = Object.create(DataCollector.prototype);
+EmailAddressDC.prototype.constructor = EmailAddressDC;
+
+// PhoneNumber Data Collector.
+var PhoneNumberDC = function (label, number) {
+  DataCollector.apply(this);
+  this.setProp('label', label);
+  this.setProp('number', number);
+};
+PhoneNumberDC.prototype = Object.create(DataCollector.prototype);
+PhoneNumberDC.prototype.constructor = PhoneNumberDC;
+
+// ContactData Data Collector.
+var ContactDataDC = function (fullName, nickname, photoURL) {
+  DataCollector.apply(this);
+  this.setProp('fullName', fullName);
+  this.setProp('nickname', nickname);
+  this.setProp('photoURL', photoURL);
+};
+ContactDataDC.prototype = Object.create(DataCollector.prototype);
+ContactDataDC.prototype.constructor = ContactDataDC;
+
 /*
  * Manage a collection of logEvents {time, text, priority}.
  *
