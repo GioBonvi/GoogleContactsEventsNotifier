@@ -877,6 +877,10 @@ var i18n = {
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
     'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
@@ -901,6 +905,10 @@ var i18n = {
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
     'Main phone': 'Teléfono principal',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Parece que estás usando una versión antigua de este script',
     'You can find the latest one here': 'Puedes encontrar la última aquí',
   },
@@ -925,6 +933,10 @@ var i18n = {
     'Work phone': 'Telefono di lavoro',
     'Home phone': 'Telefono di casa',
     'Main phone': 'Telefono principale',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Sembra che tu stia usando una vecchia versione di questo script',
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
@@ -949,6 +961,10 @@ var i18n = {
     'Work phone': 'Telp. Kantor',
     'Home phone': 'Telp. Rumah',
     'Main phone': 'Telp. Utama',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Sepertinya anda menggunakan versi lama dari skrip ini',
     'You can find the latest one here': 'Anda bisa menemukan versi terbaru di sini',
   },
@@ -973,6 +989,10 @@ var i18n = {
     'Work phone': 'Geschäftlich',
     'Home phone': 'Privat',
     'Main phone': 'Hauptnummer',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Du scheinst eine veraltete Version dieses Skripts zu benutzen',
     'You can find the latest one here': 'Die aktuelle Version findest du hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
@@ -997,6 +1017,10 @@ var i18n = {
     'Work phone': 'Telefon (praca)',
     'Home phone': 'Telefon (domowy)',
     'Main phone': 'Telefon (główny)',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
     'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
@@ -1021,6 +1045,10 @@ var i18n = {
     'Work phone': 'Travail',
     'Home phone': 'Maison',
     'Main phone': 'Principal',
+    // TODO: 'Home fax': '',
+    // TODO: 'Work fax': '',
+    // TODO: 'Home email': '',
+    // TODO: 'Work email': '',
     'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
     'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
@@ -1046,14 +1074,22 @@ function _ (string) {
 // Replace a Field.Label object with its "beautified" text representation.
 function beautifyLabel (label) {
   switch (label) {
-    case ContactsApp.Field.MOBILE_PHONE:
+    case 'MOBILE_PHONE':
       return _('Mobile phone');
-    case ContactsApp.Field.WORK_PHONE:
+    case 'WORK_PHONE':
       return _('Work phone');
-    case ContactsApp.Field.HOME_PHONE:
+    case 'HOME_PHONE':
       return _('Home phone');
-    case ContactsApp.Field.MAIN_PHONE:
+    case 'MAIN_PHONE':
       return _('Main phone');
+    case 'HOME_FAX':
+      return _('Home fax');
+    case 'WORK_FAX':
+      return _('Work fax');
+    case 'HOME_EMAIL':
+      return _('Home email');
+    case 'WORK_EMAIL':
+      return _('Work email');
     default:
       return String(label);
   }
