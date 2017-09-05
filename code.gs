@@ -136,15 +136,81 @@ var fakeTestDate = '2017/02/14 06:00:00';
  * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
  */
 
- /*
- * The version of the script.
- * It must be a valid SimplifiedSemanticVersion.
- */
-var version = new SimplifiedSemanticVersion('3.1.1');
+// CLASSES
 
-// These URsL are used to access the files in the repository or specific pages on GitHub.
-var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
-var baseGitHubProjectURL = 'https://github.com/GioBonvi/GoogleContactsEventsNotifier/';
+/*
+ * An object representing a simplified semantic version number.
+ * It must be composed of:
+ *  - three dot-separated positive integers (major version,
+ *    minor version and patch number);
+ *  - optionally a pre-release identifier, prefixed by a hyphen;
+ *  - optionally a metadata identifier, prefixed by a plus sign;
+ * This differes from the official SemVer style because the pre-release
+ * string is compared as a whole in version comparison instead of
+ * being spliced into chuncks.
+ * Valid examples:
+ *  4.6.2, 3.12.234-alpha,  0.11.0+20170827, 2.0.0-beta+20170827
+ */
+function SimplifiedSemanticVersion (versionNumber) {
+  var matches, self;
+
+  self = this;
+  this.numbers = [0, 0, 0];
+  this.prerelease = '';
+  this.metadata = '';
+
+  matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
+  if (matches) {
+    self.numbers[0] = parseInt(matches[1]);
+    self.numbers[1] = parseInt(matches[2]);
+    self.numbers[2] = parseInt(matches[3]);
+    self.prerelease = typeof matches[4] === 'undefined' ? '' : matches[4];
+    self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
+  } else {
+    throw new Error('The version number "' + versionNumber + '" is not valid!');
+  }
+}
+
+/*
+ * Rebuild the version number string from the extracted data.
+ */
+SimplifiedSemanticVersion.prototype.toString = function () {
+  return this.numbers.join('.') +
+    (this.prerelease !== '' ? '-' + this.prerelease : '') +
+    (this.metadata !== '' ? '+' + this.metadata : '');
+};
+
+/*
+ * Compare a semantic version number with another one.
+ *
+ * Returns -1, 0 , 1 if this version number is smaller than,
+ * equal to or bigger than the one passed as the parameter.
+ *
+ * Order of comparison: major number, minor number, patch number,
+ * prerelease string (ASCII comparison). Metadata do not influence
+ * comparisons.
+ */
+SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
+  var i;
+  for (i = 0; i < 3; i++) {
+    if (this.numbers[i] !== comparedVersion.numbers[i]) {
+      return (this.numbers[i] < comparedVersion.numbers[i] ? -1 : 1);
+    }
+  }
+  if (this.prerelease !== comparedVersion.prerelease) {
+    // Between two version with the same numbers, one in pre-release and the other not
+    // the one in pre-release must be considered smaller.
+    if (this.prerelease === '') {
+      return 1;
+    } else if (comparedVersion.prerelease === '') {
+      return -1;
+    }
+    return (this.prerelease < comparedVersion.prerelease ? -1 : 1);
+  }
+  return 0;
+};
+
+// EXTENDED NATIVE PROTOTYPES
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
@@ -171,6 +237,18 @@ if (typeof String.prototype.format === 'undefined') {
     });
   };
 }
+
+// GLOBAL VARIABLES
+
+ /*
+ * The version of the script.
+ * It must be a valid SimplifiedSemanticVersion.
+ */
+var version = new SimplifiedSemanticVersion('3.2.0-alpha');
+
+// These URsL are used to access the files in the repository or specific pages on GitHub.
+var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
+var baseGitHubProjectURL = 'https://github.com/GioBonvi/GoogleContactsEventsNotifier/';
 
 // Convert user-configured hash to an array
 eventTypes = Object.keys(eventTypes).filter(function (x) { return eventTypes[x]; });
@@ -365,21 +443,14 @@ var eventCalendar = CalendarApp.getCalendarById(calendarId);
 var calendarTimeZone = eventCalendar ? eventCalendar.getTimeZone() : null;
 var inlineImages;
 
-function htmlEscape (str) {
-  return str
-         .replace(/&/g, '&amp;')
-         .replace(/"/g, '&quot;')
-         .replace(/'/g, '&#39;')
-         .replace(/</g, '&lt;')
-         .replace(/>/g, '&gt;')
-         .replace(/\//g, '&#x2F;');
-}
+// HELPER FUNCTIONS
 
-function uniqueStrings (x) {
-  var seen = {};
-  return x.filter(function (str) {
-    return seen.hasOwnProperty(str) ? false : (seen[str] = true);
-  });
+/*
+ * Get the translation of a string.
+ * If the language or the chosen string is invalid return the string itself.
+ */
+function _ (string) {
+  return i18n[lang][string] || string;
 }
 
 // Replace a Field.Label object with its "beautified" text representation.
@@ -398,102 +469,19 @@ function beautifyLabel (label) {
   }
 }
 
-// Get a a ContactsApp.Month's numerical representation (JAN = 0).
-function monthToInt (month) {
-  var i;
-  var months = [
-    ContactsApp.Month.JANUARY,
-    ContactsApp.Month.FEBRUARY,
-    ContactsApp.Month.MARCH,
-    ContactsApp.Month.APRIL,
-    ContactsApp.Month.MAY,
-    ContactsApp.Month.JUNE,
-    ContactsApp.Month.JULY,
-    ContactsApp.Month.AUGUST,
-    ContactsApp.Month.SEPTEMBER,
-    ContactsApp.Month.OCTOBER,
-    ContactsApp.Month.NOVEMBER,
-    ContactsApp.Month.DECEMBER
-  ];
-  for (i = 0; i < 12; i++) {
-    if (month === months[i]) {
-      return i;
-    }
-  }
-  return -1;
+function doLog (arg) {
+  noLog || Logger.log(arg);
 }
 
-/*
- * An object representing a simplified semantic version number.
- * It must be composed of:
- *  - three dot-separated positive integers (major version,
- *    minor version and patch number);
- *  - optionally a pre-release identifier, prefixed by a hyphen;
- *  - optionally a metadata identifier, prefixed by a plus sign;
- * This differes from the official SemVer style because the pre-release
- * string is compared as a whole in version comparison instead of
- * being spliced into chuncks.
- * Valid examples:
- *  4.6.2, 3.12.234-alpha,  0.11.0+20170827, 2.0.0-beta+20170827
- */
-function SimplifiedSemanticVersion (versionNumber) {
-  var matches, self;
-
-  self = this;
-  this.numbers = [0, 0, 0];
-  this.prerelease = '';
-  this.metadata = '';
-
-  matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
-  if (matches) {
-    self.numbers[0] = parseInt(matches[1]);
-    self.numbers[1] = parseInt(matches[2]);
-    self.numbers[2] = parseInt(matches[3]);
-    self.prerelease = typeof matches[4] === 'undefined' ? '' : matches[4];
-    self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
-  } else {
-    throw new Error('The version number "' + versionNumber + '" is not valid!');
-  }
+function htmlEscape (str) {
+  return str
+         .replace(/&/g, '&amp;')
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&#39;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/\//g, '&#x2F;');
 }
-
-/*
- * Rebuild the version number string from the extracted data.
- */
-SimplifiedSemanticVersion.prototype.toString = function () {
-  return this.numbers.join('.') +
-    (this.prerelease !== '' ? '-' + this.prerelease : '') +
-    (this.metadata !== '' ? '+' + this.metadata : '');
-};
-
-/*
- * Compare a semantic version number with another one.
- *
- * Returns -1, 0 , 1 if this version number is smaller than,
- * equal to or bigger than the one passed as the parameter.
- *
- * Order of comparison: major number, minor number, patch number,
- * prerelease string (ASCII comparison). Metadata do not influence
- * comparisons.
- */
-SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
-  var i;
-  for (i = 0; i < 3; i++) {
-    if (this.numbers[i] !== comparedVersion.numbers[i]) {
-      return (this.numbers[i] < comparedVersion.numbers[i] ? -1 : 1);
-    }
-  }
-  if (this.prerelease !== comparedVersion.prerelease) {
-    // Between two version with the same numbers, one in pre-release and the other not
-    // the one in pre-release must be considered smaller.
-    if (this.prerelease === '') {
-      return 1;
-    } else if (comparedVersion.prerelease === '') {
-      return -1;
-    }
-    return (this.prerelease < comparedVersion.prerelease ? -1 : 1);
-  }
-  return 0;
-};
 
 /*
  * Get the last version number from the GitHub file and compare it with the script's one.
@@ -523,428 +511,34 @@ function isRunningOutdatedVersion () {
   }
 }
 
-/*
- * Get the translation of a string.
- * If the language or the chosen string is invalid return the string itself.
- */
-function _ (string) {
-  return i18n[lang][string] || string;
-}
-
-function doLog (arg) {
-  noLog || Logger.log(arg);
-}
-
-/*
- * Look for events on a certain date.
- * If testDate is not specified Date.now() will be used.
- */
-function checkEvents (testDate) {
-  var anticipate, subjectPrefix, subjectBuilder,
-    bodyPrefix, bodySuffix1, bodySuffix2, bodySuffix3, bodySuffix4, bodyBuilder, htmlBodyBuilder, now, subject, body, htmlBody;
-
-  doLog('Starting run of Google Contacts Events Notifier version ' + version.toString() + '.');
-  // The script needs this value in milliseconds, but the user entered it in days.
-  anticipate = anticipateDays.map(function (n) { return 1000 * 60 * 60 * 24 * n; });
-  // Verify that the contacts events calendar exists.
-  if (!eventCalendar) {
-    throw new Error('Contacts events calendar not found! Please follow the instructions (step "Enable the calendar").');
-  }
-
-  // Start building the email notification text.
-  subjectPrefix = _('Events') + ': ';
-  subjectBuilder = [];
-  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
-  bodySuffix1 = _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')';
-  bodySuffix2 = _('by') + ' Giorgio Bonvicini';
-  bodySuffix3 = _('It looks like you are using an outdated version of this script') + '.';
-  bodySuffix4 = _('You can find the latest one here');
-
-  // The email is built both with plain text and HTML text.
-  bodyBuilder = [];
-  htmlBodyBuilder = [];
-
-  // Use the testDate if specified, otherwise use todays' date.
-  now = testDate || new Date();
-  doLog('Date used: ' + now);
-
-  inlineImages = {};
-  /*
-   * Look for events on each of the days specified by the user.
-   * timeInterval represents how many milliseconds in the future to check.
-   */
-  anticipate.forEach(
-    function (timeInterval) {
-      var optionalArgs, events;
-
-      // Set the search filter to include only events happening 'timeInterval' milliseconds after now.
-      optionalArgs = {
-        // Filter only events happening between 'now + timeInterval'...
-        timeMin: Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
-        // ... and 'now + timeInterval + 1 sec'.
-        timeMax: Utilities.formatDate(new Date(now.getTime() + timeInterval + 1000), calendarTimeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\''),
-        // Treat recurring events (like birthdays) as single events.
-        singleEvents: true
-      };
-
-      events = Calendar.Events.list(calendarId, optionalArgs).items;
-
-      eventTypes.forEach(
-        function (eventType) {
-          var eventTypeNamePlural, theseEvents, formattedDate, whenIsIt;
-
-          switch (eventType) {
-            case 'BIRTHDAY':
-              eventTypeNamePlural = 'birthdays';
-              break;
-            case 'ANNIVERSARY':
-              eventTypeNamePlural = 'anniversaries';
-              break;
-            case 'CUSTOM':
-              eventTypeNamePlural = 'custom events';
-          }
-
-          // Get all the matching 'eventType' events.
-          doLog('Checking ' + eventTypeNamePlural + ' from ' + optionalArgs.timeMin + ' to ' + optionalArgs.timeMax);
-          theseEvents = events.filter(function (e) { return e.gadget.preferences['goo.contactsEventType'] === eventType; });
-          doLog('Found ' + theseEvents.length + ' ' + eventTypeNamePlural + ' in this time range.');
-          // If no 'eventType' event is found for this particular timeInterval skip it.
-          if (theseEvents.length < 1) {
-            return;
-          }
-          formattedDate = Utilities.formatDate(new Date(now.getTime() + timeInterval), calendarTimeZone, _('dd-MM-yyyy'));
-          // Build the headers of 'eventType' event grouping by date.
-          bodyBuilder.push('\n * ');
-          htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
-          whenIsIt = eventTypeNamePlural.charAt(0).toUpperCase() + eventTypeNamePlural.slice(1);
-          switch (timeInterval / (24 * 60 * 60 * 1000)) {
-            case 0:
-              whenIsIt += ' today';
-              break;
-            case 1:
-              whenIsIt += ' tomorrow';
-              break;
-            default:
-              whenIsIt += ' in {0} days';
-          }
-          whenIsIt = _(whenIsIt).format(timeInterval / (24 * 60 * 60 * 1000)) + ' (' + formattedDate + ')';
-          bodyBuilder.push(whenIsIt, ':\n');
-          htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
-
-          // Add each of the 'eventType' events for this timeInterval.
-          theseEvents.forEach(
-            function (event, i) {
-              var contact;
-
-              doLog('Contact # ' + i + ' ' + eventTypeNamePlural + '.');
-              contact = new Contact(event, eventType);
-              subjectBuilder.push(contact.fullName);
-              bodyBuilder.extend(contact.getPlainTextLine());
-              htmlBodyBuilder.extend(contact.getHtmlLine());
-            }
-          );
-
-          bodyBuilder.push('\n');
-          htmlBodyBuilder.push('</ul></dd>');
-        }
-      );
+// Get a a ContactsApp.Month's numerical representation (JAN = 0).
+function monthToInt (month) {
+  var i;
+  var months = [
+    ContactsApp.Month.JANUARY,
+    ContactsApp.Month.FEBRUARY,
+    ContactsApp.Month.MARCH,
+    ContactsApp.Month.APRIL,
+    ContactsApp.Month.MAY,
+    ContactsApp.Month.JUNE,
+    ContactsApp.Month.JULY,
+    ContactsApp.Month.AUGUST,
+    ContactsApp.Month.SEPTEMBER,
+    ContactsApp.Month.OCTOBER,
+    ContactsApp.Month.NOVEMBER,
+    ContactsApp.Month.DECEMBER
+  ];
+  for (i = 0; i < 12; i++) {
+    if (month === months[i]) {
+      return i;
     }
-  );
-
-  // If there is an email to send...
-  if (bodyBuilder.length > 0) {
-    subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
-    body = [bodyPrefix, '\n']
-        .concat(bodyBuilder)
-        .concat(['\n\n ', bodySuffix1, '\n ', bodySuffix2, '\n'])
-        .concat('\n', isRunningOutdatedVersion() ? [bodySuffix3, ' ', bodySuffix4, ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
-        .join('');
-    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
-        .concat(htmlBodyBuilder)
-        .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffix1), '</a><br/>', htmlEscape(bodySuffix2)])
-        .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffix3), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffix4), '</a>.</b></p>'] : ['</p>'])
-        .join('');
-
-    // ...send the email notification.
-    doLog('Sending email...');
-    MailApp.sendEmail({
-      to: myEmail,
-      subject: subject,
-      body: body,
-      htmlBody: htmlBody,
-      inlineImages: inlineImages,
-      name: emailSenderName
-    });
-    doLog('Email sent.');
   }
-  // Send the log if the debug options say so.
-  if (!noLog && sendLog) {
-    MailApp.sendEmail({
-      to: myEmail,
-      subject: 'Logs for contact-events-notification run',
-      body: Logger.getLog(),
-      name: emailSenderName
-    });
-  }
+  return -1;
 }
 
-/*
- * Extract contact data from a contact event and integrate it with additional data
- * recovered directly from Google Contact through the contactId field if present.
- */
-var Contact = function (event, eventType) {
-  var eventData, googleContact, currentYear, startYear, phoneFields, dates, self;
-
-  self = this; // for consistent access from sub-functions
-  // Extract basic data from the event description.
-  eventData = event.gadget.preferences;
-  self.eventDate = (typeof event.start.date === 'undefined') ? null : new Date(event.start.date);
-  self.id = (typeof eventData['goo.contactsContactId'] === 'undefined') ? '' : eventData['goo.contactsContactId'];
-  self.fullName = (typeof eventData['goo.contactsFullName'] === 'undefined') ? '' : eventData['goo.contactsFullName'];
-  self.email = (typeof eventData['goo.contactsEmail'] === 'undefined') ? '' : eventData['goo.contactsEmail'];
-  self.photo = (typeof eventData['goo.contactsPhotoUrl'] === 'undefined') ? '' : eventData['goo.contactsPhotoUrl'];
-  self.dateLabels = [];
-  self.age = {};
-  self.phoneFields = [];
-  self.nickname = '';
-  self.eventType = eventType;
-  self.eventTypeCustomString = typeof eventData['goo.contactsCustomEventType'] === 'undefined' ? '' : eventData['goo.contactsCustomEventType'];
-
-  if (self.email !== '') {
-    doLog('Has email.');
-  }
-  if (self.fullName !== '') {
-    doLog('Has full name.');
-  }
-  if (self.photo !== '') {
-    doLog('Has photo.');
-  } else {
-    doLog('Using default profile image.');
-    self.photo = baseRawFilesURL + 'images/default_profile.jpg';
-  }
-  // If the contact is a Google contact and not just a Google Plus contact try to get the Google Contact via the contactId.
-  if (eventData['goo.contactsIsMyContact'] === 'false' || self.id === '') {
-    self.dateLabels.push(self.eventType);
-  } else {
-    doLog('Has Google ID.');
-    googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(myGoogleEmail) + '/base/' + self.id);
-  }
-
-  // If a valid Google Contact exists extract some additional data.
-  if (googleContact) {
-    currentYear = Utilities.formatDate(new Date(event.start.date.replace(/-/g, '/')), calendarTimeZone, 'yyyy');
-    // Get all the events for this day from the contact.
-    if (self.eventType === 'BIRTHDAY' || self.eventType === 'ANNIVERSARY') {
-      dates = [googleContact.getDates(ContactsApp.Field[self.eventType])[0]];
-    } else if (self.eventType === 'CUSTOM') {
-      dates = googleContact.getDates(self.eventTypeCustomString).filter(function (x) {
-        return (x.getDay() === self.eventDate.getDate() && monthToInt(x.getMonth()) === self.eventDate.getMonth());
-      });
-    }
-
-    // Store information for each event (name and years passed).
-    if(dates[0] !== undefined) { // When contact has birtday field only in G+ part dates variable is empty 
-      dates.forEach(function (eachDate) {  
-        var dateLabel = eachDate.getLabel();  
-        doLog('Has ' + dateLabel + ' year.');  
-        self.dateLabels.push(dateLabel);  
-        startYear = eachDate.getYear();  
-        if (startYear) {  
-          self.age[dateLabel] = (currentYear - startYear).toFixed(0);  
-        }  
-      });
-    } else {
-      self.dateLabels.push(self.eventType);
-    }
-
-    // Extract contact's phone numbers.
-    phoneFields = googleContact.getPhones();
-    if (phoneFields.length > 0) {
-      self.phoneFields = phoneFields;
-      doLog('Has phones.');
-    }
-    // Extract contact's nickname.
-    self.nickname = googleContact.getNickname();
-  }
-
-  /*
-   * Use the extracted data to build a plain line of text displaying all the
-   * collected data about the contact.
-   */
-  self.getPlainTextLine = function () {
-    var lines;
-    lines = [];
-    self.dateLabels.forEach(function (dateLabel) {
-      var line;
-      line = ['\n', indent];
-      // Custom label
-      if (self.eventType === 'CUSTOM') {
-        line.push('<' + dateLabel + '> ');
-      }
-      // Full name.
-      line.push(self.fullName);
-      // Nickname.
-      if (self.nickname !== '') {
-        line.push(' "', self.nickname, '"');
-      }
-      // Age.
-      if (self.age.hasOwnProperty(dateLabel) && self.age[dateLabel] !== '') {
-        if (self.eventType === 'BIRTHDAY') {
-          line.push(' - ', _('Age'), ': ');
-        } else {
-          line.push(' - ', _('Years'), ': ');
-        }
-        line.push(self.age[dateLabel]);
-      }
-
-      if (self.email !== '' || typeof self.phoneFields !== 'undefined') {
-        line.push(' (');
-        // Email address.
-        if (self.email !== '') {
-          line.push(self.email);
-        }
-        // Phone numbers.
-        self.phoneFields.forEach(function (phoneField, i) {
-          var label;
-          if (i !== 0 || self.email !== '') {
-            line.push(' - ');
-          }
-          label = phoneField.getLabel();
-          if (label !== '') {
-            line.push('[', beautifyLabel(label), '] ');
-          }
-          line.push(phoneField.getPhoneNumber());
-        });
-        line.push(')');
-      }
-      lines.push(line);
-    });
-    return lines.map(function (x) { return x.join(''); }).join('\n');
-  };
-
-  /*
-   * Use the extracted data to build a line of HTML text displaying all the
-   * collected data about the contact.
-   */
-  self.getHtmlLine = function () {
-    var lines;
-    lines = [];
-    self.dateLabels.forEach(function (dateLabel) {
-      var line, imgCount;
-      line = ['<li>'];
-      // Profile photo.
-      if (self.photo !== '') {
-        imgCount = Object.keys(inlineImages).length;
-        inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.photo).getBlob().setName('contact-img-' + imgCount);
-        line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
-      }
-      // Custom label
-      if (self.eventType === 'CUSTOM') {
-        line.push('&lt;' + htmlEscape(dateLabel) + '&gt; ');
-      }
-      // Full name.
-      line.push(htmlEscape(self.fullName));
-      // Nickname.
-      if (self.nickname !== '') {
-        line.push(' &quot;', htmlEscape(self.nickname), '&quot;');
-      }
-      // Age.
-      if (self.age.hasOwnProperty(dateLabel) && self.age[dateLabel] !== '') {
-        if (self.eventType === 'BIRTHDAY') {
-          line.push(' - ', _('Age'), ': ');
-        } else {
-          line.push(' - ', _('Years'), ': ');
-        }
-        line.push(self.age[dateLabel]);
-      }
-      if (self.email !== '' || typeof self.phoneFields !== 'undefined') {
-        line.push(' (');
-        // Email address.
-        if (self.email !== '') {
-          line.push('<a href="mailto:', self.email, '">', self.email, '</a>');
-        }
-        // Phone fields.
-        self.phoneFields.forEach(function (phoneField, i) {
-          var label;
-          if (i !== 0 || self.email !== '') {
-            line.push(' - ');
-          }
-          label = phoneField.getLabel();
-          if (label !== '') {
-            line.push('[', htmlEscape(beautifyLabel(label)), '] ');
-          }
-          line.push('<a href="tel:', phoneField.getPhoneNumber(), '">', phoneField.getPhoneNumber(), '</a>');
-        });
-        line.push(')');
-      }
-      lines.push(line);
-    });
-    return lines.map(function (x) { return x.join(''); }).join('\n');
-  };
-};
-
-// Start the notification service.
-function start () {
-  if (notificationHour < 0 || notificationHour > 23 || parseInt(Number(notificationHour)) !== notificationHour) {
-    throw new Error('Invalid parameter: notificationHour. Must be an integer between 0 and 23.');
-  }
-  stop();
-  try {
-    ScriptApp.newTrigger('normal')
-    .timeBased()
-    .atHour(notificationHour)
-    .everyDays(1)
-    .inTimezone(myTimeZone)
-    .create();
-  } catch (err) {
-    throw new Error('Failed to start the notification service: make sure that myTimeZone is a valid value.');
-  }
-}
-
-// Stop the notification service.
-function stop () {
-  var triggers;
-  // Delete all the triggers.
-  triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
-  }
-}
-
-// Check if notification service is running.
-function status () {
-  var toLog = 'Notifications are';
-
-  if (ScriptApp.getProjectTriggers().length < 1) {
-    toLog += ' not';
-  }
-  toLog += ' running.';
-  Logger.log(toLog);
-  if (!noLog && sendLog) {
-    MailApp.sendEmail({
-      to: myEmail,
-      subject: 'Status for contact-event-notification',
-      body: Logger.getLog(),
-      name: emailSenderName
-    });
-  }
-}
-
-// Normal function call (This function is called by the timed trigger).
-function normal () {
-  checkEvents();
-}
-
-/*
- * Use this function to test the script. Edit the date in the debugging
- * configuration above and click "Run"->"test" in the menu at the top
- * of the Google script interface.
- */
-function test () {
-  var testDate;
-
-  testDate = new Date(fakeTestDate);
-  doLog('Testing.');
-  doLog('Test date: ' + testDate);
-  checkEvents(testDate);
+function uniqueStrings (x) {
+  var seen = {};
+  return x.filter(function (str) {
+    return seen.hasOwnProperty(str) ? false : (seen[str] = true);
+  });
 }
