@@ -671,3 +671,90 @@ function uniqueStrings (x) {
     return seen.hasOwnProperty(str) ? false : (seen[str] = true);
   });
 }
+
+// MAIN FUNCTIONS
+
+/*
+ * Send an email notification to the user containing a list of the events
+ * of his/her contacts scheduled for the next days.
+ */
+function main (forceDate) {
+  var now;
+
+  log.add('main() running.', 'info');
+  now = forceDate || new Date();
+  log.add('Date used: ' + now, 'info');
+
+  // TODO.
+}
+
+/*
+ * Execute the main() function without forcing any date as "now".
+ */
+function normal () {
+  log.add('normal() running.', 'info');
+  main(null);
+}
+
+/*
+ * Executie the main() function forcing a given date as "now".
+ */
+function test () {
+  log.add('test() running.', 'info');
+  main(settings.debug.testDate);
+}
+
+// NOTIFICATION SERVICE FUNCTIONS
+
+/*
+ * Start the notification service.
+ */
+function notifStart () {
+  if (
+    settings.notifications.hour < 0 ||
+    settings.notifications.hour > 23 ||
+    parseInt(settings.notifications.hour, 10) !== settings.notifications.hour
+  ) {
+    log.add('Invalid parameter: notificationHour. Must be an integer between 0 and 23.', 'error');
+  }
+  // Delete old triggers.
+  notifStop();
+  // Add a new trigger.
+  try {
+    ScriptApp.newTrigger('normal')
+    .timeBased()
+    .atHour(settings.notifications.hour)
+    .everyDays(1)
+    .inTimezone(settings.notifications.timeZone)
+    .create();
+  } catch (err) {
+    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', 'error');
+  }
+  log.add('Notification service started.', 'info');
+}
+
+/*
+ * Stop the notification service.
+ */
+function notifStop () {
+  var triggers;
+  // Delete all the triggers.
+  triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  }
+  log.add('Notification service stopped.', 'info');
+}
+
+/*
+ * Check if notification service is running.
+ */
+function notifStatus () {
+  var toLog = 'Notifications are ';
+  if (ScriptApp.getProjectTriggers().length < 1) {
+    toLog += 'not ';
+  }
+  toLog += 'running.';
+  log.add(toLog);
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
+}
