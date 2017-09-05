@@ -167,6 +167,102 @@ var settings = {
 // CLASSES
 
 /*
+ * DataCollector is a structure used to collect data about any "object" (an event, an
+ * email address, a phone number...) from multiple incomplete sources.
+ * For example the raw event could contain the day and month of the birthday, while
+ * the Google Contact could hold the year as well. DataCollector can be used to accumulate
+ * the data in multiple takes: each take updates the values that were left empty by the
+ * previous ones until all info have been collected.
+ *
+ * Each DataCollector object can contain an arbitrary number of properties in the form of
+ * name -> value, stored in the prop object.
+ * Empty properties have null value.
+ *
+ * DataCollector is an abstract class. Each data type should have its own implementation
+ * (EventDC, EmailAddressDC, PhoneNumberDC).
+ */
+var DataCollector = function () {
+  if (this.constructor === DataCollector) {
+    throw new Error('DataCollector is an abstract class and cannot be instantiated!');
+  }
+  this.prop = {};
+};
+
+DataCollector.prototype.getProp = function (key) {
+  return this.prop[key];
+};
+
+DataCollector.prototype.setProp = function (key, value) {
+  this.prop[key] = (typeof value !== 'undefined' && value !== '' ? value : null);
+};
+
+DataCollector.prototype.isPropEmpty = function (key) {
+  return this.prop[key] === null;
+};
+
+/*
+ * Detect wether two DataCollectors are referring to the same thing or not.
+ *
+ * Actually it's only possible to determine exactly if two DataCollectors
+ * are conflicting: two non-conflicting DataCollectors are assumed to refer
+ * to the same thing.
+ *
+ * Examples:
+ * DC_1 = {name='test', number=3, field=null}
+ * DC_2 = {name=null, number=3, field=3}
+ * DC_2 = {name='test', number=null, field=1}
+ *
+ * DC_1.isCompatible(DC_2) -> true
+ * DC_1.isCompatible(DC_3) -> true
+ * DC_2.isCompatible(DC_3) -> false (conflict on field)
+ */
+DataCollector.prototype.isCompatible = function (otherData) {
+  var self;
+
+  self = this;
+  // Only same-implementation objects of DataCollector can be compared.
+  if (self.constructor !== otherData.constructor) {
+    return false;
+  }
+  // Returns true only if there are no conflicting properties between the two objects.
+  return Object.keys(otherData.prop)
+    .filter(function (key) {
+      return !self.isPropEmpty(key) && !otherData.isPropEmpty(key) && self.getProp(key) !== otherData.getProp(key);
+    }).length === 0;
+};
+
+/*
+ * Merge two DataCollector objects, filling the empty properties of the
+ * first one with the non-empty ones of the second one.
+ *
+ * WARNING
+ * Merging two incompatible DataCollectors will cause unexpected results.
+ *
+ * Examples:
+ * DC_1 = {name='test', number=3, field=null}
+ * DC_2 = {name=null, number=3, field=3}
+ * DC_2 = {name='test', number=null, field=1}
+ *
+ * DC_1.merge(DC_2) -> {name='test', number=3, field=3}
+ * DC_1.isCompatible(DC_3) -> {name='test', number=3, field=1}
+ * DC_2.isCompatible(DC_3) -> INCOMPATIBLE
+ */
+DataCollector.prototype.merge = function (otherDataCollector) {
+  var self;
+
+  self = this;
+  if (self.constructor !== otherDataCollector.constructor) {
+    throw new Error('Trying to merge two different implementations of IncompleteData!');
+  }
+  // Fill each empty key of the first DataCollector with the value from the second one.
+  Object.keys(self.prop).forEach(function (key) {
+    if (self.isPropEmpty(key)) {
+      self.setProp(key, otherDataCollector.getProp(key));
+    }
+  });
+};
+
+/*
  * Manage a collection of logEvents {time, text, priority}.
  *
  * Parameters:
