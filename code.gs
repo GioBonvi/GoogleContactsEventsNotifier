@@ -357,6 +357,136 @@ Contact.prototype.addToField = function (field, incData) {
 };
 
 /*
+ * Generate a list of plain text lines each describing an event of the contact
+ * of the type specified on the date specified.
+ */
+Contact.prototype.getPlainTextLines = function (type, date) {
+  var self, lines;
+  self = this;
+  lines = [];
+  self.events.filter(function (event) {
+    var typeMatch;
+    switch (event.getProp('label')) {
+      // Your own birthday is marked as 'SELF'.
+      case 'SELF':
+        // falls through
+      case 'BIRTHDAY':
+        typeMatch = (type === 'BIRTHDAY');
+        break;
+      case 'ANNIVERSARY':
+        typeMatch = (type === 'ANNIVERSARY');
+        break;
+      default:
+        typeMatch = (type === 'CUSTOM');
+    }
+    return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
+  }).forEach(function (event) {
+    var plainTextLine;
+
+    plainTextLine = [indent];
+    // Custom label
+    if (type === 'CUSTOM') {
+      plainTextLine.push('<' + event.getProp('label') + '> ');
+    }
+    // Full name.
+    plainTextLine.push(self.data.getProp('fullName'));
+    // Nickname.
+    if (!self.data.isPropEmpty('nickname')) {
+      plainTextLine.push(' "', self.data.getProp('nickname'), '"');
+    }
+    // Age/years passed
+    if (!event.isPropEmpty('year')) {
+      if (type === 'BIRTHDAY') {
+        plainTextLine.push(' - ', _('Age'), ': ');
+      } else {
+        plainTextLine.push(' - ', _('Years'), ': ');
+      }
+      plainTextLine.push(Math.round(date.getYear() - event.getProp('year')));
+    }
+    // Email addresses and phone numbers.
+    if (self.emails.length + self.phones.length > 0) {
+      plainTextLine.push(' (');
+      plainTextLine.push(
+        self.emails.map(function (email) { return (!email.isPropEmpty('label') ? '[' + beautifyLabel(email.getProp('label')) + '] ' : '') + email.getProp('address'); })
+        .concat(self.phones.map(function (phone) { return (!phone.isPropEmpty('label') ? '[' + beautifyLabel(phone.getProp('label')) + '] ' : '') + phone.getProp('number'); }))
+        .join(' - '));
+      plainTextLine.push(')');
+    }
+    lines.push(plainTextLine);
+  });
+  return lines.map(function (x) { return x.join(''); });
+};
+
+/*
+ * Generate a list of html lines each describing an event of the contact
+ * of the type specified on the date specified.
+ */
+Contact.prototype.getHtmlLines = function (type, date) {
+  var self, lines;
+  self = this;
+  lines = [];
+  self.events.filter(function (event) {
+    var typeMatch;
+    switch (event.getProp('label')) {
+      // Your own birthday is marked as 'SELF'.
+      case 'SELF':
+        // falls through
+      case 'BIRTHDAY':
+        typeMatch = (type === 'BIRTHDAY');
+        break;
+      case 'ANNIVERSARY':
+        typeMatch = (type === 'ANNIVERSARY');
+        break;
+      default:
+        typeMatch = (type === 'CUSTOM');
+    }
+    return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
+  }).forEach(function (event) {
+    var htmlLine, imgCount;
+    htmlLine = ['<li>'];
+    // Profile photo.
+    imgCount = Object.keys(inlineImages).length;
+    inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
+    htmlLine.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+    // Custom label
+    if (type === 'CUSTOM') {
+      htmlLine.push('&lt;' + htmlEscape(event.getProp('label')) + '&gt; ');
+    }
+    // Full name.
+    htmlLine.push(htmlEscape(self.data.getProp('fullName')));
+    // Nickname.
+    if (!self.data.isPropEmpty('nickname')) {
+      htmlLine.push(' &quot;', htmlEscape(self.data.getProp('nickname')), '&quot;');
+    }
+    // Age/years passed.
+    if (!event.isPropEmpty('year')) {
+      if (type === 'BIRTHDAY') {
+        htmlLine.push(' - ', htmlEscape(_('Age')), ': ');
+      } else {
+        htmlLine.push(' - ', htmlEscape(_('Years')), ': ');
+      }
+      htmlLine.push(Math.round(date.getYear() - event.getProp('year')));
+    }
+    // Email addresses and phone numbers.
+    if (self.emails.length + self.phones.length > 0) {
+      htmlLine.push(' (');
+      htmlLine.push(
+        self.emails.map(function (email) {
+          return (!email.isPropEmpty('label') ? '[' + htmlEscape(beautifyLabel(email.getProp('label'))) + '] ' : '') + '<a href="mailto:' +
+            email.getProp('address') + '">' + htmlEscape(email.getProp('address')) + '</a>';
+        }).concat(self.phones.map(function (phone) {
+          return (!phone.isPropEmpty('label') ? '[' + htmlEscape(beautifyLabel(phone.getProp('label'))) + '] ' : '') + '<a href="tel:' +
+          phone.getProp('number') + '">' + htmlEscape(phone.getProp('number')) + '</a>';
+        })).join(' - '));
+      htmlLine.push(')');
+    }
+    htmlLine.push('</li>');
+    lines.push(htmlLine);
+  });
+  return lines.map(function (x) { return x.join(''); });
+};
+
+/*
  * DataCollector is a structure used to collect data about any "object" (an event, an
  * email address, a phone number...) from multiple incomplete sources.
  * For example the raw event could contain the day and month of the birthday, while
@@ -1041,7 +1171,8 @@ function getEventsOnDate (eventDate, calendarId) {
  * of his/her contacts scheduled for the next days.
  */
 function main (forceDate) {
-  var now, events, contactList;
+  var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
+    bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
 
   log.add('main() running.', 'info');
   now = forceDate || new Date();
@@ -1110,7 +1241,121 @@ function main (forceDate) {
   }
   log.add('Built ' + contactList.length + ' contacts.', 'info');
 
-  // TODO.
+  // Give a default profile image to the contacts without one.
+  contactList.forEach(function (contact) {
+    contact.data.merge(new ContactDataDC(
+      null, // FullName.
+      null, // Nickname.
+      baseRawFilesURL + 'images/default_profile.jpg')
+    );
+  });
+
+  // Start building the email notification text.
+  subjectPrefix = _('Events') + ': ';
+  subjectBuilder = [];
+  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
+  bodySuffixes = [
+    _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
+    _('by') + ' Giorgio Bonvicini',
+    _('It looks like you are using an outdated version of this script') + '.',
+    _('You can find the latest one here')
+  ];
+  inlineImages = {};
+
+  // The email is built both with plain text and HTML text.
+  bodyBuilder = [];
+  htmlBodyBuilder = [];
+
+  calendarTimeZone = Calendar.Calendars.get(settings.user.calendarId).getTimeZone();
+  settings.notifications.anticipateDays
+    .forEach(function (daysInterval) {
+      var date, formattedDate;
+
+      date = new Date(now.getTime() + daysInterval * 24 * 60 * 60 * 1000);
+      formattedDate = Utilities.formatDate(date, calendarTimeZone, _('dd-MM-yyyy'));
+
+      eventTypes.forEach(
+        function (eventType) {
+          var eventTypeNamePlural, plaintextLines, htmlLines, whenIsIt;
+
+          switch (eventType) {
+            case 'BIRTHDAY':
+              eventTypeNamePlural = 'birthdays';
+              break;
+            case 'ANNIVERSARY':
+              eventTypeNamePlural = 'anniversaries';
+              break;
+            case 'CUSTOM':
+              eventTypeNamePlural = 'custom events';
+          }
+
+          // Get all the matching 'eventType' events.
+          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, 'info');
+
+          subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
+          plaintextLines = contactList
+            .map(function (contact) { return contact.getPlainTextLines(eventType, date); })
+            .filter(function (lines) { return lines.length > 0; });
+          htmlLines = contactList
+            .map(function (contact) { return contact.getHtmlLines(eventType, date); })
+            .filter(function (lines) { return lines.length > 0; });
+          if (plaintextLines.length === 0 || htmlLines.length === 0) {
+            log.add('No events found on this date.', 'info');
+            return;
+          }
+          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, 'info');
+          // Build the headers of 'eventType' event grouping by date.
+          bodyBuilder.push('\n * ');
+          htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
+          whenIsIt = eventTypeNamePlural.charAt(0).toUpperCase() + eventTypeNamePlural.slice(1);
+          switch (daysInterval) {
+            case 0:
+              whenIsIt += ' today';
+              break;
+            case 1:
+              whenIsIt += ' tomorrow';
+              break;
+            default:
+              whenIsIt += ' in {0} days';
+          }
+          whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
+          bodyBuilder.push(whenIsIt, ':\n');
+          plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
+          htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
+          htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
+          htmlBodyBuilder.push('</dd></ul>');
+        });
+    });
+
+  // If there is an email to send...
+  if (bodyBuilder.length > 0) {
+    log.add('Building the email notification.', 'info');
+    subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
+    body = [bodyPrefix, '\n']
+      .concat(bodyBuilder)
+      .concat(['\n\n ', bodySuffixes[0], '\n ', bodySuffixes[1], '\n'])
+      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[2], ' ', bodySuffixes[3], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+      .join('');
+    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
+      .concat(htmlBodyBuilder)
+      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a><br/>', htmlEscape(bodySuffixes[1])])
+      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[2]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[3]), '</a>.</b></p>'] : ['</p>'])
+      .join('');
+
+    // ...send the email notification.
+    log.add('Sending email...', 'info');
+    MailApp.sendEmail({
+      to: settings.user.notificationEmail,
+      subject: subject,
+      body: body,
+      htmlBody: htmlBody,
+      inlineImages: inlineImages,
+      name: settings.user.emailSenderName
+    });
+    log.add('Email sent.', 'info');
+  }
+  // Send the log if the debug options say so.
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }
 
 /*
