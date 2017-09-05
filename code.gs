@@ -675,16 +675,67 @@ function uniqueStrings (x) {
 // MAIN FUNCTIONS
 
 /*
+ * Returns an array with the events happening in the calendar with
+ * ID 'calendarId' on date 'eventDate'.
+ */
+function getEventsOnDate (eventDate, calendarId) {
+  var eventCalendar, startDate, endDate, events;
+
+  // Verify the existence of the vents calendar.
+  eventCalendar = Calendar.Calendars.get(calendarId);
+  if (eventCalendar === null) {
+    log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', 'error');
+  }
+
+  // Query the events calendar for events on the specified date.
+  try {
+    startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
+    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
+    log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', 'info');
+  } catch (err) {
+    log.add(err.message, 'error');
+  }
+  events = Calendar.Events.list(
+    calendarId,
+    {
+      singleEvents: true,
+      timeMin: startDate,
+      timeMax: endDate
+    }
+  ).items;
+
+  log.add('Found: ' + events.length);
+
+  return events;
+}
+
+/*
  * Send an email notification to the user containing a list of the events
  * of his/her contacts scheduled for the next days.
  */
 function main (forceDate) {
-  var now;
+  var now, events;
 
   log.add('main() running.', 'info');
   now = forceDate || new Date();
   log.add('Date used: ' + now, 'info');
 
+  events = [].concat.apply(
+    [],
+    settings.notifications.anticipateDays
+      .map(function (days) {
+        return getEventsOnDate(
+          new Date(now.getTime() + days * 24 * 60 * 60 * 1000),
+          settings.user.calendarId
+        );
+      })
+  );
+
+  if (events.length === 0) {
+    log.add('No events found. Exiting now.', 'info');
+    return;
+  }
+  log.add('Found ' + events.length + 'events.', 'info');
   // TODO.
 }
 
