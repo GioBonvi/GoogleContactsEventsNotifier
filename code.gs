@@ -345,6 +345,15 @@ Contact.prototype.addToField = function (field, incData) {
 
   self = this;
   merged = false;
+
+  // incData must have at least a non-empty property.
+  if (Object.keys(incData.prop).length === 0 ||
+      Object.keys(incData.prop)
+      .filter(function (key) { return !incData.isPropEmpty(key); })
+      .length === 0) {
+    return;
+  }
+
   self[field].forEach(function (data) {
     if (!merged && data.isCompatible(incData)) {
       data.merge(incData);
