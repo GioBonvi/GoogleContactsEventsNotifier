@@ -1,4 +1,4 @@
-/* global Logger Log SimplifiedSemanticVersion */
+/* global Logger Log SimplifiedSemanticVersion log generateEmailNotification */
 
 function assert (condition, message) {
   if (!condition) {
@@ -80,4 +80,36 @@ function testSemVer () {
     assert(v1.compare(v2) === comp.result, 'Comparison between ' + comp.v1 + ' and ' + comp.v2 + ' did not return the expected value of ' + comp.result);
     assert(v2.compare(v1) === (-comp.result), 'Comparison between ' + comp.v2 + ' and ' + comp.v1 + ' did not return the expected value of ' + (-comp.result));
   });
+}
+
+/**
+ * Test all events from selected period. It won't send actual e-mails to you, but put content of them into log.
+ *
+ * !!! Execution of this function very ofted exceed maximum time (30s).
+ *
+ * @param {Date} testDate - First date to start test; by default 1 January of current year.
+ * @param {int} numberOfDaysToTest - Number of days to test; by default 365 days (1 year).
+ * @param {bool} printHTML - Whether or not print HTML mailContent into log; by default not.
+ */
+function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) {
+  testDate = testDate || new Date(new Date().getFullYear(), 0, 1, 6, 0, 0);
+  numberOfDaysToTest = numberOfDaysToTest || 365;
+
+  log.add('testSelectedPeriod() running checking from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days.', 'info');
+
+  for (var i = 0; i < numberOfDaysToTest; i++) {
+    var mailContent = generateEmailNotification(testDate);
+
+    if (mailContent !== null) {
+      log.add('Subject: ' + mailContent.subject);
+      log.add('Content: ' + mailContent.body);
+      if (printHTML) {
+        log.add('HTML Content: ' + mailContent.htmlBody);
+      }
+    }
+
+    testDate = new Date(testDate.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  log.add('Test finished.');
 }
