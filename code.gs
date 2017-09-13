@@ -1216,10 +1216,39 @@ function getEventsOnDate (eventDate, calendarId) {
  * of his/her contacts scheduled for the next days.
  */
 function main (forceDate) {
+  log.add('main() running.', 'info');
+
+  var emailData = generateEmailNotification(forceDate);
+
+  // If generateEmailNotification returned mail content send it.
+  if (emailData !== null) {
+    log.add('Sending email...', 'info');
+
+    MailApp.sendEmail({
+      to: settings.user.notificationEmail,
+      subject: emailData.subject,
+      body: emailData.body,
+      htmlBody: emailData.htmlBody,
+      inlineImages: emailData.inlineImages,
+      name: settings.user.emailSenderName
+    });
+
+    log.add('Email sent.', 'info');
+  }
+
+  // Send the log if the debug options say so.
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
+}
+
+/*
+ * Generate an email content to the user containing a list of the events
+ * of his/her contacts scheduled for the next days.
+ */
+function generateEmailNotification (forceDate) {
   var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
 
-  log.add('main() running.', 'info');
+  log.add('generateEmailNotification() running.', 'info');
   now = forceDate || new Date();
   log.add('Date used: ' + now, 'info');
 
@@ -1236,7 +1265,7 @@ function main (forceDate) {
 
   if (events.length === 0) {
     log.add('No events found. Exiting now.', 'info');
-    return;
+    return null;
   }
   log.add('Found ' + events.length + ' events.', 'info');
 
@@ -1373,7 +1402,9 @@ function main (forceDate) {
     });
 
   // If there is an email to send...
-  if (bodyBuilder.length > 0) {
+  if (bodyBuilder.length === 0) {
+    return null;
+  } else {
     log.add('Building the email notification.', 'info');
     subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
@@ -1387,20 +1418,15 @@ function main (forceDate) {
       .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[2]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[3]), '</a>.</b></p>'] : ['</p>'])
       .join('');
 
-    // ...send the email notification.
-    log.add('Sending email...', 'info');
-    MailApp.sendEmail({
-      to: settings.user.notificationEmail,
-      subject: subject,
-      body: body,
-      htmlBody: htmlBody,
-      inlineImages: inlineImages,
-      name: settings.user.emailSenderName
-    });
-    log.add('Email sent.', 'info');
+    // ...return mail content.
+
+    return {
+      'subject': subject,
+      'body': body,
+      'htmlBody': htmlBody,
+      'inlineImages': inlineImages
+    };
   }
-  // Send the log if the debug options say so.
-  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }
 
 /*
