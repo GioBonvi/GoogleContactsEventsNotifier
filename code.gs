@@ -52,7 +52,18 @@ var settings = {
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
      */
-    lang: 'en'
+    lang: 'en',
+    /*
+     * ACCESS GOOGLE+ FOR EXTRA CONTACT-INFORMATION
+     *
+     * This specifies that it is OK to attempt augmenting the contacts-information with
+     * information found via your Google+ connections. If in doubt just leave this set to 'true'
+     * because this script will silently ignore Google+ if it is not able to provide useful
+     * information anyway. This option is mainly for users who do not use Google+ at all, and
+     * don't want to allow this script access to an extra API for no reason (and it will make the
+     * script use fewer API-calls, which is faster).
+     */
+    accessGooglePlus: true
   },
   notifications: {
     /*
@@ -302,6 +313,11 @@ Contact.prototype.getInfoFromContact = function (contactId) {
  */
 Contact.prototype.getInfoFromGPlus = function (gplusProfileId) {
   var self, gplusProfile, birthdayDate;
+
+  if (!settings.user.accessGooglePlus) {
+    log.add('Not extracting info from Google Plus Profile, as per configuration.', 'info');
+    return;
+  }
 
   self = this;
 
