@@ -332,9 +332,9 @@ Contact.prototype.getInfoFromGPlus = function (gplusProfileId) {
     return;
   }
 
-  this.gplusProfileId = gplusProfileId;
+  self.gplusProfileId = gplusProfileId;
 
-  this.data.merge(new ContactDataDC(
+  self.data.merge(new ContactDataDC(
     gplusProfile.name.formatted,
     gplusProfile.nickname,
     gplusProfile.image.url
