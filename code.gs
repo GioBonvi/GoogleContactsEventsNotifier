@@ -67,21 +67,21 @@ var settings = {
   },
   notifications: {
     /*
-    * HOUR OF THE NOTIFICATION
-    *
-    * Specify at which hour of the day would you like to receive the email notifications.
-    * This must be an integer between 0 and 23.
-    */
+     * HOUR OF THE NOTIFICATION
+     *
+     * Specify at which hour of the day would you like to receive the email notifications.
+     * This must be an integer between 0 and 23.
+     */
     hour: 6,
     /*
-    * NOTIFICATION TIMEZONE
-    *
-    * To ensure the correctness of the notifications timing please set this variable to the
-    * timezone you are living in.
-    * Accepted values:
-    *  GMT (e.g. 'GMT-4', 'GMT+6')
-    *  regional timezones (e.g. 'Europe/Berlin' - See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
-    */
+     * NOTIFICATION TIMEZONE
+     *
+     * To ensure the correctness of the notifications timing please set this variable to the
+     * timezone you are living in.
+     * Accepted values:
+     *  GMT (e.g. 'GMT-4', 'GMT+6')
+     *  regional timezones (e.g. 'Europe/Berlin' - See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
+     */
     timeZone: 'Europe/Rome',
     /*
      * HOW MANY DAYS BEFORE EVENT
@@ -218,7 +218,7 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   }
   eventData = rawEvent.gadget.preferences;
 
-  // The raw event can contain the full name a profile photo of the contact (no nickname).
+  // The raw event can contain the full name and profile photo of the contact (no nickname).
   this.data.merge(new ContactDataDC(
     eventData['goo.contactsFullName'],
     null, // Nickname.
@@ -555,7 +555,7 @@ DataCollector.prototype.isPropEmpty = function (key) {
 };
 
 /*
- * Detect wether two DataCollectors are referring to the same thing or not.
+ * Detect whether two DataCollectors are referring to the same thing or not.
  *
  * Actually it's only possible to determine exactly if two DataCollectors
  * are conflicting: two non-conflicting DataCollectors are assumed to refer
@@ -869,7 +869,7 @@ if (typeof String.prototype.format === 'undefined') {
  */
 var version = new SimplifiedSemanticVersion(settings.developer.version);
 
-// These URsL are used to access the files in the repository or specific pages on GitHub.
+// These URLs are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
 var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
 var baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
@@ -1223,7 +1223,7 @@ function uniqueStrings (x) {
 function getEventsOnDate (eventDate, calendarId) {
   var eventCalendar, startDate, endDate, events;
 
-  // Verify the existence of the vents calendar.
+  // Verify the existence of the events calendar.
   eventCalendar = Calendar.Calendars.get(calendarId);
   if (eventCalendar === null) {
     log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', 'error');
@@ -1344,7 +1344,7 @@ function generateEmailNotification (forceDate) {
     }
     if (i === contactList.length) {
       // NOT FOUND!
-      // Ad a new contact to the contact list and store all the info in that contact.
+      // Add a new contact to the contact list and store all the info in that contact.
       contactList.push(new Contact());
       contactList[i].getInfoFromRawEvent(rawEvent);
     }
@@ -1478,7 +1478,7 @@ function normal () {
 }
 
 /*
- * Executie the main() function forcing a given date as "now".
+ * Execute the main() function forcing a given date as "now".
  */
 function test () {
   log.add('test() running.', 'info');
