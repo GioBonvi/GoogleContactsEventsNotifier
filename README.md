@@ -101,7 +101,7 @@ and click "Allow".
 You might receive a first email immediately: the following ones will be sent at
 the hour you specified.  
 From this moment on you will always receive an email before any of your
-contacts' birthday (You should have set how many hours before at the beginning).
+contacts' birthday (You should have set how many days before at the beginning).
 
 ### Bonus (Translation)
 
