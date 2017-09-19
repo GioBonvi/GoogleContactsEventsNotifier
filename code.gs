@@ -157,6 +157,14 @@ var settings = {
      * Choose a date you know should trigger an event notification.
      */
     testDate: new Date('2017/10/19 06:00:00')
+  },
+  developer: {
+    /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
+     *     convenience of developers/maintainers only.
+     */
+    version: '3.2.0-alpha',
+    repoName: 'GioBonvi/GoogleContactsEventsNotifier',
+    gitHubBranch: 'major-rewriting'
   }
 };
 
@@ -843,11 +851,11 @@ if (typeof String.prototype.format === 'undefined') {
  * The version of the script.
  * It must be a valid SimplifiedSemanticVersion.
  */
-var version = new SimplifiedSemanticVersion('3.2.0-alpha');
+var version = new SimplifiedSemanticVersion(settings.developer.version);
 
 // These URsL are used to access the files in the repository or specific pages on GitHub.
-var baseRawFilesURL = 'https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/';
-var baseGitHubProjectURL = 'https://github.com/GioBonvi/GoogleContactsEventsNotifier/';
+var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
+var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
 
 // Convert user-configured hash to an array
 var eventTypes = Object.keys(settings.notifications.eventTypes)
