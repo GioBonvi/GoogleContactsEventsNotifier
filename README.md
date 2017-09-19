@@ -47,9 +47,9 @@ This is the first list you will find and contains some variables than you
 **must** initialize correctly, otherwise the script will not work at all.  
 These variables are:
 
-- `myGoogleEmail`
-- `myEmail`
-- `calendarId`
+- `settings.user.googleEmail`
+- `settings.user.notificationEmail`
+- `settings.user.calendarId`
 
 #### Optional customization
 
@@ -58,13 +58,16 @@ they are, but you are warmly encouraged to edit them, so as to fit your exact
 needs.  
 These variables are:
 
-- `emailSenderName`
-- `myTimeZone`
-- `notificationHour`
-- `anticipateDays`
-- `lang`
-- `eventTypes`
-- `identSize`
+- `settings.user.emailSenderName`
+- `settings.user.lang`
+- `settings.user.accessGooglePlus`
+- `settings.notifications.hour`
+- `settings.notifications.timeZone`
+- `settings.notifications.anticipateDays`
+- `settings.notifications.eventTypes`
+- `settings.notifications.maxEmailsCount`
+- `settings.notifications.maxPhonesCount`
+- `settings.notifications.indentSize`
 
 #### Debugging options
 
@@ -74,9 +77,19 @@ edit these values, but you may be asked to do so if you submit a help
 request.  
 These variables are:
 
-- `noLog`
-- `sendLog`
-- `fakeTestDate`
+- `settings.debug.log.filterLevel`
+- `settings.debug.log.sendTrigger`
+- `settings.debug.testDate`
+
+## Developer options
+
+This list just provides a convenient place for the developers and/or
+maintainer to update variables without searching through the code. For normal
+use you should never need or want to edit these.
+
+- `settings.developer.version`
+- `settings.developer.repoName`
+- `settings.developer.gitHubBranch`
 
 ### Activate API for the script
 
@@ -87,9 +100,11 @@ switch on its row on the right).
 Once you have done this click on the link which says "Google API Console": you
 will be taken to another page. In this page search for "Google Calendar API" and
 open it. Now click "Enable" at the top of the window and close this page.  
+Unless you have set the `accessGooglePlus` setting to `false`, then also set
+"Google+ API" to "enabled" just like you did for "Google Calendar API".  
 That's it for this step.
 
-**Important note**: please double check that you have performed **both** steps
+**Important note**: please double check that you have performed **all** steps
 correctly as this step seems to be the cause of many reported errors.
 
 ### Grant rights to the script
