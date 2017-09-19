@@ -20,11 +20,11 @@ function testLog () {
   var log = new Log('info');
 
   // Testing Log.add().
-  log.add('', '');
-  log.add(null, null);
-  log.add(undefined, undefined);
-  log.add('text', 'random');
-  log.add('text', 'none');
+  log.add('', '', true);
+  log.add(null, null, true);
+  log.add(undefined, undefined, true);
+  log.add('text', 'random', true);
+  log.add('text', 'none', true);
   assert(log.events.length === 5, 'Testing Log.add() failed.');
 
   // Testing log filtering
@@ -36,12 +36,12 @@ function testLog () {
   ];
   logs.forEach(function (test) {
     var log = new Log(test.name);
-    log.add('', '');
-    log.add(null, null);
-    log.add(undefined, undefined);
-    log.add('text', 'random');
-    log.add('text', 'warning');
-    log.add('text', 'error');
+    log.add('', '', true);
+    log.add(null, null, true);
+    log.add(undefined, undefined, true);
+    log.add('text', 'random', true);
+    log.add('text', 'warning', true);
+    log.add('text', 'error', true);
     assert(log.events.length === test.count, 'Logging with filter "' + test.name + '" failed.');
   });
   // Remove the logs resulting from the tests.

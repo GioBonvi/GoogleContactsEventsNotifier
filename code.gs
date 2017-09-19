@@ -674,7 +674,7 @@ function Log (minimumPriority, emailMinimumPriority) {
 /*
  * Store a new event in the log. The default priority is the lowest one ('info').
  */
-Log.prototype.add = function (data, priority) {
+Log.prototype.add = function (data, priority, testing) {
   var text;
 
   priority = priority || 'info';
@@ -698,7 +698,7 @@ Log.prototype.add = function (data, priority) {
   Logger.log(priority[0].toUpperCase() + ': ' + text);
 
   // Throw an Error and interrupt the execution if the log event had 'error' priority.
-  if (priority === 'error') {
+  if (priority === 'error' && !testing) {
     this.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
     throw new Error(text);
   }
