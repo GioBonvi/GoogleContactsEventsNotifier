@@ -12,8 +12,8 @@ var settings = {
     /*
      * GOOGLE EMAIL ADDRESS
      *
-     * Replace this fake Gmail address with the Gmail address of your own Google Account.
-     * This is needed to retrieve information about your contacts.
+     * Replace this fake Gmail address with the Gmail (or G Suite/Google Apps) address of your
+     * own Google Account. This is needed to retrieve information about your contacts.
      */
     googleEmail: 'YOUREMAILHERE@gmail.com',
     /*
