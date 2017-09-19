@@ -121,7 +121,8 @@ var settings = {
      * INDENT SIZE
      *
      * Use this variable to determine how many spaces are used for indentation.
-     * This is used in plaintext emails only.
+     * This is used in the plaintext part of emails only (invisible to email clients which display
+     * the html part by default).
      */
     indentSize: 4
   },
