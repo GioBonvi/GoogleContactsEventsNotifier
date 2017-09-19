@@ -380,7 +380,7 @@ Contact.prototype.addToField = function (field, incData) {
   }
 
   self[field].forEach(function (data) {
-    if (!merged && data.isCompatible(incData)) {
+    if (!merged && !data.isConflicting(incData)) {
       data.merge(incData);
       merged = true;
     }
@@ -555,34 +555,52 @@ DataCollector.prototype.isPropEmpty = function (key) {
 };
 
 /*
- * Detect whether two DataCollectors are referring to the same thing or not.
- *
- * Actually it's only possible to determine exactly if two DataCollectors
- * are conflicting: two non-conflicting DataCollectors are assumed to refer
- * to the same thing.
+ * Detect whether two DataCollectors have the same constructor or not.
  *
  * Examples:
- * DC_1 = {name='test', number=3, field=null}
- * DC_2 = {name=null, number=3, field=3}
- * DC_2 = {name='test', number=null, field=1}
+ * DC_1 = new EventDC(...a, b, c...)
+ * DC_2 = new EventDC(...x, y, z...)
+ * DC_3 = new EmailAddressDC(...a, b, c...)
+ * DC_4 = new EmailAddressDC(...x, y, z...)
  *
  * DC_1.isCompatible(DC_2) -> true
- * DC_1.isCompatible(DC_3) -> true
- * DC_2.isCompatible(DC_3) -> false (conflict on field)
+ * DC_1.isCompatible(DC_3) -> false
+ * DC_1.isCompatible(DC_4) -> false
  */
 DataCollector.prototype.isCompatible = function (otherData) {
   var self;
 
   self = this;
   // Only same-implementation objects of DataCollector can be compared.
-  if (self.constructor !== otherData.constructor) {
+  return self.constructor === otherData.constructor;
+};
+
+/*
+ * Detect whether two DataCollectors are conflicting or not.
+ *
+ * Examples:
+ * DC_1 = {name='test', number=3, field=null}
+ * DC_2 = {name=null, number=3, field=3}
+ * DC_3 = {name='test', number=null, field=1}
+ * DC_4 = {name='test', number=3, otherfield=null} (using different DC implementation)
+ *
+ * DC_1.isConflicting(DC_2) -> false
+ * DC_1.isConflicting(DC_3) -> false
+ * DC_1.isConflicting(DC_4) -> false (not .isCompatible())
+ * DC_2.isConflicting(DC_3) -> true (conflict on field)
+ */
+DataCollector.prototype.isConflicting = function (otherData) {
+  var self;
+
+  self = this;
+  if (!self.isCompatible(otherData)) {
     return false;
   }
-  // Returns true only if there are no conflicting properties between the two objects.
+  // Returns true if there are any conflicting properties between the two objects.
   return Object.keys(otherData.prop)
     .filter(function (key) {
       return !self.isPropEmpty(key) && !otherData.isPropEmpty(key) && self.getProp(key) !== otherData.getProp(key);
-    }).length === 0;
+    }).length !== 0;
 };
 
 /*
@@ -605,7 +623,7 @@ DataCollector.prototype.merge = function (otherDataCollector) {
   var self;
 
   self = this;
-  if (self.constructor !== otherDataCollector.constructor) {
+  if (!self.isCompatible(otherDataCollector)) {
     throw new Error('Trying to merge two different implementations of IncompleteData!');
   }
   // Fill each empty key of the first DataCollector with the value from the second one.
