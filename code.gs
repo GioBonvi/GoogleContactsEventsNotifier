@@ -195,7 +195,7 @@ function Contact () {
 
   self = this; // for consistent access from sub-functions
   self.contactId = null;
-  self.gplusId = null;
+  self.gPlusId = null;
   self.data = new ContactDataDC(null, null, null);
   self.emails = [];
   self.phones = [];
@@ -247,8 +247,8 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   if (this.contactId === null && eventData['goo.contactsContactId']) {
     this.getInfoFromContact(eventData['goo.contactsContactId']);
   }
-  // Collect info from the gplusProfileId if not already collected and if contactsProfileId exists.
-  if (this.gplusProfileId === null && eventData['goo.contactsProfileId']) {
+  // Collect info from the gPlusId if not already collected and if contactsProfileId exists.
+  if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
     this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
   }
 };
@@ -311,8 +311,8 @@ Contact.prototype.getInfoFromContact = function (contactId) {
  * This data is used to update the information collected from
  * the raw event and the Google Contact.
  */
-Contact.prototype.getInfoFromGPlus = function (gplusProfileId) {
-  var self, gplusProfile, birthdayDate;
+Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
+  var self, gPlusProfile, birthdayDate;
 
   if (!settings.user.accessGooglePlus) {
     log.add('Not extracting info from Google Plus Profile, as per configuration.', 'info');
@@ -323,28 +323,28 @@ Contact.prototype.getInfoFromGPlus = function (gplusProfileId) {
 
   log.add('Extracting info from Google Plus Profile...', 'info');
   try {
-    gplusProfile = Plus.People.get(gplusProfileId);
-    if (gplusProfile === null) {
+    gPlusProfile = Plus.People.get(gPlusProfileId);
+    if (gPlusProfile === null) {
       throw new Error('Invalid Google Plus Profile ID!');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gplusProfileId, 'warning');
+    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, 'warning');
     return;
   }
 
-  self.gplusProfileId = gplusProfileId;
+  self.gPlusId = gPlusProfileId;
 
   self.data.merge(new ContactDataDC(
-    gplusProfile.name.formatted,
-    gplusProfile.nickname,
-    gplusProfile.image.url
+    gPlusProfile.name.formatted,
+    gPlusProfile.nickname,
+    gPlusProfile.image.url
   ));
 
   // Google Plus Profile can have a birthday field in the form of YYYY-MM-DD
   // but part of the date can be missing replaced by a bunch of zeroes
   // (especially the year).
-  if (gplusProfile.birthday && gplusProfile.birthday !== '0000-00-00') {
-    birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gplusProfile.birthday);
+  if (gPlusProfile.birthday && gPlusProfile.birthday !== '0000-00-00') {
+    birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gPlusProfile.birthday);
     if (birthdayDate) {
       self.addToField('events', new EventDC(
         'BIRTHDAY', // Label.
