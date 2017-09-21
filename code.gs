@@ -109,8 +109,8 @@ var settings = {
      */
     eventTypes: {
       BIRTHDAY: true,
-      ANNIVERSARY: true,
-      CUSTOM: true
+      ANNIVERSARY: false,
+      CUSTOM: false
     },
     /*
      * MAXIMUM NUMBER OF EMAIL ADDRESSES
