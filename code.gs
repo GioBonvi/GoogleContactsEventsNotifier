@@ -175,7 +175,7 @@ var settings = {
      */
     version: '3.2.0-alpha',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'major-rewriting'
+    gitHubBranch: 'development'
   }
 };
 
