@@ -6,7 +6,7 @@ function assert (condition, message) {
   }
 }
 
-function unitTests () {
+function unitTests () { // eslint-disable-line no-unused-vars
   // Testing the Log class.
   testLog();
   Logger.log('Log tests passed!');
@@ -52,7 +52,7 @@ function testSemVer () {
   var errors = [null, undefined, '', 'randomThings', '1.1', '1.1.1.1'];
   errors.forEach(function (err) {
     try {
-      var v = new SimplifiedSemanticVersion(err);
+      var v = new SimplifiedSemanticVersion(err); // eslint-disable-line no-unused-vars
       assert(false, String(err) + ' was accepted as a valid SemVer.');
     } catch (ex) {}
   });
@@ -91,7 +91,7 @@ function testSemVer () {
  * @param {int} numberOfDaysToTest - Number of days to test; by default 365 days (1 year).
  * @param {bool} printHTML - Whether or not print HTML mailContent into log; by default not.
  */
-function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) {
+function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) { // eslint-disable-line no-unused-vars
   testDate = testDate || new Date(new Date().getFullYear(), 0, 1, 6, 0, 0);
   numberOfDaysToTest = numberOfDaysToTest || 365;
 

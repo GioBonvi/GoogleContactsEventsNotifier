@@ -855,7 +855,7 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
 
 // Merge an array at the end of an existing array.
 if (typeof Array.prototype.extend === 'undefined') {
-  Array.prototype.extend = function (array) {
+  Array.prototype.extend = function (array) { // eslint-disable-line no-extend-native
     var i;
 
     for (i = 0; i < array.length; ++i) {
@@ -866,7 +866,7 @@ if (typeof Array.prototype.extend === 'undefined') {
 }
 
 if (typeof String.prototype.format === 'undefined') {
-  String.prototype.format = function () {
+  String.prototype.format = function () { // eslint-disable-line no-extend-native
     var args;
 
     args = arguments;
@@ -902,6 +902,7 @@ var inlineImages;
 
 var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
 
+/* eslint-disable comma-dangle */
 var i18n = {
   // For all languages, if a translation is not present the untranslated string
   // is returned, so just leave out translations which are the same as the English.
@@ -1113,6 +1114,7 @@ var i18n = {
   }
   */
 };
+/* eslint-enable comma-dangle */
 
 // HELPER FUNCTIONS
 
@@ -1490,7 +1492,7 @@ function generateEmailNotification (forceDate) {
 /*
  * Execute the main() function without forcing any date as "now".
  */
-function normal () {
+function normal () { // eslint-disable-line no-unused-vars
   log.add('normal() running.', 'info');
   main(null);
 }
@@ -1498,7 +1500,7 @@ function normal () {
 /*
  * Execute the main() function forcing a given date as "now".
  */
-function test () {
+function test () { // eslint-disable-line no-unused-vars
   log.add('test() running.', 'info');
   main(settings.debug.testDate);
 }
@@ -1508,7 +1510,7 @@ function test () {
 /*
  * Start the notification service.
  */
-function notifStart () {
+function notifStart () { // eslint-disable-line no-unused-vars
   if (
     settings.notifications.hour < 0 ||
     settings.notifications.hour > 23 ||
@@ -1548,7 +1550,7 @@ function notifStop () {
 /*
  * Check if notification service is running.
  */
-function notifStatus () {
+function notifStatus () { // eslint-disable-line no-unused-vars
   var toLog = 'Notifications are ';
   if (ScriptApp.getProjectTriggers().length < 1) {
     toLog += 'not ';
