@@ -1151,6 +1151,7 @@ function beautifyLabel (label) {
 }
 
 function htmlEscape (str) {
+  str = str || '';
   return str
          .replace(/&/g, '&amp;')
          .replace(/"/g, '&quot;')
