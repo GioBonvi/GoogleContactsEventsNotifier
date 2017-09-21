@@ -279,7 +279,7 @@ updated to the latest version is really easy:
 ### Permissions required
 
 When running the script for the first time or after an update you might be asked
-by Google to"grant some permissions to the script. This happens because the script
+by Google to "grant some permissions" to the script. This happens because the script
 needs your explicit permission to access your data.
 
 This is an exhaustive description of the reason the script needs each of the permissions:
