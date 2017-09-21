@@ -294,7 +294,8 @@ This is an exhaustive description of the reason the script needs each of the per
   This is needed to retrieve information about your Google Plus contacts, especially
   those who you have not added in your Google Contacts, but just followed on Google
   Plus. The script will only get information about people who appear in your birthday
-  calendar.
+  calendar. If you prefer to not access Google Plus at all set
+  `settings.user.accessGooglePlus = false` before running any functions.
 - **Basic info about your account (language and approximate age)**  
   This is a mandatory permission to run any Google Script.
 - **Sending email as**  
