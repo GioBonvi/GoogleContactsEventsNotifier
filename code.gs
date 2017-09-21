@@ -480,8 +480,12 @@ Contact.prototype.getHtmlLines = function (type, date) {
     htmlLine = ['<li>'];
     // Profile photo.
     imgCount = Object.keys(inlineImages).length;
-    inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
-    htmlLine.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+    try {
+      inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
+      htmlLine.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+    } catch (err) {
+      log.add('Unable to get the profile picture', 'warning');
+    }
     // Custom label
     if (type === 'CUSTOM') {
       htmlLine.push('&lt;' + htmlEscape(event.getProp('label')) + '&gt; ');
@@ -1169,9 +1173,13 @@ function htmlEscape (str) {
 function isRunningOutdatedVersion () {
   var response, latestVersion;
 
-  response = UrlFetchApp.fetch(baseGitHubApiURL + 'releases/latest');
-  if (response.getResponseCode() !== 200) {
-    log.add('Unable to get the latest version number: the requested URL returned a ' + response.getResponseCode() + ' response.', 'warning');
+  try {
+    response = UrlFetchApp.fetch(baseGitHubApiURL + 'releases/latest');
+    if (response.getResponseCode() !== 200) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Unable to get the latest version number' + (response ? ': the requested URL returned a ' + response.getResponseCode() + ' response.' : ''), 'warning');
     return false;
   }
 
