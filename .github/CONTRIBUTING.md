@@ -9,6 +9,19 @@ expect: people liked the idea and helped making it even better.
 If you now want to be part of this group and give your own contribution this
 page contains useful information.
 
+<!-- TOC -->
+
+- [Contributing](#contributing)
+  - [Where to start](#where-to-start)
+  - [Code of conduct](#code-of-conduct)
+  - [Issues](#issues)
+  - [Coding guidelines](#coding-guidelines)
+  - [Testing](#testing)
+  - [PR management](#pr-management)
+  - [Git mini-tutorial](#git-mini-tutorial)
+
+<!-- /TOC -->
+
 ## Where to start
 
 First of all make sure you have read the [Code of conduct][Code of conduct]: it
@@ -74,6 +87,50 @@ Before submitting a PR please verify that your code passes all the tests. To do
 so run the `unit-tests()` function along with any other function specified by the
 documentation in the [tests file][Tests file].
 
+## PR management
+
+This is the optimal workflow that should be followed when managing a new PR:
+
+1. The submitter (a collaborator or an external user) submits the PR;
+2. A collaborator of the project assigns some other collaborators (or his/herself)
+  to the PR;
+3. The assigned user adds the correct tags/milestones to the PR;
+4. The assigned user performs a general evaluation of the PR: if he finds any big
+  problem (exceptionally bad code, the feature added by the PR is not wanted in the
+  project or something along these lines) he can simply refuse the PR by closing
+  it (stating the problem clearly in a comment and discussing it with the submitter);
+5. If no big problem is found the assigned user starts a review of the code by adding
+  one or more reviewers (other collaborators or him/herself) to the PR;
+6. The reviewers should check the code for errors, problems, possible optimizations,
+  incompatibilities with the current code base or with planned future developments,
+  wrong code style and typos/spelling errors and running the tests, then leave a
+  review accepting it if everything is OK or requesting changes otherwise;
+7. If the submitter is asked by the reviewer(s) to implement some changes in the
+  code he should do it before the process can continue any further.  
+  As a general rule reviewers should refrain from pushing commits to the PR branch
+  without asking explicit consent from the submitter beforehand.  
+  Note: it's perfectly OK for both the reviewers and the submitter to use `git rebase`
+  while working on PRs since nobody should fork a branch from an unmerged PR;
+8. If any changes have been pushed to the PR in step 7 step 6 must be repeated;
+9. Once all the reviewers have accepted the PR they can ask the submitter to rebase,
+  squash or tidy up the PR branch before merging (For example, this should be done
+  if the review/correction cycle was repeated multiple times generating lots of
+  unwanted commits that can be squashed);
+10. Once the PR is finally ready to be merged the assigned user should merge it
+  following this rules of thumb:
+    - if the PR consists of just one or two commits it could be merged via a fast-
+      forward merge (`merge --ff`, must be performed manually since GitHub does not
+      offer this functionality in the web interface to perform it):
+    - if the PR consists of just one or two commits, but cannot be merged via a
+      fast-forward merge, a "rebase merge" can be used (this can be performed
+      both manually and via the GitHub interface);
+    - if the PR consists of more than two commits a non-fast-forward merge should
+      be considered (`merge --no-ff`, it can be performed both manually and via
+      the GitHub interface);
+    - in any case these rules must not be taken at absolute value: exceptions may
+      arise which could require these rules to be broken or bent. If you have any
+      doubts regarding the best route to take just ask and some collaborator will
+      help you;
 
 ## Git mini-tutorial
 
