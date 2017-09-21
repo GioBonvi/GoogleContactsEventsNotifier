@@ -71,8 +71,13 @@ Pull Requests complies with these rules:
 ## Testing
 
 Before submitting a PR please verify that your code passes all the tests. To do
-so run the `unit-tests()` function along with any other function specified by the
-documentation in the [tests file][Tests file].
+that either create a new script-file for `unit-tests.gs` in the Google
+script-editor, or append the content of `unit-tests.gs` to that of `code.gs` in
+its own file, then `run->unitTests()`. It is good to also `run->test()` with
+`settings.debug.testDate` set to a date with some contact-anniversaries on it
+(or create some fake ones on that date) to provide real-world testing too. For
+exhaustive real-world testing there is also `testSelectedPeriod()`. If there are
+any other new global functions in [tests file][Tests file] you can run them too.
 
 
 ## Git mini-tutorial
