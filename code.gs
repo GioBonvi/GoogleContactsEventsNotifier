@@ -856,6 +856,7 @@ var version = new SimplifiedSemanticVersion(settings.developer.version);
 // These URsL are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
 var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
+var baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
 
 // Convert user-configured hash to an array
 var eventTypes = Object.keys(settings.notifications.eventTypes)
@@ -1124,27 +1125,41 @@ function htmlEscape (str) {
 }
 
 /*
- * Get the last version number from the GitHub file and compare it with the script's one.
+ * Get the last version number from the GitHub API and compare it with the script's one.
  * If they do not match the user is running an outdated version of the script.
  * If there is any problem retrieving the latest version number just return false.
  */
 function isRunningOutdatedVersion () {
   var response, latestVersion;
 
-  response = UrlFetchApp.fetch(baseRawFilesURL + 'code.gs');
+  response = UrlFetchApp.fetch(baseGitHubApiURL + 'releases/latest');
   if (response.getResponseCode() !== 200) {
     log.add('Unable to get the latest version number: the requested URL returned a ' + response.getResponseCode() + ' response.', 'warning');
     return false;
   }
 
-  latestVersion = /var version = new SimplifiedSemanticVersion\('(.+)'\);/.exec(response.getContentText('UTF-8'));
-  if (latestVersion === null) {
-    log.add('Unable to get the latest version number: the version number could not be found in the text file.', 'warning');
+  try {
+    response = JSON.parse(response);
+    if (typeof response !== 'object') {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', 'warning');
     return false;
   }
 
+  latestVersion = response.tag_name;
+  if (typeof latestVersion !== 'string' || latestVersion.length === 0) {
+    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', 'warning');
+    return false;
+  }
+
+  if (latestVersion.substring(0, 1) === 'v') {
+    latestVersion = latestVersion.substring(1);
+  }
+
   try {
-    return (version).compare(new SimplifiedSemanticVersion(latestVersion[1])) === -1;
+    return (version).compare(new SimplifiedSemanticVersion(latestVersion)) === -1;
   } catch (err) {
     log.add(err.message, 'warning');
     return false;
