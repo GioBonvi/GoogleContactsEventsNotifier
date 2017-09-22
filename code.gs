@@ -357,7 +357,7 @@ Contact.prototype.getInfoFromContact = function (contactId) {
 
   googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
   if (googleContact === null) {
-    log.add('Invalid Google Contact ID: ' + contactId, 'warning');
+    log.add('Invalid Google Contact ID: ' + contactId, 'info');
     return;
   }
 
@@ -425,7 +425,7 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, 'warning');
+    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, 'info');
     return;
   }
 
