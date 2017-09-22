@@ -917,6 +917,10 @@ var i18n = {
   // For all languages, if a translation is not present the untranslated string
   // is returned, so just leave out translations which are the same as the English.
 
+  // NB: If ever adding a lang which uses non-latin numbers functionality will need
+  // to be added to handle that differently (arbitrary numbers, not just a small
+  // selection, e.g. for age calculation).
+
   // An entry for 'en' marks it as a valid lang config-option, but leave it empty
   // to just return unaltered phrases.
   'en': {},
