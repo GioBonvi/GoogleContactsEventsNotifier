@@ -906,7 +906,8 @@ var inlineImages;
 
 var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
 
-/* eslint-disable comma-dangle */
+/* NB: when Google fixes their too-broad scope bug with ScriptApp, re-wrap this i18n
+   table in `eslint-*able comma-dangle` comments (see old git-commits to find it) */
 var i18n = {
   // For all languages, if a translation is not present the untranslated string
   // is returned, so just leave out translations which are the same as the English.
@@ -1118,7 +1119,6 @@ var i18n = {
   }
   */
 };
-/* eslint-enable comma-dangle */
 
 // HELPER FUNCTIONS
 
