@@ -391,14 +391,15 @@ Contact.prototype.addToField = function (field, incData) {
 };
 
 /*
- * Generate a list of plain text lines each describing an event of the contact
- * of the type specified on the date specified.
+ * Generate a list of text lines (of the given format - e.g. 'plain', 'html')
+ * each describing an event of the contact of the type specified on the date
+ * specified.
  */
-Contact.prototype.getPlainTextLines = function (type, date) {
-  var self, lines;
+Contact.prototype.getLines = function (type, date, format) {
+  var self;
+
   self = this;
-  lines = [];
-  self.events.filter(function (event) {
+  return self.events.filter(function (event) {
     var typeMatch;
     switch (event.getProp('label')) {
       // Your own birthday is marked as 'SELF'.
@@ -414,114 +415,165 @@ Contact.prototype.getPlainTextLines = function (type, date) {
         typeMatch = (type === 'CUSTOM');
     }
     return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
-  }).forEach(function (event) {
-    var plainTextLine;
+  }).map(function (event) {
+    var line, imgCount;
 
-    plainTextLine = [indent];
-    // Custom label
-    if (type === 'CUSTOM') {
-      plainTextLine.push('<' + event.getProp('label') + '> ');
-    }
-    // Full name.
-    plainTextLine.push(self.data.getProp('fullName'));
-    // Nickname.
-    if (!self.data.isPropEmpty('nickname')) {
-      plainTextLine.push(' "', self.data.getProp('nickname'), '"');
-    }
-    // Age/years passed
-    if (!event.isPropEmpty('year')) {
-      if (type === 'BIRTHDAY') {
-        plainTextLine.push(' - ', _('Age'), ': ');
-      } else {
-        plainTextLine.push(' - ', _('Years'), ': ');
-      }
-      plainTextLine.push(Math.round(date.getYear() - event.getProp('year')));
-    }
-    // Email addresses and phone numbers.
-    if (self.emails.length + self.phones.length > 0) {
-      plainTextLine.push(' (');
-      plainTextLine.push(
-        self.emails.map(function (email) { return (!email.isPropEmpty('label') ? '[' + beautifyLabel(email.getProp('label')) + '] ' : '') + email.getProp('address'); })
-        .concat(self.phones.map(function (phone) { return (!phone.isPropEmpty('label') ? '[' + beautifyLabel(phone.getProp('label')) + '] ' : '') + phone.getProp('number'); }))
-        .join(' - '));
-      plainTextLine.push(')');
-    }
-    lines.push(plainTextLine);
-  });
-  return lines.map(function (x) { return x.join(''); });
-};
-
-/*
- * Generate a list of html lines each describing an event of the contact
- * of the type specified on the date specified.
- */
-Contact.prototype.getHtmlLines = function (type, date) {
-  var self, lines;
-  self = this;
-  lines = [];
-  self.events.filter(function (event) {
-    var typeMatch;
-    switch (event.getProp('label')) {
-      // Your own birthday is marked as 'SELF'.
-      case 'SELF':
-        // falls through
-      case 'BIRTHDAY':
-        typeMatch = (type === 'BIRTHDAY');
+    line = [];
+    // Start line.
+    switch (format) {
+      case 'plain':
+        line.push(indent);
         break;
-      case 'ANNIVERSARY':
-        typeMatch = (type === 'ANNIVERSARY');
-        break;
-      default:
-        typeMatch = (type === 'CUSTOM');
+      case 'html':
+        line.push('<li>');
     }
-    return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
-  }).forEach(function (event) {
-    var htmlLine, imgCount;
-    htmlLine = ['<li>'];
     // Profile photo.
-    imgCount = Object.keys(inlineImages).length;
-    try {
-      inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
-      htmlLine.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
-    } catch (err) {
-      log.add('Unable to get the profile picture', 'warning');
+    switch (format) {
+      case 'html':
+        imgCount = Object.keys(inlineImages).length;
+        try {
+          inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
+          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+        } catch (err) {
+          log.add('Unable to get the profile picture', 'warning');
+        }
     }
     // Custom label
     if (type === 'CUSTOM') {
-      htmlLine.push('&lt;' + htmlEscape(event.getProp('label')) + '&gt; ');
+      switch (format) {
+        case 'plain':
+          line.push('<' + beautifyLabel(event.getProp('label')) + '> ');
+          break;
+        case 'html':
+          line.push('&lt;' + htmlEscape(beautifyLabel(event.getProp('label'))) + '&gt; ');
+      }
     }
     // Full name.
-    htmlLine.push(htmlEscape(self.data.getProp('fullName')));
+    switch (format) {
+      case 'plain':
+        line.push(self.data.getProp('fullName'));
+        break;
+      case 'html':
+        line.push(htmlEscape(self.data.getProp('fullName')));
+    }
     // Nickname.
     if (!self.data.isPropEmpty('nickname')) {
-      htmlLine.push(' &quot;', htmlEscape(self.data.getProp('nickname')), '&quot;');
+      switch (format) {
+        case 'plain':
+          line.push(' "', self.data.getProp('nickname'), '"');
+          break;
+        case 'html':
+          line.push(' &quot;', htmlEscape(self.data.getProp('nickname')), '&quot;');
+      }
     }
     // Age/years passed.
     if (!event.isPropEmpty('year')) {
       if (type === 'BIRTHDAY') {
-        htmlLine.push(' - ', htmlEscape(_('Age')), ': ');
+        switch (format) {
+          case 'plain':
+            line.push(' - ', _('Age'), ': ');
+            break;
+          case 'html':
+            line.push(' - ', htmlEscape(_('Age')), ': ');
+        }
       } else {
-        htmlLine.push(' - ', htmlEscape(_('Years')), ': ');
+        switch (format) {
+          case 'plain':
+            line.push(' - ', _('Years'), ': ');
+            break;
+          case 'html':
+            line.push(' - ', htmlEscape(_('Years')), ': ');
+        }
       }
-      htmlLine.push(Math.round(date.getYear() - event.getProp('year')));
+      line.push(Math.round(date.getYear() - event.getProp('year')));
     }
     // Email addresses and phone numbers.
-    if (self.emails.length + self.phones.length > 0) {
-      htmlLine.push(' (');
-      htmlLine.push(
-        self.emails.map(function (email) {
-          return (!email.isPropEmpty('label') ? '[' + htmlEscape(beautifyLabel(email.getProp('label'))) + '] ' : '') + '<a href="mailto:' +
-            email.getProp('address') + '">' + htmlEscape(email.getProp('address')) + '</a>';
-        }).concat(self.phones.map(function (phone) {
-          return (!phone.isPropEmpty('label') ? '[' + htmlEscape(beautifyLabel(phone.getProp('label'))) + '] ' : '') + '<a href="tel:' +
-          phone.getProp('number') + '">' + htmlEscape(phone.getProp('number')) + '</a>';
-        })).join(' - '));
-      htmlLine.push(')');
+    if (self.emails.length + self.phones.length) {
+      var collected;
+
+      collected = {
+        HOME_EMAIL: [],
+        WORK_EMAIL: [],
+        OTHER_EMAIL: [],
+        HOME_PHONE: [],
+        WORK_PHONE: [],
+        MOBILE_PHONE: [],
+        OTHER_PHONE: []
+      };
+      line.push(' (');
+      // Email addresses.
+      self.emails.forEach(function (email) {
+        var label, emailAddr;
+
+        label = email.getProp('label');
+        emailAddr = email.getProp('address');
+        switch (label) {
+          case 'HOME_EMAIL':
+          case 'WORK_EMAIL':
+            collected[label].push(emailAddr);
+            break;
+          default:
+            collected.OTHER_EMAIL.push(emailAddr);
+        }
+      });
+      // Phone numbers.
+      self.phones.forEach(function (phone) {
+        var label, phoneNum;
+
+        label = phone.getProp('label');
+        phoneNum = phone.getProp('number');
+        switch (label) {
+          case 'HOME_PHONE':
+          case 'WORK_PHONE':
+          case 'MOBILE_PHONE':
+            collected[label].push(phoneNum);
+            break;
+          default:
+            collected.OTHER_PHONE.push(phoneNum);
+        }
+      });
+      line.push(
+        ['HOME_EMAIL', 'WORK_EMAIL', 'OTHER_EMAIL', 'HOME_PHONE', 'WORK_PHONE', 'MOBILE_PHONE', 'OTHER_PHONE'].map(function (label) {
+          var output;
+
+          if (collected[label].length) {
+            switch (format) {
+              case 'plain':
+                output = beautifyLabel(label);
+                break;
+              case 'html':
+                output = htmlEscape(beautifyLabel(label));
+            }
+            return output + ': ' + collected[label].map(function (val) {
+              var buffer;
+
+              switch (format) {
+                case 'plain':
+                  return val;
+                case 'html':
+                  buffer = '<a href="';
+                  if (label.match(/_EMAIL$/)) {
+                    buffer += 'mailto';
+                  } else if (label.match(/_PHONE$/)) {
+                    buffer += 'tel';
+                  }
+                  return buffer + ':' + htmlEscape(val) + '">' + htmlEscape(val) + '</a>';
+              }
+            }).join(' - ');
+          }
+        }).filter(function (val) {
+          return val;
+        }).join(', ')
+      );
+      line.push(')');
     }
-    htmlLine.push('</li>');
-    lines.push(htmlLine);
+    // Finish line.
+    switch (format) {
+      case 'html':
+        line.push('</li>');
+    }
+    return line.join('');
   });
-  return lines.map(function (x) { return x.join(''); });
 };
 
 /*
@@ -888,6 +940,15 @@ if (typeof String.prototype.format === 'undefined') {
   };
 }
 
+/*
+ * Replace all occurrences of a substring (not a regex).
+ */
+if (typeof String.prototype.replaceAll === 'undefined') {
+  String.prototype.replaceAll = function (substr, repl) { // eslint-disable-line no-extend-native
+    return this.split(substr).join(repl);
+  };
+}
+
 // GLOBAL VARIABLES
 
  /*
@@ -1145,21 +1206,16 @@ function _ (string) {
 function beautifyLabel (label) {
   switch (label) {
     case 'MOBILE_PHONE':
-      return _('Mobile phone');
     case 'WORK_PHONE':
-      return _('Work phone');
     case 'HOME_PHONE':
-      return _('Home phone');
     case 'MAIN_PHONE':
-      return _('Main phone');
     case 'HOME_FAX':
-      return _('Home fax');
     case 'WORK_FAX':
-      return _('Work fax');
     case 'HOME_EMAIL':
-      return _('Home email');
     case 'WORK_EMAIL':
-      return _('Work email');
+    case 'OTHER_EMAIL': // fake label for output
+    case 'OTHER_PHONE': // fake label for output
+      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
     default:
       return String(label);
   }
@@ -1456,10 +1512,10 @@ function generateEmailNotification (forceDate) {
 
           subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
           plaintextLines = contactList
-            .map(function (contact) { return contact.getPlainTextLines(eventType, date); })
+            .map(function (contact) { return contact.getLines(eventType, date, 'plain'); })
             .filter(function (lines) { return lines.length > 0; });
           htmlLines = contactList
-            .map(function (contact) { return contact.getHtmlLines(eventType, date); })
+            .map(function (contact) { return contact.getLines(eventType, date, 'html'); })
             .filter(function (lines) { return lines.length > 0; });
           if (plaintextLines.length === 0 || htmlLines.length === 0) {
             log.add('No events found on this date.', 'info');
