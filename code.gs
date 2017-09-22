@@ -857,7 +857,9 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
 
 // EXTENDED NATIVE PROTOTYPES
 
-// Merge an array at the end of an existing array.
+/*
+ * Merge an array at the end of an existing array.
+ */
 if (typeof Array.prototype.extend === 'undefined') {
   Array.prototype.extend = function (array) { // eslint-disable-line no-extend-native
     var i;
@@ -869,6 +871,9 @@ if (typeof Array.prototype.extend === 'undefined') {
   };
 }
 
+/*
+ * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
+ */
 if (typeof String.prototype.format === 'undefined') {
   String.prototype.format = function () { // eslint-disable-line no-extend-native
     var args;
@@ -906,8 +911,8 @@ var inlineImages;
 
 var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
 
-/* NB: when Google fixes their too-broad scope bug with ScriptApp, re-wrap this i18n
-   table in `eslint-*able comma-dangle` comments (see old git-commits to find it) */
+// NB: When Google fixes their too-broad scope bug with ScriptApp, re-wrap this i18n
+//     table in `eslint-*able comma-dangle` comments (see old git-commits to find it)
 var i18n = {
   // For all languages, if a translation is not present the untranslated string
   // is returned, so just leave out translations which are the same as the English.
@@ -1130,7 +1135,9 @@ function _ (string) {
   return i18n[settings.user.lang][string] || string;
 }
 
-// Replace a Field.Label object with its "beautified" text representation.
+/*
+ * Replace a Field.Label object with its "beautified" text representation.
+ */
 function beautifyLabel (label) {
   switch (label) {
     case 'MOBILE_PHONE':
@@ -1154,6 +1161,9 @@ function beautifyLabel (label) {
   }
 }
 
+/*
+ * Escape text for embedding in HTML.
+ */
 function htmlEscape (str) {
   str = str || '';
   return str
@@ -1211,7 +1221,9 @@ function isRunningOutdatedVersion () {
   }
 }
 
-// Get a a ContactsApp.Month's numerical representation (JAN = 0).
+/*
+ * Get a a ContactsApp.Month's numerical representation (JAN = 0).
+ */
 function monthToInt (month) {
   var i;
   var months = [
@@ -1236,6 +1248,9 @@ function monthToInt (month) {
   return -1;
 }
 
+/*
+ * Return a list with duplicates removed.
+ */
 function uniqueStrings (x) {
   var seen = {};
   return x.filter(function (str) {
