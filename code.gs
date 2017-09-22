@@ -475,10 +475,10 @@ Contact.prototype.getLines = function (type, date, format) {
     if (type === 'CUSTOM') {
       switch (format) {
         case 'plain':
-          line.push('<' + beautifyLabel(event.getProp('label')) + '> ');
+          line.push('<', beautifyLabel(event.getProp('label')), '> ');
           break;
         case 'html':
-          line.push('&lt;' + htmlEscape(beautifyLabel(event.getProp('label'))) + '&gt; ');
+          line.push(htmlEscape('<' + beautifyLabel(event.getProp('label')) + '> '));
       }
     }
     // Full name.
@@ -496,7 +496,7 @@ Contact.prototype.getLines = function (type, date, format) {
           line.push(' "', self.data.getProp('nickname'), '"');
           break;
         case 'html':
-          line.push(' &quot;', htmlEscape(self.data.getProp('nickname')), '&quot;');
+          line.push(htmlEscape(' "' + self.data.getProp('nickname') + '"'));
       }
     }
     // Age/years passed.
@@ -684,11 +684,8 @@ DataCollector.prototype.isPropEmpty = function (key) {
  * @returns {boolean} - True if the tow objects have the same constructor, false otherwise.
  */
 DataCollector.prototype.isCompatible = function (otherData) {
-  var self;
-
-  self = this;
   // Only same-implementation objects of DataCollector can be compared.
-  return self.constructor === otherData.constructor;
+  return this.constructor === otherData.constructor;
 };
 
 /**
@@ -902,7 +899,7 @@ Log.prototype.evalPriority = function (priority) {
  */
 Log.prototype.getOutput = function () {
   return this.events.map(function (e) {
-    return '[' + e.time + ']' + e.priorityDescr[0].toUpperCase() + ': ' + e.text;
+    return '[' + e.time + '] ' + e.priorityDescr[0].toUpperCase() + ': ' + e.text;
   });
 };
 
@@ -932,13 +929,14 @@ Log.prototype.containsMinimumPriority = function (minimumPriority) {
  */
 Log.prototype.sendEmail = function (to, senderName) {
   if (this.containsMinimumPriority(this.emailMinimumPriority)) {
-    this.add('Sending logs via email.');
+    this.add('Sending logs via email.', 'info');
     MailApp.sendEmail({
       to: to,
       subject: 'Logs for Google Contacts Events Notifications',
       body: this.getOutput().join('\n'),
       name: senderName
     });
+    this.add('Email sent.', 'info');
   }
 };
 
@@ -961,16 +959,21 @@ function SimplifiedSemanticVersion (versionNumber) {
   var matches, self;
 
   self = this;
-  this.numbers = [0, 0, 0];
-  this.prerelease = '';
-  this.metadata = '';
 
+  /** @type {number[]} */
+  self.numbers = [0, 0, 0];
+  /** @type {string} */
+  self.preRelease = '';
+  /** @type {string} */
+  self.metadata = '';
+
+  // Extract the pieces of information from the given string.
   matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
   if (matches) {
     self.numbers[0] = parseInt(matches[1]);
     self.numbers[1] = parseInt(matches[2]);
     self.numbers[2] = parseInt(matches[3]);
-    self.prerelease = typeof matches[4] === 'undefined' ? '' : matches[4];
+    self.preRelease = typeof matches[4] === 'undefined' ? '' : matches[4];
     self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
   } else {
     throw new Error('The version number "' + versionNumber + '" is not valid!');
@@ -984,7 +987,7 @@ function SimplifiedSemanticVersion (versionNumber) {
  */
 SimplifiedSemanticVersion.prototype.toString = function () {
   return this.numbers.join('.') +
-    (this.prerelease !== '' ? '-' + this.prerelease : '') +
+    (this.preRelease !== '' ? '-' + this.preRelease : '') +
     (this.metadata !== '' ? '+' + this.metadata : '');
 };
 
@@ -1352,7 +1355,7 @@ function _ (string) {
  * @returns {string}
  */
 function beautifyLabel (label) {
-  switch (label) {
+  switch (String(label)) {
     case 'MOBILE_PHONE':
     case 'WORK_PHONE':
     case 'HOME_PHONE':
