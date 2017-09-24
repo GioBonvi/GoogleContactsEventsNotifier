@@ -181,7 +181,8 @@ var settings = {
 
 /*
  * There is no need to edit anything below this line.
- * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
+ * The script will work if you inserted valid values up
+ * until here, however feel free to take a peek at the code ;)
  */
 
 // CLASSES
@@ -1131,7 +1132,6 @@ var i18n = {
     'Custom events in {0} days': 'Προσαρμοσμένα γεγονότα σε {0} ημέρες',
     'Hey! Don\'t forget these events': 'Hey! Μην ξεχάσεις αυτά τα γεγονότα',
     'version': 'εκδοχή',
-    'by': 'από τον', // τον=masculine,την=feminine (using the masculine, in one place, for now but may need more context in future)
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Κινητό',
     'Work phone': 'Τηλέφωνο εργασίας',
@@ -1161,7 +1161,6 @@ var i18n = {
     'Custom events in {0} days': 'Eventos personalizados en {0} das',
     'Hey! Don\'t forget these events': 'Hey! No olvides estos eventos',
     'version': 'versión',
-    'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Celular',
     'Work phone': 'Teléfono del trabajo',
@@ -1191,7 +1190,6 @@ var i18n = {
     'Custom events in {0} days': 'Eventi personalizzati fra {0} giorni',
     'Hey! Don\'t forget these events': 'Hey! Non dimenticare questi eventi',
     'version': 'versione',
-    'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Cellulare',
     'Work phone': 'Telefono di lavoro',
@@ -1221,7 +1219,6 @@ var i18n = {
     'Custom events in {0} days': 'Peristiwa khusus dalam {0} hari mendatang',
     'Hey! Don\'t forget these events': 'Hai! Jangan lupa peristiwa-peristiwa berikut',
     'version': 'versi',
-    'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telp. Selular',
     'Work phone': 'Telp. Kantor',
@@ -1251,7 +1248,6 @@ var i18n = {
     'Custom events in {0} days': 'Benutzerdefinierte Termine in {0} Tagen',
     'Hey! Don\'t forget these events': 'Hey! Vergiss diese Termine nicht',
     'version': 'Version',
-    'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Mobiltelefon',
     'Work phone': 'Geschäftlich',
@@ -1281,7 +1277,6 @@ var i18n = {
     'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
     'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
-    'by': 'Stworzone przez',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telefon komórkowy',
     'Work phone': 'Telefon (praca)',
@@ -1311,7 +1306,6 @@ var i18n = {
     'Custom events in {0} days': 'Autres événements dans {0} jours',
     'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
     'version': 'version',
-    'by': 'par',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Mobile',
     'Work phone': 'Travail',
@@ -1649,7 +1643,6 @@ function generateEmailNotification (forceDate) {
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffixes = [
     _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
-    _('by') + ' Giorgio Bonvicini',
     _('It looks like you are using an outdated version of this script') + '.',
     _('You can find the latest one here')
   ];
@@ -1729,13 +1722,13 @@ function generateEmailNotification (forceDate) {
     subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
-      .concat(['\n\n ', bodySuffixes[0], '\n ', bodySuffixes[1], '\n'])
-      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[2], ' ', bodySuffixes[3], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+      .concat(['\n\n ', bodySuffixes[0], '\n '])
+      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
       .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
       .concat(htmlBodyBuilder)
-      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a><br/>', htmlEscape(bodySuffixes[1])])
-      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[2]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[3]), '</a>.</b></p>'] : ['</p>'])
+      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
+      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
       .join('');
 
     // ...and return it.
