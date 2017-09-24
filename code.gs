@@ -188,6 +188,80 @@ var settings = {
 // CLASSES
 
 /**
+ * Initialize a LocalCache object.
+ * A LocalCache object is used to store external resources which are used multiple
+ * times to optimize the number of UrlFetchApp.fetch() calls.
+ *
+ * @class
+ */
+function LocalCache () {
+  this.cache = {};
+}
+
+/**
+ * Fetch an URL, optionally making more than one try.
+ *
+ * @param {string} url - The URL which has to be fetched.
+ * @param {number=1} retry - Number of times to try the fetch operation before failing.
+ * @returns {?Object} - The fetch response or null if the fetch failed.
+ */
+LocalCache.prototype.fetch = function (url, retry) {
+  var response, i, errors;
+
+  retry = retry || 1;
+
+  response = null;
+  errors = [];
+  // Try fetching the data.
+  for (i = 0; i < retry; i++) {
+    try {
+      response = UrlFetchApp.fetch(url);
+      if (response.getResponseCode() !== 200) {
+        throw new Error('');
+      }
+      // Break the loop if the fetch was successful.
+      break;
+    } catch (error) {
+      errors.push(error);
+      response = null;
+    }
+  }
+  // Store the result in the cache and return it.
+  if (response === null) {
+    this.cache[url] = null;
+  } else {
+    this.cache[url] = response;
+  }
+  return this.cache[url];
+};
+
+/**
+ * Determine whether an url has already been cached.
+ *
+ * @param {any} url - The URL to check.
+ * @returns {boolean} - True if the cache contains an object for the URL, false otherwise.
+ */
+LocalCache.prototype.isCached = function (url) {
+  return !!this.cache[url];
+};
+
+/**
+ * Retrieve an object from the cache.
+ * The object is loaded from the cache if present, otherwise it is fetched.
+ *
+ * @param {string} url - The URL to retrieve.
+ * @param {any} retry - Number of times to retry in case of error.
+ * @returns {Object} - The response object.
+ */
+LocalCache.prototype.retrieve = function (url, retry) {
+  if (this.isCached(url)) {
+    return this.cache[url];
+  } else {
+    return this.fetch(url, retry);
+  }
+};
+
+/**
  * Initialize an empty contact.
  * A Contact object holds the data about a contact collected from multiple sources.
  *
@@ -466,10 +540,11 @@ Contact.prototype.getLines = function (type, date, format) {
       case 'html':
         imgCount = Object.keys(inlineImages).length;
         try {
-          inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
+          // Get the default profile image from the cache.
+          inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
           line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
         } catch (err) {
-          log.add('Unable to get the profile picture', 'warning');
+          log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), 'warning');
         }
     }
     // Custom label
@@ -1088,10 +1163,13 @@ if (typeof String.prototype.replaceAll === 'undefined') {
  */
 var version = new SimplifiedSemanticVersion(settings.developer.version);
 
+var cache = new LocalCache();
+
 // These URLs are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
 var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
 var baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
+var defaultProfileImageURL = baseRawFilesURL + 'images/default_profile.jpg';
 
 // Convert user-configured hash to an array
 var eventTypes = Object.keys(settings.notifications.eventTypes)
@@ -1398,15 +1476,14 @@ function isRunningOutdatedVersion () {
 
   // Retrieve the last version info.
   try {
-    response = UrlFetchApp.fetch(baseGitHubApiURL + 'releases/latest');
-    if (response.getResponseCode() !== 200) {
+    response = cache.retrieve(baseGitHubApiURL + 'releases/latest');
+    if (response === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number' + (response ? ': the requested URL returned a ' + response.getResponseCode() + ' response.' : ''), 'warning');
+    log.add('Unable to get the latest version number', 'warning');
     return false;
   }
-
   // Parse the info for the version number.
   try {
     response = JSON.parse(response);
@@ -1533,7 +1610,6 @@ function main (forceDate) {
   // If generateEmailNotification returned mail content send it.
   if (emailData !== null) {
     log.add('Sending email...', 'info');
-
     MailApp.sendEmail({
       to: settings.user.notificationEmail,
       subject: emailData.subject,
@@ -1633,7 +1709,7 @@ function generateEmailNotification (forceDate) {
     contact.data.merge(new ContactDataDC(
       null,                                             // Full name.
       null,                                             // Nickname.
-      baseRawFilesURL + 'images/default_profile.jpg')   // Profile photo URL.
+      defaultProfileImageURL)                           // Profile photo URL.
     );
   });
 
