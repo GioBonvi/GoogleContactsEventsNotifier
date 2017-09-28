@@ -212,7 +212,7 @@ function LocalCache () {
  * Fetch an URL, optionally making more than one try.
  *
  * @param {string} url - The URL which has to be fetched.
- * @param {number=1} retry - Number of times to try the fetch operation before failing.
+ * @param {number} [retry=1] - Number of times to try the fetch operation before failing.
  * @returns {?Object} - The fetch response or null if the fetch failed.
  */
 LocalCache.prototype.fetch = function (url, retry) {
