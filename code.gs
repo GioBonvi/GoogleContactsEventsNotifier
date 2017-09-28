@@ -1492,11 +1492,11 @@ var i18n = {
  *
  * If the language or the chosen string is invalid return the string itself.
  *
- * @param {string} string - String to attempt translation for.
+ * @param {string} str - String to attempt translation for.
  * @returns {string}
  */
-function _ (string) {
-  return i18n[settings.user.lang][string] || string;
+function _ (str) {
+  return i18n[settings.user.lang][str] || str;
 }
 
 /**
