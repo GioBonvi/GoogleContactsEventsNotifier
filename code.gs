@@ -235,6 +235,7 @@ LocalCache.prototype.fetch = function (url, retry) {
     } catch (error) {
       errors.push(error);
       response = null;
+      Utilities.sleep(1000);
     }
   }
   // Store the result in the cache and return it.
