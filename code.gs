@@ -1255,6 +1255,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     'Home fax': 'Φαξ οικίας',
     'Work fax': 'Φαξ εργασίας',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     'Home email': 'Email οικίας',
     'Work email': 'Email εργασίας',
     // TODO: 'Other email': '',
@@ -1284,6 +1286,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1313,6 +1317,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     'Home fax': 'Fax di casa',
     'Work fax': 'Fax di lavoro',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     'Home email': 'Email di casa',
     'Work email': 'Email di lavoro',
     // TODO: 'Other email': '',
@@ -1342,6 +1348,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1371,6 +1379,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1400,6 +1410,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1429,6 +1441,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1471,10 +1485,12 @@ function beautifyLabel (label) {
     case 'MAIN_PHONE':
     case 'HOME_FAX':
     case 'WORK_FAX':
+    case 'GOOGLE_VOICE':
+    case 'PAGER':
     case 'HOME_EMAIL':
     case 'WORK_EMAIL':
-    case 'OTHER_EMAIL': // fake label for output
-    case 'OTHER_PHONE': // fake label for output
+    case 'OTHER_EMAIL': // Fake label for output.
+    case 'OTHER_PHONE': // Fake label for output,
       return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
     default:
       return String(label);
