@@ -212,8 +212,8 @@ function LocalCache () {
 /**
  * Fetch an URL, optionally making more than one try.
  *
- * @param {string} url - The URL which has to be fetched.
- * @param {number} [retry=1] - Number of times to try the fetch operation before failing.
+ * @param {!string} url - The URL which has to be fetched.
+ * @param {?number} [retry=1] - Number of times to try the fetch operation before failing.
  * @returns {?Object} - The fetch response or null if the fetch failed.
  */
 LocalCache.prototype.fetch = function (url, retry) {
@@ -249,7 +249,7 @@ LocalCache.prototype.fetch = function (url, retry) {
 /**
  * Determine whether an url has already been cached.
  *
- * @param {any} url - The URL to check.
+ * @param {!string} url - The URL to check.
  * @returns {boolean} - True if the cache contains an object for the URL, false otherwise.
  */
 LocalCache.prototype.isCached = function (url) {
@@ -261,8 +261,8 @@ LocalCache.prototype.isCached = function (url) {
  *
  * The object is loaded from the cache if present, otherwise it is fetched.
  *
- * @param {string} url - The URL to retrieve.
- * @param {any} retry - Number of times to retry in case of error.
+ * @param {!string} url - The URL to retrieve.
+ * @param {?number} retry - Number of times to retry in case of error.
  * @returns {Object} - The response object.
  */
 LocalCache.prototype.retrieve = function (url, retry) {
@@ -363,7 +363,7 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
  *
  * This data is used to update the information collected until now.
  *
- * @param {string} contactId - The id from which to collect the data.
+ * @param {!string} contactId - The id from which to collect the data.
  */
 Contact.prototype.getInfoFromContact = function (contactId) {
   var self, googleContact;
@@ -482,7 +482,7 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
  * is compatible or if the array is empty, it just adds `e` at the end of
  * the array.
  *
- * @param {string} field - The name of the field in which to insert the object.
+ * @param {!string} field - The name of the field in which to insert the object.
  * @param {DataCollector} incData - The object to insert.
  */
 Contact.prototype.addToField = function (field, incData) {
@@ -516,9 +516,9 @@ Contact.prototype.addToField = function (field, incData) {
  * Generate a list of text lines of the given format, each describing an
  * event of the contact of the type specified on the date specified.
  *
- * @param {string} type - The type of the event.
- * @param {Date} date - The date of the event.
- * @param {NotificationType} format - The format of the text line.
+ * @param {!string} type - The type of the event.
+ * @param {!Date} date - The date of the event.
+ * @param {!NotificationType} format - The format of the text line.
  * @returns {string[]} - A list of the plain text descriptions of the events.
  */
 Contact.prototype.getLines = function (type, date, format) {
@@ -738,7 +738,7 @@ var DataCollector = function () {
 /**
  * Get the value of a given property.
  *
- * @param {string} key - The name of the property.
+ * @param {!string} key - The name of the property.
  * @returns {?string} - The value of the property.
  */
 DataCollector.prototype.getProp = function (key) {
@@ -750,7 +750,7 @@ DataCollector.prototype.getProp = function (key) {
  *
  * If the value is undefined or an empty string it's replaced by `null`.
  *
- * @param {string} key - The name of the property.
+ * @param {!string} key - The name of the property.
  * @param {?string} value - The value of the property.
  */
 DataCollector.prototype.setProp = function (key, value) {
@@ -760,7 +760,7 @@ DataCollector.prototype.setProp = function (key, value) {
 /**
  * Determines whether a given property is empty or not.
  *
- * @param {string} key - The name of the property.
+ * @param {!string} key - The name of the property.
  * @returns {boolean} - True if the property is empty, false otherwise.
  */
 DataCollector.prototype.isPropEmpty = function (key) {
@@ -853,10 +853,10 @@ DataCollector.prototype.merge = function (otherDataCollector) {
 /**
  * Init an Event Data Collector.
  *
- * @param {string} label - Label of the event (BIRTHDAY, ANNIVERSARY, ANYTHING_ELSE...)
- * @param {number} year - Year of the event.
- * @param {number} month - Month of the event.
- * @param {number} day - Day of the event.
+ * @param {!string} label - Label of the event (BIRTHDAY, ANNIVERSARY, ANYTHING_ELSE...)
+ * @param {!number} year - Year of the event.
+ * @param {!number} month - Month of the event.
+ * @param {!number} day - Day of the event.
  */
 var EventDC = function (label, year, month, day) {
   DataCollector.apply(this);
@@ -871,8 +871,8 @@ EventDC.prototype.constructor = EventDC;
 /**
  * Init an EmailAddress Data Collector.
  *
- * @param {string} label - The label of the email address (WORK_EMAIL, HOME_EMAIL...).
- * @param {string} address - The email address.
+ * @param {!string} label - The label of the email address (WORK_EMAIL, HOME_EMAIL...).
+ * @param {!string} address - The email address.
  */
 var EmailAddressDC = function (label, address) {
   DataCollector.apply(this);
@@ -885,8 +885,8 @@ EmailAddressDC.prototype.constructor = EmailAddressDC;
 /**
  * Init a PhoneNumber Data Collector.
  *
- * @param {string} label - The label of the phone number (WORK_PHONE, HOME_PHONE...).
- * @param {string} number - The phone number.
+ * @param {!string} label - The label of the phone number (WORK_PHONE, HOME_PHONE...).
+ * @param {!string} number - The phone number.
  */
 var PhoneNumberDC = function (label, number) {
   DataCollector.apply(this);
@@ -899,9 +899,9 @@ PhoneNumberDC.prototype.constructor = PhoneNumberDC;
 /**
  * Init a ContactData Data Collector.
  *
- * @param {string} fullName - The full name of the contact.
- * @param {string} nickname - The nickname of the contact.
- * @param {string} photoURL - The URL of the profile image of the contact.
+ * @param {!string} fullName - The full name of the contact.
+ * @param {!string} nickname - The nickname of the contact.
+ * @param {!string} photoURL - The URL of the profile image of the contact.
  */
 var ContactDataDC = function (fullName, nickname, photoURL) {
   DataCollector.apply(this);
@@ -915,11 +915,11 @@ ContactDataDC.prototype.constructor = ContactDataDC;
 /**
  * Init a Log object, used to manage a collection of logEvents {time, text, priority}.
  *
- * @param {Priority} [minimumPriority=Priority.INFO] - Logs with priority lower than this will not be recorded.
- * @param {Priority} [emailMinimumPriority=Priority.ERROR] - If at least one log with priority greater than or
- *                                    equal to this is recorded an email with all the logs will be sent to the user.
- * @param {boolean} [testing=false] - If this is true logging an event with Priority.FATAL_ERROR will not
- *                                    cause execution to stop.
+ * @param {?Priority} [minimumPriority=Priority.INFO] - Logs with priority lower than this will not be recorded.
+ * @param {?Priority} [emailMinimumPriority=Priority.ERROR] - If at least one log with priority greater than or
+                                       equal to this is recorded an email with all the logs will be sent to the user.
+ * @param {?boolean} [testing=false] - If this is true logging an event with Priority.FATAL_ERROR will not
+ *                                     cause execution to stop.
  * @class
  */
 function Log (minimumPriority, emailMinimumPriority, testing) {
@@ -933,8 +933,8 @@ function Log (minimumPriority, emailMinimumPriority, testing) {
 /**
  * Store a new event in the log. The default priority is the lowest one (`INFO`).
  *
- * @param {any} data - The data to be logged: best if a string, Objects get JSONized.
- * @param {Priority} [priority=Priority.INFO] - Priority of the leg event.
+ * @param {!any} data - The data to be logged: best if a string, Objects get JSONized.
+ * @param {?Priority} [priority=Priority.INFO] - Priority of the log event.
  */
 Log.prototype.add = function (data, priority) {
   var text;
@@ -977,7 +977,7 @@ Log.prototype.getOutput = function () {
  * Verify if the log contains at least an event with priority equal to or greater than
  * the specified priority.
  *
- * @param {Priority} minimumPriority - The numeric value representing the priority limit.
+ * @param {!Priority} minimumPriority - The numeric value representing the priority limit.
  * @returns {boolean}
  */
 Log.prototype.containsMinimumPriority = function (minimumPriority) {
@@ -994,8 +994,8 @@ Log.prototype.containsMinimumPriority = function (minimumPriority) {
 /**
  * If the filter condition is met send all the logs collected to the specified email.
  *
- * @param {string} to - The email address of the recipient of the email.
- * @param {string} senderName - The name of the sender.
+ * @param {!string} to - The email address of the recipient of the email.
+ * @param {!string} senderName - The name of the sender.
  */
 Log.prototype.sendEmail = function (to, senderName) {
   if (this.containsMinimumPriority(this.emailMinimumPriority)) {
@@ -1075,7 +1075,7 @@ var NotificationType = {
  * string is compared as a whole in version comparison instead of
  * being spliced into chunks.
  *
- * @param {string} versionNumber - The version number to build the object with.
+ * @param {!string} versionNumber - The version number to build the object with.
  *
  * @class
  */
@@ -1122,7 +1122,7 @@ SimplifiedSemanticVersion.prototype.toString = function () {
  * preRelease string (ASCII comparison). Metadata do not influence
  * comparisons.
  *
- * @param {SimplifiedSemanticVersion} comparedVersion - The version to compare.
+ * @param {!SimplifiedSemanticVersion} comparedVersion - The version to compare.
  * @returns {number} - 1, 0 , -1 if this version number is greater than, equal to or smaller than the one passed as the parameter.
  */
 SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
@@ -1177,7 +1177,7 @@ if (typeof String.prototype.format === 'undefined') {
    *         'This is a {0}'.format('test') -> 'This is a test.'
    *         'This {0} a {1}'.format('is') -> 'This is a {1}.'
    *
-   * @param {...string} arguments
+   * @param {...!string} arguments
    * @returns {string}
    */
   String.prototype.format = function () { // eslint-disable-line no-extend-native
@@ -1197,8 +1197,8 @@ if (typeof String.prototype.replaceAll === 'undefined') {
   /**
    * Replace all occurrences of a substring (not a regex).
    *
-   * @param {string} substr - The substring to be replaced.
-   * @param {string} repl - The replacement for the substring.
+   * @param {!string} substr - The substring to be replaced.
+   * @param {!string} repl - The replacement for the substring.
    * @returns {string} - The string with the substrings replaced.
    */
   String.prototype.replaceAll = function (substr, repl) { // eslint-disable-line no-extend-native
@@ -1492,7 +1492,7 @@ var i18n = {
  *
  * If the language or the chosen string is invalid return the string itself.
  *
- * @param {string} str - String to attempt translation for.
+ * @param {!string} str - String to attempt translation for.
  * @returns {string}
  */
 function _ (str) {
@@ -1502,7 +1502,7 @@ function _ (str) {
 /**
  * Replace a `Field.Label` object with its "beautified" text representation.
  *
- * @param {any} label - The internal label to transform to readable form.
+ * @param {?string} label - The internal label to transform to readable form.
  * @returns {string}
  */
 function beautifyLabel (label) {
@@ -1528,7 +1528,7 @@ function beautifyLabel (label) {
 /**
  * Replace HTML special characters in a string with their HTML-escaped equivalent.
  *
- * @param {string} str - The string to escape.
+ * @param {?string} str - The string to escape.
  * @returns {string} - The escaped string.
  */
 function htmlEscape (str) {
@@ -1596,7 +1596,7 @@ function isRunningOutdatedVersion () {
 /**
  * Get a `ContactsApp.Month`'s numerical representation.
  *
- * @param {Object} month
+ * @param {!Object} month
  * @returns {number} - 0-11 for each month, -1 for wrong values.
  */
 function monthToInt (month) {
@@ -1626,7 +1626,7 @@ function monthToInt (month) {
 /**
  * Return an array of strings with duplicate strings removed.
  *
- * @param {string[]} arr - The array containing the duplicates.
+ * @param {!string[]} arr - The array containing the duplicates.
  * @returns {string[]} - The array without duplicates.
  */
 function uniqueStrings (arr) {
@@ -1764,8 +1764,8 @@ function validateSettings () {
  * Returns an array with the events happening in the calendar with
  * ID `calendarId` on date `eventDate`.
  *
- * @param {Date} eventDate - The date the events must fall on.
- * @param {string} calendarId - The id of the calendar from which events are collected.
+ * @param {!Date} eventDate - The date the events must fall on.
+ * @param {!string} calendarId - The id of the calendar from which events are collected.
  * @returns {Object[]} - A list of rawEvent Objects.
  */
 function getEventsOnDate (eventDate, calendarId) {

@@ -3,7 +3,7 @@
 /**
  * This function throws an error when the condition provided is false.
  *
- * @param {boolean} condition - The condition to be asserted.
+ * @param {?boolean} condition - The condition to be asserted.
  * @param {string} [message=Assertion failed] - The error message thrown if the assertion fails.
  */
 function assert (condition, message) {
