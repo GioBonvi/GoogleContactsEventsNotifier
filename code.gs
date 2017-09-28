@@ -1123,8 +1123,7 @@ SimplifiedSemanticVersion.prototype.toString = function () {
  * comparisons.
  *
  * @param {SimplifiedSemanticVersion} comparedVersion - The version to compare.
- * @returns {number} - 1, 0 , -1 if this version number is greater than,
- *                     equal to or smaller than the one passed as the parameter.
+ * @returns {number} - 1, 0 , -1 if this version number is greater than, equal to or smaller than the one passed as the parameter.
  */
 SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
   var i;
@@ -1549,8 +1548,7 @@ function htmlEscape (str) {
  *
  * If there is any problem retrieving the latest version number false is returned.
  *
- * @returns {boolean} - True if the script version is lower than the latest released
- *                      one, false otherwise.
+ * @returns {boolean} - True if the script version is lower than the latest released one, false otherwise.
  */
 function isRunningOutdatedVersion () {
   var response, latestVersion;
@@ -1804,6 +1802,7 @@ function getEventsOnDate (eventDate, calendarId) {
 }
 
 /**
+ * <div style="clear:both"></div>
  * Send an email notification to the user containing a list of the events
  * of his/her contacts scheduled for the next days.
  *
