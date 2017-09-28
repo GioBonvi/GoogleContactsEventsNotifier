@@ -1222,6 +1222,8 @@ if (typeof Number.isInteger === 'undefined') {
 
 /**
  * The version of the script.
+ *
+ * @type {!SimplifiedSemanticVersion}
  */
 var version = new SimplifiedSemanticVersion(settings.developer.version);
 
@@ -1490,7 +1492,7 @@ var i18n = {
  *
  * If the language or the chosen string is invalid return the string itself.
  *
- * @param {string} string
+ * @param {string} string - String to attempt translation for.
  * @returns {string}
  */
 function _ (string) {
@@ -1500,7 +1502,7 @@ function _ (string) {
 /**
  * Replace a `Field.Label` object with its "beautified" text representation.
  *
- * @param {any} label
+ * @param {any} label - The internal label to transform to readable form.
  * @returns {string}
  */
 function beautifyLabel (label) {
@@ -1592,7 +1594,7 @@ function isRunningOutdatedVersion () {
 }
 
 /**
- * Get a a `ContactsApp.Month`'s numerical representation.
+ * Get a `ContactsApp.Month`'s numerical representation.
  *
  * @param {Object} month
  * @returns {number} - 0-11 for each month, -1 for wrong values.
@@ -1624,12 +1626,12 @@ function monthToInt (month) {
 /**
  * Return an array of strings with duplicate strings removed.
  *
- * @param {string[]} x - The list containing the duplicates.
- * @returns {string[]} - The list without duplicates.
+ * @param {string[]} arr - The array containing the duplicates.
+ * @returns {string[]} - The array without duplicates.
  */
-function uniqueStrings (x) {
+function uniqueStrings (arr) {
   var seen = {};
-  return x.filter(function (str) {
+  return arr.filter(function (str) {
     return seen.hasOwnProperty(str) ? false : (seen[str] = true);
   });
 }
