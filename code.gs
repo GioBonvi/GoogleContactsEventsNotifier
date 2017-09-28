@@ -238,11 +238,7 @@ LocalCache.prototype.fetch = function (url, retry) {
     }
   }
   // Store the result in the cache and return it.
-  if (response === null) {
-    this.cache[url] = null;
-  } else {
-    this.cache[url] = response;
-  }
+  this.cache[url] = response;
   return this.cache[url];
 };
 
