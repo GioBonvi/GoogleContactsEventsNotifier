@@ -95,6 +95,7 @@ These are the names of the variables:
 - `settings.notifications.maxEmailsCount`
 - `settings.notifications.maxPhonesCount`
 - `settings.notifications.indentSize`
+- `settings.notifications.compactGrouping`
 
 #### Debugging options
 

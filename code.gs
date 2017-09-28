@@ -135,7 +135,16 @@ var settings = {
      * This is used in the plaintext part of emails only (invisible to email clients which display
      * the html part by default).
      */
-    indentSize: 4
+    indentSize: 4,
+    /*
+     * GROUP ALL LABELS
+     *
+     * By default only the main emails and phone numbers (work, home, mobile, main) are displayed with their
+     * own label: all the other special and/or custom emails and phone numbers are grouped into a single
+     * "other" group. By setting this variable to false instead, every phone and email will be grouped
+     * under its own label.
+     */
+    compactGrouping: true
   },
   debug: {
     log: {
@@ -601,30 +610,33 @@ Contact.prototype.getLines = function (type, date, format) {
     if (self.emails.length + self.phones.length) {
       var collected;
 
-      // Emails and phones are grouped by label.
+      // Emails and phones are grouped by label: these are the default main label groups.
       collected = {
         HOME_EMAIL: [],
         WORK_EMAIL: [],
         OTHER_EMAIL: [],
+        MAIN_PHONE: [],
         HOME_PHONE: [],
         WORK_PHONE: [],
         MOBILE_PHONE: [],
         OTHER_PHONE: []
       };
-      line.push(' (');
       // Collect and group the email addresses.
       self.emails.forEach(function (email) {
         var label, emailAddr;
 
         label = email.getProp('label');
         emailAddr = email.getProp('address');
-        switch (label) {
-          case 'HOME_EMAIL':
-          case 'WORK_EMAIL':
-            collected[label].push(emailAddr);
-            break;
-          default:
-            collected.OTHER_EMAIL.push(emailAddr);
+        if (typeof collected[label] !== 'undefined') {
+          // Store the value if the label group is already defined.
+          collected[label].push(emailAddr);
+        } else if (!settings.notifications.compactGrouping && label) {
+          // Define a new label groups different from the main ones only if compactGrouping is set to false.
+          // Note: Google's OTHER label actually is an empty string.
+          collected[label] = [emailAddr];
+        } else {
+          // Store any other label in the OTHER_EMAIL label group.
+          collected['OTHER_EMAIL'].push(emailAddr);
         }
       });
       // Collect and group the phone numbers.
@@ -633,19 +645,22 @@ Contact.prototype.getLines = function (type, date, format) {
 
         label = phone.getProp('label');
         phoneNum = phone.getProp('number');
-        switch (label) {
-          case 'HOME_PHONE':
-          case 'WORK_PHONE':
-          case 'MOBILE_PHONE':
-            collected[label].push(phoneNum);
-            break;
-          default:
-            collected.OTHER_PHONE.push(phoneNum);
+        if (typeof collected[label] !== 'undefined') {
+          // Store the value if the label group is already defined.
+          collected[label].push(phoneNum);
+        } else if (!settings.notifications.compactGrouping && label) {
+          // Define a new label groups different from the main ones only if compactGrouping is set to false.
+          // Note: Google's OTHER label actually is an empty string.
+          collected[label] = [phoneNum];
+        } else {
+          // Store any other label in the OTHER_PHONE label group.
+          collected['OTHER_PHONE'].push(phoneNum);
         }
       });
       // Generate the text from the grouped emails and phone numbers..
+      line.push(' (');
       line.push(
-        ['HOME_EMAIL', 'WORK_EMAIL', 'OTHER_EMAIL', 'HOME_PHONE', 'WORK_PHONE', 'MOBILE_PHONE', 'OTHER_PHONE'].map(function (label) {
+        Object.keys(collected).map(function (label) {
           var output;
 
           if (collected[label].length) {
@@ -1671,6 +1686,12 @@ function validateSettings () {
     log.add('Your notifications.indentSize setting is invalid!', Priority.ERROR);
     // Default value.
     settings.notifications.indentSize = 4;
+  }
+
+  if (typeof settings.notifications.compactGrouping !== 'boolean') {
+    log.add('Your notifications.compactGrouping setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.compactGrouping = true;
   }
 
   setting = settings.debug.log.filterLevel;
