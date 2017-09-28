@@ -25,7 +25,7 @@ function unitTests () { // eslint-disable-line no-unused-vars
 }
 
 /**
- * Test the Log class.
+ * Test the `Log` class.
  */
 function testLog () {
   var testLog = new Log(Priority.INFO, Priority.MAX, true);
@@ -63,7 +63,7 @@ function testLog () {
 }
 
 /**
- * Test the SimplifiedSemanticVersion class.
+ * Test the `SimplifiedSemanticVersion` class.
  */
 function testSemVer () {
   // These version numbers are not valid and should result in errors being thrown.
@@ -101,9 +101,9 @@ function testSemVer () {
 }
 
 /**
- * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into log.
+ * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into the log.
  *
- * !!! Execution of this function very often exceeds maximum time (30s).
+ * **NB:** Execution of this function very often exceeds maximum time (30s).
  *
  * @param {Date} [testDate=01/01/CURRENT_YEAR] - First date to test.
  * @param {number} [numberOfDaysToTest=365] - Number of days to test.

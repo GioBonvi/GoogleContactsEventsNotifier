@@ -199,8 +199,9 @@ var settings = {
 
 /**
  * Initialize a LocalCache object.
+ *
  * A LocalCache object is used to store external resources which are used multiple
- * times to optimize the number of UrlFetchApp.fetch() calls.
+ * times to optimize the number of `UrlFetchApp.fetch()` calls.
  *
  * @class
  */
@@ -257,6 +258,7 @@ LocalCache.prototype.isCached = function (url) {
 
 /**
  * Retrieve an object from the cache.
+ *
  * The object is loaded from the cache if present, otherwise it is fetched.
  *
  * @param {string} url - The URL to retrieve.
@@ -273,6 +275,7 @@ LocalCache.prototype.retrieve = function (url, retry) {
 
 /**
  * Initialize an empty contact.
+ *
  * A Contact object holds the data about a contact collected from multiple sources.
  *
  * @class
@@ -297,7 +300,7 @@ function Contact () {
 }
 
 /**
- * Extract all the available data from the raw event object and store them in the Contact.
+ * Extract all the available data from the raw event object and store them in the `Contact`.
  *
  * @param {Object} rawEvent - The object containing all the data about the event, obtained
  *                            from the Google Calendar API.
@@ -353,10 +356,11 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
 };
 
 /**
- * Update the Contact with info collect from a Google Contact.
+ * Update the `Contact` with info collect from a Google Contact.
  *
  * Some raw events will contain a Google Contact ID which gives access
  * to a bunch of new data about the contact.
+ *
  * This data is used to update the information collected until now.
  *
  * @param {string} contactId - The id from which to collect the data.
@@ -415,10 +419,11 @@ Contact.prototype.getInfoFromContact = function (contactId) {
 };
 
 /**
- * Update the Contact with info collected from a Google+ Profile.
+ * Update the `Contact` with info collected from a Google+ Profile.
  *
  * Some raw events will contain a Google Plus Profile ID which
  * gives access to a bunch of new data about the contact.
+ *
  * This data is used to update the information collected until now.
  *
  * @param {string} gPlusProfileId - The id from which to collect the data.
@@ -470,10 +475,11 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
 /**
  * This method is used to insert a new DataCollector into an array of
  * DataCollectors.
- * For example take 'EventDC e' and 'EventDC[] arr'; This method checks
- * all the elements of 'arr': if it finds one that is compatible with 'e'
- * it merges 'e' into that element, otherwise, if no element in the array
- * is compatible or if the array is empty, it just adds 'e' at the end of
+ *
+ * For example take `EventDC e` and `EventDC[] arr`; This method checks
+ * all the elements of `arr`: if it finds one that is compatible with `e`
+ * it merges `e` into that element, otherwise, if no element in the array
+ * is compatible or if the array is empty, it just adds `e` at the end of
  * the array.
  *
  * @param {string} field - The name of the field in which to insert the object.
@@ -507,9 +513,8 @@ Contact.prototype.addToField = function (field, incData) {
 };
 
 /**
- * Generate a list of text lines of the given format.
- * each describing an event of the contact of the type specified on the date
- * specified.
+ * Generate a list of text lines of the given format, each describing an
+ * event of the contact of the type specified on the date specified.
  *
  * @param {string} type - The type of the event.
  * @param {Date} date - The date of the event.
@@ -706,6 +711,7 @@ Contact.prototype.getLines = function (type, date, format) {
 /**
  * DataCollector is a structure used to collect data about any "object" (an event, an
  * email address, a phone number...) from multiple incomplete sources.
+ *
  * For example the raw event could contain the day and month of the birthday, while
  * the Google Contact could hold the year as well. DataCollector can be used to accumulate
  * the data in multiple takes: each take updates the values that were left empty by the
@@ -713,10 +719,11 @@ Contact.prototype.getLines = function (type, date, format) {
  *
  * Each DataCollector object can contain an arbitrary number of properties in the form of
  * name -> value, stored in the prop object.
+ *
  * Empty properties have null value.
  *
  * DataCollector is an abstract class. Each data type should have its own implementation
- * (EventDC, EmailAddressDC, PhoneNumberDC).
+ * (`EventDC`, `EmailAddressDC`, `PhoneNumberDC`).
  *
  * @class
  */
@@ -740,7 +747,8 @@ DataCollector.prototype.getProp = function (key) {
 
 /**
  * Set a given property to a certain value.
- * If the value is undefined or an empty string it's replaced by null.
+ *
+ * If the value is undefined or an empty string it's replaced by `null`.
  *
  * @param {string} key - The name of the property.
  * @param {?string} value - The value of the property.
@@ -750,7 +758,7 @@ DataCollector.prototype.setProp = function (key, value) {
 };
 
 /**
- * Determines whether a give property is empty or not.
+ * Determines whether a given property is empty or not.
  *
  * @param {string} key - The name of the property.
  * @returns {boolean} - True if the property is empty, false otherwise.
@@ -762,15 +770,15 @@ DataCollector.prototype.isPropEmpty = function (key) {
 /**
  * Detect whether two DataCollectors have the same constructor or not.
  *
- * Examples:
- * DC_1 = new EventDC(...a, b, c...)
- * DC_2 = new EventDC(...x, y, z...)
- * DC_3 = new EmailAddressDC(...a, b, c...)
- * DC_4 = new EmailAddressDC(...x, y, z...)
+ * * Examples:
+ *         DC_1 = new EventDC(...a, b, c...)
+ *         DC_2 = new EventDC(...x, y, z...)
+ *         DC_3 = new EmailAddressDC(...a, b, c...)
+ *         DC_4 = new EmailAddressDC(...x, y, z...)
  *
- * DC_1.isCompatible(DC_2) -> true
- * DC_1.isCompatible(DC_3) -> false
- * DC_1.isCompatible(DC_4) -> false
+ *         DC_1.isCompatible(DC_2) -> true
+ *         DC_1.isCompatible(DC_3) -> false
+ *         DC_1.isCompatible(DC_4) -> false
  *
  * @param {DataCollector} otherData - The object to compare the current one with.
  * @returns {boolean} - True if the tow objects have the same constructor, false otherwise.
@@ -783,16 +791,16 @@ DataCollector.prototype.isCompatible = function (otherData) {
 /**
  * Detect whether two DataCollectors are conflicting or not.
  *
- * Examples:
- * DC_1 = {name='test', number=3, field=null}
- * DC_2 = {name=null, number=3, field=3}
- * DC_3 = {name='test', number=null, field=1}
- * DC_4 = {name='test', number=3, otherfield=null} (using different DC implementation)
+ * * Examples:
+ *         DC_1 = {name='test', number=3, field=null}
+ *         DC_2 = {name=null, number=3, field=3}
+ *         DC_3 = {name='test', number=null, field=1}
+ *         DC_4 = {name='test', number=3, otherfield=null} (using different DC implementation)
  *
- * DC_1.isConflicting(DC_2) -> false
- * DC_1.isConflicting(DC_3) -> false
- * DC_1.isConflicting(DC_4) -> false (not .isCompatible())
- * DC_2.isConflicting(DC_3) -> true (conflict on field)
+ *         DC_1.isConflicting(DC_2) -> false
+ *         DC_1.isConflicting(DC_3) -> false
+ *         DC_1.isConflicting(DC_4) -> false (not .isCompatible())
+ *         DC_2.isConflicting(DC_3) -> true (conflict on field)
  *
  * @param {DataCollector} otherData - The object to compare the current one with.
  * @returns {boolean} - True if the two objects are conflicting, false otherwise.
@@ -811,17 +819,17 @@ DataCollector.prototype.isConflicting = function (otherData) {
 };
 
 /**
- * Merge two DataCollector objects, filling the empty properties of the
- * first one with the non-empty ones of the second one.
+ * Merge two `DataCollector` objects, filling the empty properties of the
+ * first one with the non-empty properties of the second one.
  *
- * Examples:
- * DC_1 = {name='test', number=3, field=null}
- * DC_2 = {name=null, number=3, field=3}
- * DC_2 = {name='test', number=null, field=1}
+ * * Examples:
+ *         DC_1 = {name='test', number=3, field=null}
+ *         DC_2 = {name=null, number=3, field=3}
+ *         DC_2 = {name='test', number=null, field=1}
  *
- * DC_1.merge(DC_2) -> {name='test', number=3, field=3}
- * DC_1.isCompatible(DC_3) -> {name='test', number=3, field=1}
- * DC_2.isCompatible(DC_3) -> INCOMPATIBLE
+ *         DC_1.merge(DC_2) -> {name='test', number=3, field=3}
+ *         DC_1.isCompatible(DC_3) -> {name='test', number=3, field=1}
+ *         DC_2.isCompatible(DC_3) -> INCOMPATIBLE
  *
  * @param {DataCollector} otherDataCollector - The object to merge into the current one.
  */
@@ -889,7 +897,7 @@ PhoneNumberDC.prototype = Object.create(DataCollector.prototype);
 PhoneNumberDC.prototype.constructor = PhoneNumberDC;
 
 /**
- * ContactData Data Collector.
+ * Init a ContactData Data Collector.
  *
  * @param {string} fullName - The full name of the contact.
  * @param {string} nickname - The nickname of the contact.
@@ -923,7 +931,7 @@ function Log (minimumPriority, emailMinimumPriority, testing) {
 }
 
 /**
- * Store a new event in the log. The default priority is the lowest one (info).
+ * Store a new event in the log. The default priority is the lowest one (`INFO`).
  *
  * @param {any} data - The data to be logged: best if a string, Objects get JSONized.
  * @param {Priority} [priority=Priority.INFO] - Priority of the leg event.
@@ -1018,7 +1026,8 @@ function LogEvent (time, message, priority) {
 /**
  * Get a textual description of the LogEvent in this format
  * (P is the first letter of the priority):
- *   "[TIME] P: MESSAGE"
+ *
+ *     [TIME] P: MESSAGE
  *
  * @returns {string} - The textual description of the event.
  */
@@ -1054,11 +1063,14 @@ var NotificationType = {
 
 /**
  * An object representing a simplified semantic version number.
+ *
  * It must be composed of:
- *  - three dot-separated positive integers (major version,
- *    minor version and patch number);
- *  - optionally a pre-release identifier, prefixed by a hyphen;
- *  - optionally a metadata identifier, prefixed by a plus sign;
+ *
+ * * three dot-separated positive integers (major version,
+ *   minor version and patch number);
+ * * optionally a pre-release identifier, prefixed by a hyphen;
+ * * optionally a metadata identifier, prefixed by a plus sign;
+ *
  * This differs from the official SemVer style because the pre-release
  * string is compared as a whole in version comparison instead of
  * being spliced into chunks.
@@ -1139,10 +1151,11 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
 if (typeof Array.prototype.extend === 'undefined') {
   /**
    * Merge an array at the end of an existing array.
-   * Example:
-   *  a = [1, 2, 3], b = [4, 5, 6];
-   *  a.extend(b);
-   *  a -> [1, 2, 3, 4, 5, 6]
+   *
+   * * Example:
+   *         a = [1, 2, 3], b = [4, 5, 6];
+   *         a.extend(b);
+   *         a -> [1, 2, 3, 4, 5, 6]
    *
    * @param {any[]} array - The array used to extend.
    * @returns {any[]} - Returns this for subsequent calls.
@@ -1160,9 +1173,11 @@ if (typeof Array.prototype.extend === 'undefined') {
 if (typeof String.prototype.format === 'undefined') {
   /**
    * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
-   * Examples:
-   * 'This is a {0}'.format('test') -> 'This is a test.'
-   * 'This {0} a {1}'.format('is') -> 'This is a {1}.'
+   *
+   * * Examples:
+   *         'This is a {0}'.format('test') -> 'This is a test.'
+   *         'This {0} a {1}'.format('is') -> 'This is a {1}.'
+   *
    * @param {...string} arguments
    * @returns {string}
    */
@@ -1206,8 +1221,8 @@ if (typeof Number.isInteger === 'undefined') {
 
 // GLOBAL VARIABLES
 
- /**
-  * The version of the script.
+/**
+ * The version of the script.
  */
 var version = new SimplifiedSemanticVersion(settings.developer.version);
 
@@ -1473,6 +1488,7 @@ var i18n = {
 
 /**
  * Get the translation of a string.
+ *
  * If the language or the chosen string is invalid return the string itself.
  *
  * @param {string} string
@@ -1483,7 +1499,7 @@ function _ (string) {
 }
 
 /**
- * Replace a Field.Label object with its "beautified" text representation.
+ * Replace a `Field.Label` object with its "beautified" text representation.
  *
  * @param {any} label
  * @returns {string}
@@ -1530,6 +1546,7 @@ function htmlEscape (str) {
  *
  * The latest version number is obtained from the GitHub API and compared with the
  * script's one.
+ *
  * If there is any problem retrieving the latest version number false is returned.
  *
  * @returns {boolean} - True if the script version is lower than the latest released
@@ -1577,7 +1594,7 @@ function isRunningOutdatedVersion () {
 }
 
 /**
- * Get a a CalendarApp.Month's numerical representation.
+ * Get a a `ContactsApp.Month`'s numerical representation.
  *
  * @param {Object} month
  * @returns {number} - 0-11 for each month, -1 for wrong values.
@@ -1607,7 +1624,7 @@ function monthToInt (month) {
 }
 
 /**
- * Return a list of strings with duplicate strings removed.
+ * Return an array of strings with duplicate strings removed.
  *
  * @param {string[]} x - The list containing the duplicates.
  * @returns {string[]} - The list without duplicates.
@@ -1745,7 +1762,7 @@ function validateSettings () {
 
 /**
  * Returns an array with the events happening in the calendar with
- * ID 'calendarId' on date 'eventDate'.
+ * ID `calendarId` on date `eventDate`.
  *
  * @param {Date} eventDate - The date the events must fall on.
  * @param {string} calendarId - The id of the calendar from which events are collected.
@@ -1854,7 +1871,8 @@ function generateEmailNotification (forceDate) {
 
   /*
    * Build a list of contacts (with complete information) from the event list.
-   * Note: multiple events can refer to the same contact.
+   *
+   * **Note:** multiple events can refer to the same contact.
    */
   events.forEach(function (rawEvent) {
     var eventData, i;
@@ -2010,7 +2028,7 @@ function generateEmailNotification (forceDate) {
 }
 
 /**
- * Execute the main() function without forcing any date as "now".
+ * Execute the `main()` function without forcing any date as "now".
  */
 function normal () { // eslint-disable-line no-unused-vars
   log.add('normal() running.', Priority.INFO);
@@ -2018,7 +2036,7 @@ function normal () { // eslint-disable-line no-unused-vars
 }
 
 /**
- * Execute the main() function forcing a given date (settings.debug.testDate) as "now".
+ * Execute the `main()` function forcing a given date (`settings.debug.testDate`) as "now".
  */
 function test () { // eslint-disable-line no-unused-vars
   log.add('test() running.', Priority.INFO);

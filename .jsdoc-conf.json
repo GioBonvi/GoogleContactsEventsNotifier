@@ -1,0 +1,20 @@
+{
+    "plugins": ["plugins/markdown"],
+    "recurseDepth": 10,
+    "source": {
+        "includePattern": ".+\\.(gs|js(doc|x)?)$",
+        "excludePattern": "((^|\\/|\\\\)_|(^|\\/)(jsdoc-out/|code-customized\\.gs$))"
+    },
+    "sourceType": "module",
+    "tags": {
+        "allowUnknownTags": true,
+        "dictionaries": ["jsdoc","closure"]
+    },
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false
+    },
+    "opts": {
+        "destination": "jsdoc-out/"
+    }
+}
