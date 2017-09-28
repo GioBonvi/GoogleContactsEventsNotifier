@@ -504,13 +504,13 @@ Contact.prototype.addToField = function (field, incData) {
 };
 
 /**
- * Generate a list of text lines (of the given format - e.g. 'plain', 'html')
+ * Generate a list of text lines of the given format.
  * each describing an event of the contact of the type specified on the date
  * specified.
  *
  * @param {string} type - The type of the event.
  * @param {Date} date - The date of the event.
- * @param {string} format - The format of the text line.
+ * @param {NotificationType} format - The format of the text line.
  * @returns {string[]} - A list of the plain text descriptions of the events.
  */
 Contact.prototype.getLines = function (type, date, format) {
@@ -539,15 +539,15 @@ Contact.prototype.getLines = function (type, date, format) {
     line = [];
     // Start line.
     switch (format) {
-      case 'plain':
+      case NotificationType.PLAIN_TEXT:
         line.push(indent);
         break;
-      case 'html':
+      case NotificationType.HTML:
         line.push('<li>');
     }
     // Profile photo.
     switch (format) {
-      case 'html':
+      case NotificationType.HTML:
         imgCount = Object.keys(inlineImages).length;
         try {
           // Get the default profile image from the cache.
@@ -560,28 +560,28 @@ Contact.prototype.getLines = function (type, date, format) {
     // Custom label
     if (type === 'CUSTOM') {
       switch (format) {
-        case 'plain':
+        case NotificationType.PLAIN_TEXT:
           line.push('<', beautifyLabel(event.getProp('label')), '> ');
           break;
-        case 'html':
+        case NotificationType.HTML:
           line.push(htmlEscape('<' + beautifyLabel(event.getProp('label')) + '> '));
       }
     }
     // Full name.
     switch (format) {
-      case 'plain':
+      case NotificationType.PLAIN_TEXT:
         line.push(self.data.getProp('fullName'));
         break;
-      case 'html':
+      case NotificationType.HTML:
         line.push(htmlEscape(self.data.getProp('fullName')));
     }
     // Nickname.
     if (!self.data.isPropEmpty('nickname')) {
       switch (format) {
-        case 'plain':
+        case NotificationType.PLAIN_TEXT:
           line.push(' "', self.data.getProp('nickname'), '"');
           break;
-        case 'html':
+        case NotificationType.HTML:
           line.push(htmlEscape(' "' + self.data.getProp('nickname') + '"'));
       }
     }
@@ -589,18 +589,18 @@ Contact.prototype.getLines = function (type, date, format) {
     if (!event.isPropEmpty('year')) {
       if (type === 'BIRTHDAY') {
         switch (format) {
-          case 'plain':
+          case NotificationType.PLAIN_TEXT:
             line.push(' - ', _('Age'), ': ');
             break;
-          case 'html':
+          case NotificationType.HTML:
             line.push(' - ', htmlEscape(_('Age')), ': ');
         }
       } else {
         switch (format) {
-          case 'plain':
+          case NotificationType.PLAIN_TEXT:
             line.push(' - ', _('Years'), ': ');
             break;
-          case 'html':
+          case NotificationType.HTML:
             line.push(' - ', htmlEscape(_('Years')), ': ');
         }
       }
@@ -665,19 +665,19 @@ Contact.prototype.getLines = function (type, date, format) {
 
           if (collected[label].length) {
             switch (format) {
-              case 'plain':
+              case NotificationType.PLAIN_TEXT:
                 output = beautifyLabel(label);
                 break;
-              case 'html':
+              case NotificationType.HTML:
                 output = htmlEscape(beautifyLabel(label));
             }
             return output + ': ' + collected[label].map(function (val) {
               var buffer;
 
               switch (format) {
-                case 'plain':
+                case NotificationType.PLAIN_TEXT:
                   return val;
-                case 'html':
+                case NotificationType.HTML:
                   buffer = '<a href="';
                   if (label.match(/_EMAIL$/)) {
                     buffer += 'mailto';
@@ -696,7 +696,7 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     // Finish line.
     switch (format) {
-      case 'html':
+      case NotificationType.HTML:
         line.push('</li>');
     }
     return line.join('');
@@ -1039,6 +1039,17 @@ var Priority = {
   ERROR: {name: 'Error', value: 30},
   FATAL_ERROR: {name: 'Fatal error', value: 40},
   MAX: {name: 'Max', value: 100}
+};
+
+/**
+ * Enum for notification type.
+ *
+ * @readonly
+ * @enum {number}
+ */
+var NotificationType = {
+  PLAIN_TEXT: 0,
+  HTML: 1
 };
 
 /**
@@ -1937,10 +1948,10 @@ function generateEmailNotification (forceDate) {
 
           subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
           plaintextLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, 'plain'); })
+            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
             .filter(function (lines) { return lines.length > 0; });
           htmlLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, 'html'); })
+            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
             .filter(function (lines) { return lines.length > 0; });
           if (plaintextLines.length === 0 || htmlLines.length === 0) {
             log.add('No events found on this date.', Priority.INFO);
