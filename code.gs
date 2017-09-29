@@ -328,8 +328,11 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   eventDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(rawEvent.start.date);
   if (eventDate) {
     eventLabel = eventData['goo.contactsEventType'];
-    // Custom events have an additional field containing the custom name of the event.
-    if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+    if (eventLabel === 'SELF') {
+      // Your own birthday is marked as 'SELF'.
+      eventLabel = 'BIRTHDAY';
+    } else if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+      // Custom events have an additional field containing the custom name of the event.
       eventLabel = eventData['goo.contactsCustomEventType'];
     }
     this.addToField('events', new EventDC(
@@ -520,9 +523,6 @@ Contact.prototype.getLines = function (type, date, format) {
   return self.events.filter(function (event) {
     var typeMatch;
     switch (event.getProp('label')) {
-      // Your own birthday is marked as 'SELF'.
-      case 'SELF':
-        // falls through
       case 'BIRTHDAY':
         typeMatch = (type === 'BIRTHDAY');
         break;
@@ -1874,7 +1874,7 @@ function generateEmailNotification (forceDate) {
         ) ||
         (
           eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[i]
+          eventData['goo.contactsProfileId'] === contactList[i].gPlusId
         )
       ) {
         // FOUND!
