@@ -77,24 +77,106 @@ Pull Requests complies with these rules:
 - The code must be in english (variable names, comments, documentation...);
 - The code in `.gs` files must be formatted following the [Javascript
   Semistandard Style][Javascript semistandard];
-- The text in `.md` files must be formatted using [this Markdown
-  linter][Markdown linter] (available as a plugin for many editors);
+- The text in `.md` files must be formatted following the [Markdown CommonMark
+  specification][Commonmark specification];
   - Deviations from default rules can be found in the [.markdownlint.json
     file][Markdown linter config]
   - Additionally, links should be in the reference format, not in the in-text
     format
+- Each function and class must have associated [JSDoc][JSDoc] comments, with the
+  fields and description in Markdown format;
+  - Deviations from default rules can be found in the [.jsdoc-conf.json
+    file][JSDoc config]
 
 ## Testing
 
-Before submitting a PR please verify that your code passes all the tests. To do
-that either create a new script-file for `unit-tests.gs` in the Google
-script-editor, or append the content of `unit-tests.gs` to that of `code.gs` in
-its own file, then `run->unitTests()`. It is good to also `run->test()` with
-`settings.debug.testDate` set to a date with some contact-anniversaries on it
-(or create some fake ones on that date) to provide real-world testing too. For
-exhaustive real-world testing there is also `testSelectedPeriod()`. If there are
-any other new global functions in the [tests file][Tests file] you can run them
-too.
+Before submitting a PR:
+
+- If you've updated translation strings, please check that you have used the same
+  format as the other entries, for example:
+  ```javascript
+  'You can find the latest one here': 'Puoi trovare l\'ultima qui',
+  ```
+  - Both the "from" and "to" parts of each entry are surrounded by single-quotes
+    (`'aa'`)
+  - Any single-quotes within the "from" or "to" are escaped with a backslash
+    (`'a\'a'`)
+  - There is a colon and space between the "from" and "to" (`'aa': 'bb'`)
+  - Each entry has a trailing comma (`... : 'bb',`)
+- If you've made updates to the javascript code in any `.gs` files:
+  - To lint for syntax errors [this semistandard linter][Javascript semistandard]
+    is one of the options available as a plugin for many editors and can also be
+    run as a commandline tool using (for example, on a Unix-like system):
+    ```sh
+    npm install -g "semistandard" "snazzy" # if not yet installed
+    semistandard --verbose `find . -name "*.gs"` | snazzy
+    # "snazzy" is an optional pretty-printer
+    ```
+  - To check for semantic errors:
+    - Please verify that your code passes all the tests. To do
+      that either create a new script-file for `tests.gs` within the same
+      project in the Google script-editor, or append the content of
+      `tests.gs` to that of the `code.gs` script-file, then `run->unitTests()`.
+    - It is good to also `run->test()` with `settings.debug.testDate` set to a date
+      with some contact-anniversaries on it (or create some fake ones on that date)
+      to provide real-world testing too.
+    - For exhaustive real-world testing there is also `testSelectedPeriod()`. Beware
+      that this test *might* hit an execution timeout limit.
+    - If there are any other new global functions in the [tests file][Tests file]
+      you can run them too.
+- If you've made updates to any Markdown files:
+  - To lint for syntax errors [this Markdown linter][Markdown linter] is one of the
+    options available as a plugin for many editors and can also be run from a
+    commandline tool using (for example, on a Unix-like system):
+    ```sh
+    npm install -g "markdownlint-cli" # if not yet installed
+    find . -name "*.md" -exec markdownlint --config ".markdownlint.json" {} \;
+    ```
+  - To preview the output to check for semantic errors:
+    - The simplest way before opening a PR is - after pushing the changes to the
+      feature-branch on your Github fork - to browse to that file at that branch
+      on Github to see if it auto-renders correctly.
+    - If you've already opened a PR and want to preview additional changes
+      *before* pushing them to the branch (where the changes would otherwise appear
+      on the PR before you can fix mistakes) you can process and preview them
+      locally using (for example, on a Debian-based Unix-like system, avoiding
+      generation of intermediate files):
+      ```sh
+      apt-get install "python-markdown" "lynx" # if not yet installed
+      for x in `find . -name "*.md"`; do markdown_py "${x}" | lynx -stdin; done
+      ```
+      or to just generate `.html` files next to the `.md` ones:
+      ```sh
+      for x in `find . -name "*.md"`; do markdown_py "${x}" >"${x%.md}.html"; done
+      ```
+- If you've made updates to any JSDoc comments:
+  - To lint for syntax errors, many editors have JSDoc plugins for
+    auto-previewing the output, or you can manually run [this jsdoc
+    processor][JSDoc processor] from the commandline (for example, on a Unix-like
+    system):
+    ```sh
+    npm install -g "jsdoc" # if not yet installed
+    jsdoc . --pedantic --verbose --recurse --configure ".jsdoc-conf.json" && \
+      echo "* Successful" || echo "* Failed"
+    ```
+  - To preview the output to check for semantic errors you can just navigate around
+    in the `jsdoc` output with a browser (for example, on a Debian-based Unix-like
+    system):
+    ```sh
+    apt-get install "lynx" # if not yet installed
+    lynx "jsdoc-out/index.html"
+    ```
+  - The `jsdoc-out/` directory is included in `.gitignore` and as default directory
+    in `.jsdoc-conf.json` so unless you used
+    `jsdoc --destination "other-directory"` it will output to `jsdoc-out/`, and
+    will not interfere with `git status`.
+- For advanced git/shell users the added benefit of the commandline tools is that
+  you can edit `.git/hooks/pre-commit` to automate the above (possibly even the
+  script's own tests, via Google REST API calls) before committing, and a failed
+  test or a `Ctrl-C` can exit with non-zero, which aborts the commit. Gurus could
+  even add a `.git/hook/post-commit` to automate pushing the new version to
+  Google Apps by REST API (after updating any customized var-settings with a tool
+  like `sed`).
 
 ## PR management
 
@@ -344,21 +426,23 @@ In the above steps:
 There are **many** more aspects to git for the adventurous, but they are out of
 scope for this intro.
 
-[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
-[Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
-[Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
-[Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
-[Contribute with translation]: ../README.md#translation
-[Git mini tutorial]: #git-mini-tutorial
-[Git]: https://git-scm.com
-[Git windows bundle]: https://git-for-windows.github.io
-[Add ssh key]: https://help.github.com/articles/connecting-to-github-with-ssh
-[Unresponsive issues]: ../README.md#unresponsive-help-requests
 [Code of conduct]: CODE_OF_CONDUCT.md
 [Unsolved issues page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue%20is%3Aopen%20-label%3Asolved%20-label%3Awontfix%20no%3Aassignee
 [Coding guidelines]: #coding-guidelines
+[Contribute with translation]: ../README.md#translation
+[Git mini tutorial]: #git-mini-tutorial
+[Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
 [Issue template file]: ISSUE_TEMPLATE.md
+[Unresponsive issues]: ../README.md#unresponsive-help-requests
 [Javascript semistandard]: https://github.com/Flet/semistandard
-[Markdown linter]: https://github.com/DavidAnson/markdownlint
+[Commonmark specification]: http://commonmark.org
 [Markdown linter config]: ../.markdownlint.json
-[Tests file]: ../unit-tests.gs
+[JSDoc]: http://usejsdoc.org
+[JSDoc config]: ../.jsdoc-conf.json
+[Tests file]: ../tests.gs
+[Markdown linter]: https://github.com/DavidAnson/markdownlint
+[JSDoc processor]: https://github.com/jsdoc3/jsdoc
+[Git]: https://git-scm.com
+[Git windows bundle]: https://git-for-windows.github.io
+[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
+[Add ssh key]: https://help.github.com/articles/connecting-to-github-with-ssh
