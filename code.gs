@@ -1166,6 +1166,18 @@ if (typeof String.prototype.replaceAll === 'undefined') {
   };
 }
 
+if (typeof Number.isInteger === 'undefined') {
+  /**
+   * Determine if a number is an integer.
+   *
+   * @param {number} n - The number to check.
+   * @returns {boolean} - True if the number is an integer, false otherwise.
+   */
+  Number.isInteger = function (n) {
+    return typeof n === 'number' && (n % 1) === 0;
+  };
+}
+
 // GLOBAL VARIABLES
 
  /**
@@ -1568,6 +1580,122 @@ function uniqueStrings (x) {
 // MAIN FUNCTIONS
 
 /**
+ * Validate the settings, logging all problems found and stopping the script
+ * execution if a FATAL_ERROR is thrown.
+ */
+function validateSettings () {
+  var setting;
+
+  log.add('validateSettings() running.');
+
+  setting = settings.user.googleEmail;
+  if (!setting || !/^(?!YOUREMAILHERE)\S+@\S+\.\S+$/.test(setting)) {
+    log.add('Your user.googleEmail setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  setting = settings.user.notificationEmail;
+  if (!setting || !/^(?!YOUREMEAILHERE)\S+@(?!example)\S+\.\S+$/.test(setting)) {
+    log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  try {
+    if (Calendar.Calendars.get(settings.user.calendarId) === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Your user.calendarId setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  // emailSenderName has no restrictions.
+
+  // lang has no restrictions.
+
+  if (typeof settings.user.accessGooglePlus !== 'boolean') {
+    log.add('Your user.accessGooglePlus setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.user.accessGooglePlus = true;
+  }
+
+  setting = settings.notifications.hour;
+  if (!Number.isInteger(setting) || setting < 0 || setting >= 24) {
+    log.add('Your notifications.hour setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.hour = 6;
+  }
+
+  // It would be quite difficult to test the timeZone.
+
+  setting = settings.notifications.anticipateDays;
+  if (
+    setting.constructor !== Array ||
+    setting.filter(function (x) {
+      return Number.isInteger(x) && x >= 0;
+    }).length !== setting.length
+  ) {
+    log.add('Your notifications.anticipateDays setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.anticipateDays = [0, 1, 7];
+  }
+
+  setting = settings.notifications.eventTypes;
+  if (
+    typeof setting.BIRTHDAY !== 'boolean' ||
+    typeof setting.ANNIVERSARY !== 'boolean' ||
+    typeof setting.CUSTOM !== 'boolean'
+  ) {
+    log.add('Your notifications.eventTypes setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.eventTypes = {
+      BIRTHDAY: true,
+      ANNIVERSARY: false,
+      CUSTOM: false
+    };
+  }
+
+  setting = settings.notifications.maxEmailsCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxEmailsCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxEmailsCount = -1;
+  }
+
+  setting = settings.notifications.maxPhonesCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxPhonesCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxPhonesCount = -1;
+  }
+
+  setting = settings.notifications.indentSize;
+  if (!Number.isInteger(setting) || setting <= 0) {
+    log.add('Your notifications.indentSize setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.indentSize = 4;
+  }
+
+  setting = settings.debug.log.filterLevel;
+  if (typeof Priority[setting] !== 'object') {
+    log.add('Your debug.log.filterLevel setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.filterLevel = 'INFO';
+  }
+
+  setting = settings.debug.log.sendTrigger;
+  if (typeof Priority[setting] !== 'object') {
+    log.add('Your debug.log.sendTrigger setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.sendTrigger = 'ERROR';
+  }
+
+  setting = settings.debug.testDate;
+  if (setting.constructor !== Date) {
+    log.add('Your debug.log.testDate setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.testDate = new Date();
+  }
+}
+
+/**
  * Returns an array with the events happening in the calendar with
  * ID 'calendarId' on date 'eventDate'.
  *
@@ -1579,8 +1707,12 @@ function getEventsOnDate (eventDate, calendarId) {
   var eventCalendar, startDate, endDate, events;
 
   // Verify the existence of the events calendar.
-  eventCalendar = Calendar.Calendars.get(calendarId);
-  if (eventCalendar === null) {
+  try {
+    eventCalendar = Calendar.Calendars.get(calendarId);
+    if (eventCalendar === null) {
+      throw new Error('');
+    }
+  } catch (err) {
     log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', Priority.FATAL_ERROR);
   }
 
@@ -1614,6 +1746,8 @@ function getEventsOnDate (eventDate, calendarId) {
  */
 function main (forceDate) {
   log.add('main() running.', Priority.INFO);
+
+  validateSettings();
 
   var emailData = generateEmailNotification(forceDate);
 
@@ -1849,13 +1983,7 @@ function test () { // eslint-disable-line no-unused-vars
  * Start the notification service.
  */
 function notifStart () { // eslint-disable-line no-unused-vars
-  if (
-    settings.notifications.hour < 0 ||
-    settings.notifications.hour > 23 ||
-    parseInt(settings.notifications.hour, 10) !== settings.notifications.hour
-  ) {
-    log.add('Invalid parameter: notificationHour. Must be an integer between 0 and 23.', Priority.FATAL_ERROR);
-  }
+  validateSettings();
   // Delete old triggers.
   notifStop();
   // Add a new trigger.
