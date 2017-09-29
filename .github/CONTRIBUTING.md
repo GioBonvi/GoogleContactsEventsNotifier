@@ -39,7 +39,7 @@ Now let the fun begin! There are many ways you can contribute to this project:
 - are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
-- do you speak a language other than English? You can [Contribute][contribute
+- do you speak a language other than English? You can [contribute][Contribute
   with translation] by submitting a new translation in the form of a Pull
   Request or by creating an issue if you don't know how to create Pull
   Requests;
