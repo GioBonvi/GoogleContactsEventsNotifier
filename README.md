@@ -62,9 +62,9 @@ Now read carefully the code you've pasted. At the top of the file you will find
 some lines you need to modify along with many lines of instructions. Edit the
 values as explained by the instructions.  
 
-Once you're done editing the variables click File->Save in the menu and enter a
+Once you're done editing the variables click `File->Save` in the menu and enter a
 name for the script (it doesn't really matter, just name it so that you'll
-recognize if you find it in the future).
+recognize it if you find it in the future).
 
 The customization variables can be categorized in three groups.
 
@@ -122,14 +122,14 @@ use you should never need or want to edit these.
 ### Activate API for the script
 
 Now that the script is saved in your Google Drive folder we need to activate it.
-To do so click the menu "Resources" -> "Advanced Google services".  
-In the popup which will open set "Google Calendar API" to "enabled" (click the
+To do so click the menu `Resources->Advanced Google services`.  
+In the popup which will open set "Google Calendar API" to `enabled` (click the
 switch on its row on the right).  
 Once you have done this click on the link which says "Google API Console": you
 will be taken to another page. In this page search for "Google Calendar API" and
-open it. Now click "Enable" at the top of the window and close this page.  
+open it. Now click `Enable` at the top of the window and close this page.  
 Unless you have set the `accessGooglePlus` setting to `false`, then repeat these
-steps for "Google+ API". Set it to "enabled" in the list, click on the "Google
+steps for "Google+ API". Set it to `enabled` in the list, click on the "Google
 API Console" link, search for "Google+ API" and activate it.
 That's it for this step.
 
@@ -140,8 +140,8 @@ correctly as this seems to be the cause of many reported errors.
 
 We have given the script access to the resource it needs to work: now the last
 step is granting it the rights to access those resources. To do so click on the
-menu "Run" -> "notifStart". You will be prompted to "Review authorizations": do it
-and click "Allow" (You can read the full list of the permissions and why they
+menu `Run->notifStart`. You will be prompted to "Review authorizations": do it
+and click `Allow` (You can read the full list of the permissions and why they
 are required [here][Permissions list]).
 From this moment on you will always receive an email before any of your
 contacts' birthday (You should have set how many days before at the beginning).
@@ -207,7 +207,7 @@ translation to the script.
 
 To stop receiving these notifications simply open the script (which you'll find
 [in Google Drive][Google Drive website] if you haven't moved it) and click the
-menu "Run" -> "notifStop".
+menu `Run->notifStop`.
 
 ### Bug and error reporting, help requests
 
@@ -237,24 +237,24 @@ If you open a help request issue please do not abandon it until it's been solved
 and closed. If you want to close it before explicitly state this intention with
 a message in the issue.
 
-Issues marked with the "help request" that are unresponsive will be sent a
+Issues marked with the `help request` tag that are unresponsive will be sent a
 reminder message after three days since the last message from the user and the
-issue will be marked with the "unresponsive" tag. If the user still does not
+issue will be marked with the `unresponsive` tag. If the user still does not
 respond to the issue, after a month the issue will be closed.
 
-If you want to re-open a closed "help request" issue ask for this by commenting
+If you want to re-open a closed `help request` issue ask for this by commenting
 on it.  
 Only the user which has originally opened the issue can ask for it to be
 re-opened.
 
 ### Testing the script
 
-If you want to test the script, but in these days none of your contacts have a
-birthday you can use the ```test()``` function.
+If you want to test the script, but during these days none of your contacts have
+a birthday you can use the `test()` function.
 
 To do so, open the script and edit the `fakeTestDate` variable in the debugging
 configuration section. You just need to replace the example date with the date
-you want to test, then click "Run" -> "test" in the menu at the top of the page.
+you want to test, then click `Run->test` in the menu at the top of the page.
 If everything went right you should receive a birthday notification exactly like
 if today was the date you set.
 
@@ -264,18 +264,18 @@ This script is constantly updated to fix bugs and add new features: keeping it
 updated to the latest version is really easy:
 
 1. Whenever a new stable version is released you will see a lien of text at the
-  end of your daily email notification telling you to click on a link to get the
-  latest version;
+   end of your daily email notification telling you to click on a link to get the
+   latest version;
 2. If you do so you will be taken to a page with a description of the new release;
 3. The description will contain a precise step by step guide on how to update the
-  script to this version: follow it closely and you should not have any problem;
-4. After updating the code always click "Run" -> "notifStop" and "Run" -> "notifStart"
-  in the top menu to finish the update process.  
-  Note: you might be asked to grant some new permissions to the script. There is
-  nothing wrong with this: it just means that the new version requires some permissions
-  that the previous version did not.  
-  You can read the full list of the permissions and why they are required
-  [here][Permissions list]
+   script to this version: follow it closely and you should not have any problem;
+4. After updating the code always click `Run->notifStop` and `Run->notifStart`
+   in the top menu to finish the update process.  
+   Note: you might be asked to grant some new permissions to the script. There is
+   nothing wrong with this: it just means that the new version requires some permissions
+   that the previous version did not.  
+   You can read the full list of the permissions and why they are required
+   [here][Permissions list]
 
 ### Permissions required
 
@@ -320,7 +320,7 @@ file].
 
 ## Credits
 
-- Google user ajparag for the [code][Original Google Help Forum
+- Google user `ajparag` for the [code][Original Google Help Forum
   post] that inspired this project;
 - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe], whose help was invaluable:
   he added many new features, refactored the code heavily and solved many bugs;
