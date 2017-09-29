@@ -285,29 +285,28 @@ needs your explicit permission to access your data.
 
 This is an exhaustive description of the reason the script needs each of the permissions:
 
-- **Managing your Google Contacts**  
-  This lets the script access information about your contacts (names, email
-  addresses, birthdays). The script will not modify any of your contacts.
-- **Managing and viewing you calendars**  
-  This lets the script access your birthday and events calendar. The script
-  will get the events from this calendar only and will never modify any event.
-- **Google Plus - Knowing your age, language and email addresses**  
+- **Know your age range and language + View your email addresses**  
   This is needed to retrieve information about your Google Plus contacts, especially
   those who you have not added in your Google Contacts, but just followed on Google
   Plus. The script will only get information about people who appear in your birthday
   calendar. If you prefer to not access Google Plus at all set
-  `settings.user.accessGooglePlus = false` before running any functions.
-- **Basic info about your account (language and approximate age)**  
-  This is a mandatory permission to run any Google Script.
-- **Sending email as**  
+  `settings.user.accessGooglePlus = false` before running any functions and do not
+  enable the Google+ API.
+- **Manage your Google Contacts**  
+  This lets the script access information about your contacts (names, email
+  addresses, birthdays). The script will not modify any of your contacts.
+- **Manage your calendars**  
+  This lets the script access your birthday and events calendar. The script
+  will get the events from this calendar only and will never modify any event or
+  calendar.
+- **Allow this application to run when you are not present**  
+  This is needed to run the script every day at the hour you specified.
+- **Send email as you**  
   Obviously this script needs your authorization to send you the email notifications.
   It won't send any other email to anyone.
-- **Connecting to an external service**  
+- **Connect to an external service**  
   This permission is needed to check for updates and to load the profile images of
   your contacts.
-- **Allowing the application to run in your absence**  
-  This is needed to execute the script every day at the hour you specified in the
-  settings.
 
 ## Contributing
 
