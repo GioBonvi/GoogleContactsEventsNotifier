@@ -1,13 +1,21 @@
 /* global Logger Log SimplifiedSemanticVersion log generateEmailNotification */
 
+/**
+ * This function throws an error when the condition provided is false.
+ *
+ * @param {boolean} condition - The condition to be asserted.
+ * @param {string} [message=Assertion failed] - The error message thrown if the assertion fails.
+ */
 function assert (condition, message) {
   if (!condition) {
     throw message || 'Assertion failed';
   }
 }
 
+/**
+ * Run all the unit tests of the project.
+ */
 function unitTests () { // eslint-disable-line no-unused-vars
-  // Testing the Log class.
   testLog();
   Logger.log('Log tests passed!');
   testSemVer();
@@ -16,6 +24,9 @@ function unitTests () { // eslint-disable-line no-unused-vars
   Logger.log('All tests passed!');
 }
 
+/**
+ * Test the Log class.
+ */
 function testLog () {
   var log = new Log('info');
 
@@ -48,7 +59,11 @@ function testLog () {
   Logger.clear();
 }
 
+/**
+ * Test the SimplifiedSemanticVersion class.
+ */
 function testSemVer () {
+  // These version numbers are not valid and should result in errors being thrown.
   var errors = [null, undefined, '', 'randomThings', '1.1', '1.1.1.1'];
   errors.forEach(function (err) {
     try {
@@ -56,12 +71,12 @@ function testSemVer () {
       assert(false, String(err) + ' was accepted as a valid SemVer.');
     } catch (ex) {}
   });
-
+  // These version numbers are valid and should generate a valid SimplifiedSemanticVersion.
   var valid = ['0.0.1', '123.123.123', '1.1.1+abcd', '1.1.1-abcd', '1.1.1-abcd+efgh', '1.1.1+abcd-efgh'];
   valid.forEach(function (valid) {
     assert((new SimplifiedSemanticVersion(valid)).toString() === valid, valid + ' was not recognized as a valid SemVer.');
   });
-
+  // These version numbers are valid and their comparison should match the expected result.
   var compare = [
     {v1: '0.0.1', v2: '0.0.1', result: 0},
     {v1: '0.0.1+abc', v2: '0.0.1+def', result: 0},
@@ -83,13 +98,13 @@ function testSemVer () {
 }
 
 /**
- * Test all events from selected period. It won't send actual e-mails to you, but put content of them into log.
+ * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into log.
  *
- * !!! Execution of this function very ofted exceed maximum time (30s).
+ * !!! Execution of this function very often exceeds maximum time (30s).
  *
- * @param {Date} testDate - First date to start test; by default 1 January of current year.
- * @param {int} numberOfDaysToTest - Number of days to test; by default 365 days (1 year).
- * @param {bool} printHTML - Whether or not print HTML mailContent into log; by default not.
+ * @param {Date} [testDate=01/01/CURRENT_YEAR] - First date to test.
+ * @param {number} [numberOfDaysToTest=365] - Number of days to test.
+ * @param {boolean} [printHTML=false] - Whether or not to print HTML mailContent into log.
  */
 function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) { // eslint-disable-line no-unused-vars
   testDate = testDate || new Date(new Date().getFullYear(), 0, 1, 6, 0, 0);
