@@ -79,7 +79,8 @@ Pull Requests complies with these rules:
   Linter][Markdown linter] (available as a plugin for many editors);
   - deviations from default rules can be found in the [.markdownlint.json
     file][Markdown linter config]
-  - additionally, links should be in the reference format, not in the in-text format
+  - Additionally, links should be in the reference format, not in the in-text
+    format
 
 ## Testing
 
