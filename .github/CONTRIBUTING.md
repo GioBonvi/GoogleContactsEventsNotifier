@@ -26,21 +26,23 @@ page contains useful information.
 
 First of all make sure you have read the [Code of conduct][Code of conduct]: it
 does not contain any extremely bizarre or revolutionary rules. Following common
-sense and being nice to other users will create you no problem at all.
+sense and being nice to other users will create no problem for you at all.
 
 Now let the fun begin! There are many ways you can contribute to this project:
 
 - Are there [unsolved issues][Unsolved issues page]? Look around: there might be
   some you can solve or help closing;
 - have you thought of a feature which would improve this project but don't know
-  how to code it? You can create an issue with a feature request detailing what
-  you thought and your proposal will be evaluated by the developers;
+  how (or don't have time) to code it? You can create an issue with a feature
+  request detailing what you thought and your proposal will be evaluated by the
+  developers;
 - are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
-- do you speak a foreign language? You can [Contribute][contribute with
-  translation] by submitting a new translation in the form of a Pull Request or
-  by creating an issue if you don't know how to create Pull Requests;
+- do you speak a language other than English? You can [Contribute][contribute
+  with translation] by submitting a new translation in the form of a Pull
+  Request or by creating an issue if you don't know how to create Pull
+  Requests;
 - if you wish to contribute by way of Pull Requests and have never used git
   before (or never used it as part of a typical Github workflow) the
   [git mini-tutorial][Git mini tutorial] might help you.
@@ -57,7 +59,7 @@ project easier to maintain.
 problems, ask questions and more generally letting users interact with the
 developers of a project: they, however, are only useful as long as they are used
 correctly.  
-This project has few rules regarding issues:
+This project has a few rules regarding issues:
 
 - help requests in the issues are accepted as long as you first read everything
   else and nothing you have tried works;
@@ -75,8 +77,8 @@ Pull Requests complies with these rules:
 - the code must be in english (variable names, comments, documentation...);
 - the code in `.gs` files must be formatted following the [Javascript
   Semistandard Style][Javascript semistandard];
-- the text in `.md` files must be formatted using to [this Markdown
-  Linter][Markdown linter] (available as a plugin for many editors);
+- the text in `.md` files must be formatted using [this Markdown
+  linter][Markdown linter] (available as a plugin for many editors);
   - deviations from default rules can be found in the [.markdownlint.json
     file][Markdown linter config]
   - Additionally, links should be in the reference format, not in the in-text
@@ -91,7 +93,8 @@ its own file, then `run->unitTests()`. It is good to also `run->test()` with
 `settings.debug.testDate` set to a date with some contact-anniversaries on it
 (or create some fake ones on that date) to provide real-world testing too. For
 exhaustive real-world testing there is also `testSelectedPeriod()`. If there are
-any other new global functions in [tests file][Tests file] you can run them too.
+any other new global functions in the [tests file][Tests file] you can run them
+too.
 
 ## PR management
 
@@ -123,7 +126,7 @@ This is the optimal workflow that should be followed when managing a new PR:
   if the review/correction cycle was repeated multiple times generating lots of
   unwanted commits that can be squashed);
 10. Once the PR is finally ready to be merged the assigned user should merge it
-  following this rules of thumb:
+  following these rules of thumb:
     - if the PR consists of just one or two commits it could be merged via a fast-
       forward merge (`merge --ff`, must be performed manually since GitHub does not
       offer this functionality in the web interface to perform it):
@@ -150,9 +153,9 @@ Before starting the tutorial, it is important to clarify definitions of the
 following for beginners:
 
 - git commandline tool
-  - for running "git commands" with
+  - for running "git commands"
 - Git SCM (source code management) format
-  - Git repositories are directories of this format
+  - git repositories are directories of this format
 - Github
   - projects are hosted at this publicly accessible collaboration platform which
     is built around Git repositories
