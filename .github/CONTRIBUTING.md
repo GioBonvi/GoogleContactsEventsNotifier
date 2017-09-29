@@ -247,6 +247,8 @@ echo "silly command"
    an upstream branch other than the default `master`, then you should select
    that while opening it.
 
+----
+
 Below are other steps you **might** need to take sometimes. Don't worry though,
 if any of them are too intimidating the upstream maintainers can usually make
 the changes to your branch for you on request - when they have time! - and you
