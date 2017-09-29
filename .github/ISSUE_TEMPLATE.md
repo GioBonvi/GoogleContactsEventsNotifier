@@ -31,8 +31,11 @@ What happens instead?
 
 ### Context
 
-- Version of the script: x.x.x (look for a line in the code which reads `var
-  version = 'x.x.x';`);
+- Version of the script: x.x.x - look for a line near the top of the code which
+  reads:
+  ```javascript
+  version: 'w.x.y-z',
+  ```
 - Any other details which might be related to the context;
 
 ### Extended description
