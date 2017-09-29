@@ -1,4 +1,4 @@
-/* global Logger Log SimplifiedSemanticVersion log generateEmailNotification */
+/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification */
 
 /**
  * This function throws an error when the condition provided is false.
@@ -28,32 +28,35 @@ function unitTests () { // eslint-disable-line no-unused-vars
  * Test the Log class.
  */
 function testLog () {
-  var log = new Log('info');
+  var testLog = new Log(Priority.INFO, Priority.MAX, true);
 
   // Testing Log.add().
-  log.add('', '', true);
-  log.add(null, null, true);
-  log.add(undefined, undefined, true);
-  log.add('text', 'random', true);
-  log.add('text', 'none', true);
-  assert(log.events.length === 5, 'Testing Log.add() failed.');
+  try {
+    testLog.add('', '');
+    testLog.add(null, null);
+    testLog.add(undefined, undefined);
+    assert(testLog.events.length === 3, 'Testing Log.add() failed.');
+  } catch (err) {
+    assert(false, 'Testing Log.add() failed.');
+  }
 
   // Testing log filtering
   var logs = [
-    {name: 'info', count: 6},
-    {name: 'warning', count: 2},
-    {name: 'error', count: 1},
-    {name: 'none', count: 0}
+    {name: 'INFO', count: 6},
+    {name: 'WARNING', count: 3},
+    {name: 'ERROR', count: 2},
+    {name: 'FATAL_ERROR', count: 1},
+    {name: 'MAX', count: 0}
   ];
   logs.forEach(function (test) {
-    var log = new Log(test.name);
-    log.add('', '', true);
-    log.add(null, null, true);
-    log.add(undefined, undefined, true);
-    log.add('text', 'random', true);
-    log.add('text', 'warning', true);
-    log.add('text', 'error', true);
-    assert(log.events.length === test.count, 'Logging with filter "' + test.name + '" failed.');
+    var testLog = new Log(Priority[test.name], Priority.MAX, true);
+    testLog.add('', '', true);
+    testLog.add(null, null, true);
+    testLog.add(undefined, undefined, true);
+    testLog.add('text', Priority.WARNING, true);
+    testLog.add('text', Priority.ERROR, true);
+    testLog.add('text', Priority.FATAL_ERROR, true);
+    assert(testLog.events.length === test.count, 'Logging with filter "' + test.name + '" failed.');
   });
   // Remove the logs resulting from the tests.
   Logger.clear();
@@ -110,7 +113,7 @@ function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) { // eslin
   testDate = testDate || new Date(new Date().getFullYear(), 0, 1, 6, 0, 0);
   numberOfDaysToTest = numberOfDaysToTest || 365;
 
-  log.add('testSelectedPeriod() running checking from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days.', 'info');
+  log.add('testSelectedPeriod() running checking from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days.', Priority.INFO);
 
   for (var i = 0; i < numberOfDaysToTest; i++) {
     var mailContent = generateEmailNotification(testDate);

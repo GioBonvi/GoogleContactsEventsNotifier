@@ -143,22 +143,23 @@ var settings = {
        * LOGGING FILTER LEVEL
        *
        * This settings lets you filter which type of events will get logged:
-       *  - 'info' will log all types of events event (messages, warnings and errors);
-       *  - 'warning' will log warnings and errors only (discarding messages);
-       *  - 'error' will log errors only (discarding messages and warnings);
-       *  - 'none' will effectively disable the logging (nothing will be logged);
+       *  - 'INFO' will log all types of events event (messages, warnings and errors);
+       *  - 'WARNING' will log warnings and errors only (discarding messages);
+       *  - 'ERROR' will log errors only (discarding messages and warnings);
+       *  - 'FATAL_ERROR' will log fatal errors only (discarding messages, warnings and non-fatal errors);
+       *  - 'MAX' will effectively disable the logging (nothing will be logged);
        */
-      filterLevel: 'info',
+      filterLevel: 'INFO',
       /*
-       * Set this variable to: 'info', 'warning', 'error' or 'none'. You will be sent an
+       * Set this variable to: 'INFO', 'WARNING', 'ERROR', 'FATAL_ERROR' or 'MAX'. You will be sent an
        * email containing the full execution log of the script if at least one event of priority
-       * equal or greater to sendTrigger has been logged. 'none' means that such emails will
+       * equal or greater to sendTrigger has been logged. 'MAX' means that such emails will
        * never be sent.
        * Note: filterLevel has precedence over this setting! For example if you set filterLevel
-       * to 'none' and sendTrigger to 'warning' you will never receive any email as nothing will
+       * to 'MAX' and sendTrigger to 'WARNING' you will never receive any email as nothing will
        * be logged due to the filterLevel setting.
        */
-      sendTrigger: 'warning'
+      sendTrigger: 'ERROR'
     },
     /*
      * TEST DATE
@@ -295,11 +296,11 @@ function Contact () {
 Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   var eventData, eventDate, eventLabel;
 
-  log.add('Extracting info from raw event object...', 'info');
+  log.add('Extracting info from raw event object...', Priority.INFO);
 
   if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-    log.add(rawEvent, 'info');
-    log.add('The structure of this event cannot be parsed.', 'error');
+    log.add(rawEvent, Priority.INFO);
+    log.add('The structure of this event cannot be parsed.', Priority.ERROR);
   }
   eventData = rawEvent.gadget.preferences;
 
@@ -353,11 +354,11 @@ Contact.prototype.getInfoFromContact = function (contactId) {
 
   self = this;
 
-  log.add('Extracting info from Google Contact...', 'info');
+  log.add('Extracting info from Google Contact...', Priority.INFO);
 
   googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
   if (googleContact === null) {
-    log.add('Invalid Google Contact ID: ' + contactId, 'info');
+    log.add('Invalid Google Contact ID: ' + contactId, Priority.INFO);
     return;
   }
 
@@ -414,18 +415,18 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
   var gPlusProfile, birthdayDate;
 
   if (!settings.user.accessGooglePlus) {
-    log.add('Not extracting info from Google Plus Profile, as per configuration.', 'info');
+    log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
     return;
   }
 
-  log.add('Extracting info from Google Plus Profile...', 'info');
+  log.add('Extracting info from Google Plus Profile...', Priority.INFO);
   try {
     gPlusProfile = Plus.People.get(gPlusProfileId);
     if (gPlusProfile === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, 'info');
+    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, Priority.INFO);
     return;
   }
 
@@ -544,7 +545,7 @@ Contact.prototype.getLines = function (type, date, format) {
           inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
           line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
         } catch (err) {
-          log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), 'warning');
+          log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), Priority.WARNING);
         }
     }
     // Custom label
@@ -891,18 +892,17 @@ ContactDataDC.prototype.constructor = ContactDataDC;
 /**
  * Init a Log object, used to manage a collection of logEvents {time, text, priority}.
  *
- * @param {string} minimumPriority - One of 'none', 'error', 'warning', 'info': logs with
- *                        priority lower than this will not be recorded.
- * @param {string} emailMinimumPriority - One of 'none', 'error', 'warning', 'info': if at least
- *                        one log with priority greater than or equal to this is recorded an email
- *                        with all the logs will be sent to the user.
+ * @param {Priority} [minimumPriority=Priority.INFO] - Logs with priority lower than this will not be recorded.
+ * @param {Priority} [emailMinimumPriority=Priority.ERROR] - If at least one log with priority greater than or
+ *                                    equal to this is recorded an email with all the logs will be sent to the user.
+ * @param {boolean} [testing=false] - If this is true logging an event with Priority.FATAL_ERROR will not
+ *                                    cause execution to stop.
  * @class
  */
-function Log (minimumPriority, emailMinimumPriority) {
-  /** @type {number} */
-  this.minimumPriority = this.evalPriority(minimumPriority);
-  /** @type {number} */
-  this.emailMinimumPriority = this.evalPriority(emailMinimumPriority);
+function Log (minimumPriority, emailMinimumPriority, testing) {
+  this.minimumPriority = minimumPriority || Priority.INFO;
+  this.emailMinimumPriority = emailMinimumPriority || Priority.ERROR;
+  this.testing = testing || false;
   /** @type {Object[]} */
   this.events = [];
 }
@@ -911,13 +911,12 @@ function Log (minimumPriority, emailMinimumPriority) {
  * Store a new event in the log. The default priority is the lowest one (info).
  *
  * @param {any} data - The data to be logged: best if a string, Objects get JSONized.
- * @param {string} [priority=info] - Priority of the leg event.
- * @param {boolean} [testing=false] - If this is true logging an 'error' will not cause execution to stop.
+ * @param {Priority} [priority=Priority.INFO] - Priority of the leg event.
  */
-Log.prototype.add = function (data, priority, testing) {
+Log.prototype.add = function (data, priority) {
   var text;
 
-  priority = priority || 'info';
+  priority = priority || Priority.INFO;
   if (typeof data === 'object') {
     text = JSON.stringify(data);
   } else if (typeof data !== 'string') {
@@ -925,57 +924,29 @@ Log.prototype.add = function (data, priority, testing) {
   } else {
     text = data;
   }
-  if (this.evalPriority(priority) >= this.minimumPriority) {
-    this.events.push({
-      time: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone(),
-      priorityDescr: priority,
-      priorityVal: this.evalPriority(priority),
-      text: text
-    });
+  if (priority.value >= this.minimumPriority.value) {
+    this.events.push(new LogEvent(new Date(), text, priority));
   }
 
   // Still log into the standard logger as a backup in case the program crashes.
-  Logger.log(priority[0].toUpperCase() + ': ' + text);
+  Logger.log(priority.name[0] + ': ' + text);
 
-  // Throw an Error and interrupt the execution if the log event had 'error'
+  // Throw an Error and interrupt the execution if the log event had FATAL_ERROR
   // priority and we are not in test mode.
-  if (priority === 'error' && !testing) {
+  if (priority.value === Priority.FATAL_ERROR.value && !this.testing) {
     this.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
     throw new Error(text);
   }
 };
 
 /**
- * Calculate a numeric value for a textual description of a priority.
- *
- * @param {string} priority - The priority of the events.
- * @returns {number} - A number between 1 and 100 representing the priority of the event.
- */
-Log.prototype.evalPriority = function (priority) {
-  switch (priority) {
-    case 'none':
-      return 100;
-    case 'error':
-      return 10;
-    case 'warning':
-      return 5;
-    case 'info':
-      // falls through
-    default:
-      return 1;
-  }
-};
-
-/**
  * Get the output of the log as an array of messages.
- * Format of the messages (P is the first letter of the priority):
- *   "[TIME] P: MESSAGE"
  *
  * @returns {string[]}
  */
 Log.prototype.getOutput = function () {
   return this.events.map(function (e) {
-    return '[' + e.time + '] ' + e.priorityDescr[0].toUpperCase() + ': ' + e.text;
+    return e.toString();
   });
 };
 
@@ -983,14 +954,14 @@ Log.prototype.getOutput = function () {
  * Verify if the log contains at least an event with priority equal to or greater than
  * the specified priority.
  *
- * @param {number} minimumPriority - The numeric value representing the priority limit.
+ * @param {Priority} minimumPriority - The numeric value representing the priority limit.
  * @returns {boolean}
  */
 Log.prototype.containsMinimumPriority = function (minimumPriority) {
   var i;
 
   for (i = 0; i < this.events.length; i++) {
-    if (this.events[i].priorityVal >= minimumPriority) {
+    if (this.events[i].priority.value >= minimumPriority.value) {
       return true;
     }
   }
@@ -1005,15 +976,54 @@ Log.prototype.containsMinimumPriority = function (minimumPriority) {
  */
 Log.prototype.sendEmail = function (to, senderName) {
   if (this.containsMinimumPriority(this.emailMinimumPriority)) {
-    this.add('Sending logs via email.', 'info');
+    this.add('Sending logs via email.', Priority.INFO);
     MailApp.sendEmail({
       to: to,
       subject: 'Logs for Google Contacts Events Notifications',
       body: this.getOutput().join('\n'),
       name: senderName
     });
-    this.add('Email sent.', 'info');
+    this.add('Email sent.', Priority.INFO);
   }
+};
+
+/**
+ * A logged event.
+ *
+ * @param {Date} time - The time of the event.
+ * @param {string} message - The message of the event.
+ * @param {Priority} priority - The priority of the event.
+ */
+function LogEvent (time, message, priority) {
+  this.time = time;
+  this.message = message;
+  this.priority = priority;
+}
+
+/**
+ * Get a textual description of the LogEvent in this format
+ * (P is the first letter of the priority):
+ *   "[TIME] P: MESSAGE"
+ *
+ * @returns {string} - The textual description of the event.
+ */
+LogEvent.prototype.toString = function () {
+  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
+};
+
+/**
+ * A priority enum.
+ *
+ * @readonly
+ * @enum {Object.<string,number>}
+ */
+var Priority = {
+  NONE: {name: 'None', value: 0},
+  INFO: {name: 'Info', value: 10},
+  WARNING: {name: 'Warning', value: 20},
+  ERROR: {name: 'Error', value: 30},
+  FATAL_ERROR: {name: 'Fatal error', value: 40},
+  MAX: {name: 'Max', value: 100}
 };
 
 /**
@@ -1180,7 +1190,7 @@ var indent = Array(settings.notifications.indentSize + 1).join(' ');
 
 var inlineImages;
 
-var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
+var log = new Log(Priority[settings.debug.log.filterLevel], Priority[settings.debug.log.sendTrigger]);
 
 // NB: When Google fixes their too-broad scope bug with ScriptApp, re-wrap this i18n
 //     table in `eslint-*able comma-dangle` comments (see old git-commits to find it)
@@ -1481,7 +1491,7 @@ function isRunningOutdatedVersion () {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number', 'warning');
+    log.add('Unable to get the latest version number', Priority.WARNING);
     return false;
   }
   // Parse the info for the version number.
@@ -1491,12 +1501,12 @@ function isRunningOutdatedVersion () {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', 'warning');
+    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', Priority.WARNING);
     return false;
   }
   latestVersion = response.tag_name;
   if (typeof latestVersion !== 'string' || latestVersion.length === 0) {
-    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', 'warning');
+    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', Priority.WARNING);
     return false;
   }
   if (latestVersion.substring(0, 1) === 'v') {
@@ -1507,7 +1517,7 @@ function isRunningOutdatedVersion () {
   try {
     return (version).compare(new SimplifiedSemanticVersion(latestVersion)) === -1;
   } catch (err) {
-    log.add(err.message, 'warning');
+    log.add(err.message, Priority.WARNING);
     return false;
   }
 }
@@ -1571,16 +1581,16 @@ function getEventsOnDate (eventDate, calendarId) {
   // Verify the existence of the events calendar.
   eventCalendar = Calendar.Calendars.get(calendarId);
   if (eventCalendar === null) {
-    log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', 'error');
+    log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', Priority.FATAL_ERROR);
   }
 
   // Query the events calendar for events on the specified date.
   try {
     startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
     endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-    log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', 'info');
+    log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
-    log.add(err.message, 'error');
+    log.add(err.message, Priority.FATAL_ERROR);
   }
   events = Calendar.Events.list(
     calendarId,
@@ -1603,13 +1613,13 @@ function getEventsOnDate (eventDate, calendarId) {
  * @param {?Date} forceDate - If this value is not null it's used as 'now'.
  */
 function main (forceDate) {
-  log.add('main() running.', 'info');
+  log.add('main() running.', Priority.INFO);
 
   var emailData = generateEmailNotification(forceDate);
 
   // If generateEmailNotification returned mail content send it.
   if (emailData !== null) {
-    log.add('Sending email...', 'info');
+    log.add('Sending email...', Priority.INFO);
     MailApp.sendEmail({
       to: settings.user.notificationEmail,
       subject: emailData.subject,
@@ -1619,7 +1629,7 @@ function main (forceDate) {
       name: settings.user.emailSenderName
     });
 
-    log.add('Email sent.', 'info');
+    log.add('Email sent.', Priority.INFO);
   }
 
   // Send the log if the debug options say so.
@@ -1637,9 +1647,9 @@ function generateEmailNotification (forceDate) {
   var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
 
-  log.add('generateEmailNotification() running.', 'info');
+  log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
-  log.add('Date used: ' + now, 'info');
+  log.add('Date used: ' + now, Priority.INFO);
 
   events = [].concat.apply(
     [],
@@ -1653,10 +1663,10 @@ function generateEmailNotification (forceDate) {
   );
 
   if (events.length === 0) {
-    log.add('No events found. Exiting now.', 'info');
+    log.add('No events found. Exiting now.', Priority.INFO);
     return null;
   }
-  log.add('Found ' + events.length + ' events.', 'info');
+  log.add('Found ' + events.length + ' events.', Priority.INFO);
 
   contactList = [];
 
@@ -1668,8 +1678,8 @@ function generateEmailNotification (forceDate) {
     var eventData, i;
 
     if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-      log.add(rawEvent, 'info');
-      log.add('The structure of this event cannot be parsed.', 'error');
+      log.add(rawEvent, Priority.INFO);
+      log.add('The structure of this event cannot be parsed.', Priority.FATAL_ERROR);
     }
     eventData = rawEvent.gadget.preferences;
 
@@ -1700,9 +1710,9 @@ function generateEmailNotification (forceDate) {
   });
 
   if (contactList.length === 0) {
-    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', 'error');
+    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', Priority.FATAL_ERROR);
   }
-  log.add('Built ' + contactList.length + ' contacts.', 'info');
+  log.add('Built ' + contactList.length + ' contacts.', Priority.INFO);
 
   // Give a default profile image to the contacts without one.
   contactList.forEach(function (contact) {
@@ -1752,7 +1762,7 @@ function generateEmailNotification (forceDate) {
           }
 
           // Get all the matching 'eventType' events.
-          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, 'info');
+          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, Priority.INFO);
 
           subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
           plaintextLines = contactList
@@ -1762,10 +1772,10 @@ function generateEmailNotification (forceDate) {
             .map(function (contact) { return contact.getLines(eventType, date, 'html'); })
             .filter(function (lines) { return lines.length > 0; });
           if (plaintextLines.length === 0 || htmlLines.length === 0) {
-            log.add('No events found on this date.', 'info');
+            log.add('No events found on this date.', Priority.INFO);
             return;
           }
-          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, 'info');
+          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, Priority.INFO);
           // Build the headers of 'eventType' event grouping by date.
           bodyBuilder.push('\n * ');
           htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
@@ -1794,7 +1804,7 @@ function generateEmailNotification (forceDate) {
     return null;
   } else {
     // If there is an email to send build the content...
-    log.add('Building the email notification.', 'info');
+    log.add('Building the email notification.', Priority.INFO);
     subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
@@ -1821,7 +1831,7 @@ function generateEmailNotification (forceDate) {
  * Execute the main() function without forcing any date as "now".
  */
 function normal () { // eslint-disable-line no-unused-vars
-  log.add('normal() running.', 'info');
+  log.add('normal() running.', Priority.INFO);
   main(null);
 }
 
@@ -1829,7 +1839,7 @@ function normal () { // eslint-disable-line no-unused-vars
  * Execute the main() function forcing a given date (settings.debug.testDate) as "now".
  */
 function test () { // eslint-disable-line no-unused-vars
-  log.add('test() running.', 'info');
+  log.add('test() running.', Priority.INFO);
   main(settings.debug.testDate);
 }
 
@@ -1844,7 +1854,7 @@ function notifStart () { // eslint-disable-line no-unused-vars
     settings.notifications.hour > 23 ||
     parseInt(settings.notifications.hour, 10) !== settings.notifications.hour
   ) {
-    log.add('Invalid parameter: notificationHour. Must be an integer between 0 and 23.', 'error');
+    log.add('Invalid parameter: notificationHour. Must be an integer between 0 and 23.', Priority.FATAL_ERROR);
   }
   // Delete old triggers.
   notifStop();
@@ -1857,9 +1867,9 @@ function notifStart () { // eslint-disable-line no-unused-vars
     .inTimezone(settings.notifications.timeZone)
     .create();
   } catch (err) {
-    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', 'error');
+    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', Priority.FATAL_ERROR);
   }
-  log.add('Notification service started.', 'info');
+  log.add('Notification service started.', Priority.INFO);
 }
 
 /**
@@ -1872,7 +1882,7 @@ function notifStop () {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
-  log.add('Notification service stopped.', 'info');
+  log.add('Notification service stopped.', Priority.INFO);
 }
 
 /**
