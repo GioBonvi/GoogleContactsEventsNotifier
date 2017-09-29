@@ -340,7 +340,7 @@ file].
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
 [Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
 [Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
-[Main code file]: code.gs
+[Main code file]: https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/code.gs
 [Permissions list]: #permissions-required
 [Issue template file]: .github/ISSUE_TEMPLATE.md
 [Contributing file]: .github/CONTRIBUTING.md
