@@ -32,18 +32,18 @@ Now let the fun begin! There are many ways you can contribute to this project:
 
 - Are there [unsolved issues][Unsolved issues page]? Look around: there might be
   some you can solve or help closing;
-- have you thought of a feature which would improve this project but don't know
+- Have you thought of a feature which would improve this project but don't know
   how (or don't have time) to code it? You can create an issue with a feature
   request detailing what you thought and your proposal will be evaluated by the
   developers;
-- are you a developer yourself? You can fork the project and then create a Pull
+- Are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
-- do you speak a language other than English? You can [contribute][Contribute
+- Do you speak a language other than English? You can [contribute][Contribute
   with translation] by submitting a new translation in the form of a Pull
   Request or by creating an issue if you don't know how to create Pull
   Requests;
-- if you wish to contribute by way of Pull Requests and have never used git
+- If you wish to contribute by way of Pull Requests and have never used git
   before (or never used it as part of a typical Github workflow) the
   [git mini-tutorial][Git mini tutorial] might help you.
 
@@ -61,11 +61,11 @@ developers of a project: they, however, are only useful as long as they are used
 correctly.  
 This project has a few rules regarding issues:
 
-- help requests in the issues are accepted as long as you first read everything
+- Help requests in the issues are accepted as long as you first read everything
   else and nothing you have tried works;
-- when reporting an issue please follow the [template provided][Issue template
+- When reporting an issue please follow the [template provided][Issue template
   file];
-- unresponsive help request issues are closed following [this
+- Unresponsive help request issues are closed following [this
   procedure][Unresponsive issues];
 
 ## Coding guidelines
@@ -74,12 +74,12 @@ Code consistency is what makes a project maintainable and accessible to
 everyone. To maintain consistency please make sure that your code submitted via
 Pull Requests complies with these rules:
 
-- the code must be in english (variable names, comments, documentation...);
-- the code in `.gs` files must be formatted following the [Javascript
+- The code must be in english (variable names, comments, documentation...);
+- The code in `.gs` files must be formatted following the [Javascript
   Semistandard Style][Javascript semistandard];
-- the text in `.md` files must be formatted using [this Markdown
+- The text in `.md` files must be formatted using [this Markdown
   linter][Markdown linter] (available as a plugin for many editors);
-  - deviations from default rules can be found in the [.markdownlint.json
+  - Deviations from default rules can be found in the [.markdownlint.json
     file][Markdown linter config]
   - Additionally, links should be in the reference format, not in the in-text
     format
@@ -127,16 +127,16 @@ This is the optimal workflow that should be followed when managing a new PR:
   unwanted commits that can be squashed);
 10. Once the PR is finally ready to be merged the assigned user should merge it
   following these rules of thumb:
-    - if the PR consists of just one or two commits it could be merged via a fast-
+    - If the PR consists of just one or two commits it could be merged via a fast-
       forward merge (`merge --ff`, must be performed manually since GitHub does not
       offer this functionality in the web interface to perform it):
-    - if the PR consists of just one or two commits, but cannot be merged via a
+    - If the PR consists of just one or two commits, but cannot be merged via a
       fast-forward merge, a "rebase merge" can be used (this can be performed
       both manually and via the GitHub interface);
-    - if the PR consists of more than two commits a non-fast-forward merge should
+    - If the PR consists of more than two commits a non-fast-forward merge should
       be considered (`merge --no-ff`, it can be performed both manually and via
       the GitHub interface);
-    - in any case these rules must not be taken at absolute value: exceptions may
+    - In any case these rules must not be taken at absolute value: exceptions may
       arise which could require these rules to be broken or bent. If you have any
       doubts regarding the best route to take just ask and some collaborator will
       help you;
