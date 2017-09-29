@@ -30,7 +30,7 @@ sense and being nice to other users will create you no problem at all.
 
 Now let the fun begin! There are many ways you can contribute to this project:
 
-- are there [Unsolved issues][Project issue page]? Look around: there might be
+- Are there [unsolved issues][Unsolved issues page]? Look around: there might be
   some you can solve or help closing;
 - have you thought of a feature which would improve this project but don't know
   how to code it? You can create an issue with a feature request detailing what
@@ -349,6 +349,7 @@ scope for this intro.
 [Add ssh key]: https://help.github.com/articles/connecting-to-github-with-ssh
 [Unresponsive issues]: ../README.md#unresponsive-help-requests
 [Code of conduct]: CODE_OF_CONDUCT.md
+[Unsolved issues page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue%20is%3Aopen%20-label%3Asolved%20-label%3Awontfix%20no%3Aassignee
 [Coding guidelines]: #coding-guidelines
 [Issue template file]: ISSUE_TEMPLATE.md
 [Javascript semistandard]: https://github.com/Flet/semistandard
