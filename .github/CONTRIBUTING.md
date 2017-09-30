@@ -228,8 +228,8 @@ This is the optimal workflow that should be followed when managing a new PR:
 11. If any issues remain open which would be auto-closed by the PR when its
     target-branch finally gets merged to the default-branch (`master`), and it
     will be a noticeable length of time before that will happen, then either the
-    `solved` or `wontfix` tag should be added to those issues to make it clear at
-    a glance that nothing else needs doing for them in order for them to
+    `solved` or `wontfix` label should be added to those issues to make it clear
+    at a glance that nothing else needs doing for them in order for them to
     auto-close.
 
 ## Git mini-tutorial
