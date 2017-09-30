@@ -26,22 +26,24 @@ page contains useful information.
 
 First of all make sure you have read the [Code of conduct][Code of conduct]: it
 does not contain any extremely bizarre or revolutionary rules. Following common
-sense and being nice to other users will create you no problem at all.
+sense and being nice to other users will create no problem for you at all.
 
 Now let the fun begin! There are many ways you can contribute to this project:
 
-- are there [Unsolved issues][Project issue page]? Look around: there might be
+- Are there [unsolved issues][Unsolved issues page]? Look around: there might be
   some you can solve or help closing;
-- have you thought of a feature which would improve this project but don't know
-  how to code it? You can create an issue with a feature request detailing what
-  you thought and your proposal will be evaluated by the developers;
-- are you a developer yourself? You can fork the project and then create a Pull
+- Have you thought of a feature which would improve this project but don't know
+  how (or don't have time) to code it? You can create an issue with a feature
+  request detailing what you thought and your proposal will be evaluated by the
+  developers;
+- Are you a developer yourself? You can fork the project and then create a Pull
   Request with your edited code. Just make sure you follow the [coding
   guidelines][Coding guidelines];
-- do you speak a foreign language? You can [Contribute][contribute with
-  translation] by submitting a new translation in the form of a Pull Request or
-  by creating an issue if you don't know how to create Pull Requests;
-- if you wish to contribute by way of Pull Requests and have never used git
+- Do you speak a language other than English? You can [contribute][Contribute
+  with translation] by submitting a new translation in the form of a Pull
+  Request or by creating an issue if you don't know how to create Pull
+  Requests;
+- If you wish to contribute by way of Pull Requests and have never used git
   before (or never used it as part of a typical Github workflow) the
   [git mini-tutorial][Git mini tutorial] might help you.
 
@@ -57,13 +59,13 @@ project easier to maintain.
 problems, ask questions and more generally letting users interact with the
 developers of a project: they, however, are only useful as long as they are used
 correctly.  
-This project has few rules regarding issues:
+This project has a few rules regarding issues:
 
-- help requests in the issues are accepted as long as you first read everything
+- Help requests in the issues are accepted as long as you first read everything
   else and nothing you have tried works;
-- when reporting an issue please follow the [template provided][Issue template
+- When reporting an issue please follow the [template provided][Issue template
   file];
-- unresponsive help request issues are closed following [this
+- Unresponsive help request issues are closed following [this
   procedure][Unresponsive issues];
 
 ## Coding guidelines
@@ -72,25 +74,109 @@ Code consistency is what makes a project maintainable and accessible to
 everyone. To maintain consistency please make sure that your code submitted via
 Pull Requests complies with these rules:
 
-- the code must be in english (variable names, comments, documentation...);
-- the code in `.gs` files must be formatted following the [Javascript
+- The code must be in english (variable names, comments, documentation...);
+- The code in `.gs` files must be formatted following the [Javascript
   Semistandard Style][Javascript semistandard];
-- the text in `.md` files must be formatted using to [this Markdown
-  Linter][Markdown linter] (available as a plugin for many editors);
-  - deviations from default rules can be found in the [.markdownlint.json
+- The text in `.md` files must be formatted following the [Markdown CommonMark
+  specification][Commonmark specification];
+  - Deviations from default rules can be found in the [.markdownlint.json
     file][Markdown linter config]
-  - additionally, links should be in the reference format, not in the in-text format
+  - Additionally, links should be in the reference format, not in the in-text
+    format
+- Each function and class must have associated [JSDoc][JSDoc] comments, with the
+  fields and description in Markdown format;
+  - Deviations from default rules can be found in the [.jsdoc-conf.json
+    file][JSDoc config]
 
 ## Testing
 
-Before submitting a PR please verify that your code passes all the tests. To do
-that either create a new script-file for `unit-tests.gs` in the Google
-script-editor, or append the content of `unit-tests.gs` to that of `code.gs` in
-its own file, then `run->unitTests()`. It is good to also `run->test()` with
-`settings.debug.testDate` set to a date with some contact-anniversaries on it
-(or create some fake ones on that date) to provide real-world testing too. For
-exhaustive real-world testing there is also `testSelectedPeriod()`. If there are
-any other new global functions in [tests file][Tests file] you can run them too.
+Before submitting a PR:
+
+- If you've updated translation strings, please check that you have used the same
+  format as the other entries, for example:
+  ```javascript
+  'You can find the latest one here': 'Puoi trovare l\'ultima qui',
+  ```
+  - Both the "from" and "to" parts of each entry are surrounded by single-quotes
+    (`'aa'`)
+  - Any single-quotes within the "from" or "to" are escaped with a backslash
+    (`'a\'a'`)
+  - There is a colon and space between the "from" and "to" (`'aa': 'bb'`)
+  - Each entry has a trailing comma (`... : 'bb',`)
+- If you've made updates to the javascript code in any `.gs` files:
+  - To lint for syntax errors [this semistandard linter][Javascript semistandard]
+    is one of the options available as a plugin for many editors and can also be
+    run as a commandline tool using (for example, on a Unix-like system):
+    ```sh
+    npm install -g "semistandard" "snazzy" # if not yet installed
+    semistandard --verbose `find . -name "*.gs"` | snazzy
+    # "snazzy" is an optional pretty-printer
+    ```
+  - To check for semantic errors:
+    - Please verify that your code passes all the tests. To do
+      that either create a new script-file for `tests.gs` within the same
+      project in the Google script-editor, or append the content of
+      `tests.gs` to that of the `code.gs` script-file, then `run->unitTests()`.
+    - It is good to also `run->test()` with `settings.debug.testDate` set to a date
+      with some contact-anniversaries on it (or create some fake ones on that date)
+      to provide real-world testing too.
+    - For exhaustive real-world testing there is also `testSelectedPeriod()`. Beware
+      that this test *might* hit an execution timeout limit.
+    - If there are any other new global functions in the [tests file][Tests file]
+      you can run them too.
+- If you've made updates to any Markdown files:
+  - To lint for syntax errors [this Markdown linter][Markdown linter] is one of the
+    options available as a plugin for many editors and can also be run from a
+    commandline tool using (for example, on a Unix-like system):
+    ```sh
+    npm install -g "markdownlint-cli" # if not yet installed
+    find . -name "*.md" -exec markdownlint --config ".markdownlint.json" {} \;
+    ```
+  - To preview the output to check for semantic errors:
+    - The simplest way before opening a PR is - after pushing the changes to the
+      feature-branch on your Github fork - to browse to that file at that branch
+      on Github to see if it auto-renders correctly.
+    - If you've already opened a PR and want to preview additional changes
+      *before* pushing them to the branch (where the changes would otherwise appear
+      on the PR before you can fix mistakes) you can process and preview them
+      locally using (for example, on a Debian-based Unix-like system, avoiding
+      generation of intermediate files):
+      ```sh
+      apt-get install "python-markdown" "lynx" # if not yet installed
+      for x in `find . -name "*.md"`; do markdown_py "${x}" | lynx -stdin; done
+      ```
+      or to just generate `.html` files next to the `.md` ones:
+      ```sh
+      for x in `find . -name "*.md"`; do markdown_py "${x}" >"${x%.md}.html"; done
+      ```
+- If you've made updates to any JSDoc comments:
+  - To lint for syntax errors, many editors have JSDoc plugins for
+    auto-previewing the output, or you can manually run [this jsdoc
+    processor][JSDoc processor] from the commandline (for example, on a Unix-like
+    system):
+    ```sh
+    npm install -g "jsdoc" # if not yet installed
+    jsdoc . --pedantic --verbose --recurse --configure ".jsdoc-conf.json" && \
+      echo "* Successful" || echo "* Failed"
+    ```
+  - To preview the output to check for semantic errors you can just navigate around
+    in the `jsdoc` output with a browser (for example, on a Debian-based Unix-like
+    system):
+    ```sh
+    apt-get install "lynx" # if not yet installed
+    lynx "jsdoc-out/index.html"
+    ```
+  - The `jsdoc-out/` directory is included in `.gitignore` and as default directory
+    in `.jsdoc-conf.json` so unless you used
+    `jsdoc --destination "other-directory"` it will output to `jsdoc-out/`, and
+    will not interfere with `git status`.
+- For advanced git/shell users the added benefit of the commandline tools is that
+  you can edit `.git/hooks/pre-commit` to automate the above (possibly even the
+  script's own tests, via Google REST API calls) before committing, and a failed
+  test or a `Ctrl-C` can exit with non-zero, which aborts the commit. Gurus could
+  even add a `.git/hook/post-commit` to automate pushing the new version to
+  Google Apps by REST API (after updating any customized var-settings with a tool
+  like `sed`).
 
 ## PR management
 
@@ -122,20 +208,26 @@ This is the optimal workflow that should be followed when managing a new PR:
   if the review/correction cycle was repeated multiple times generating lots of
   unwanted commits that can be squashed);
 10. Once the PR is finally ready to be merged the assigned user should merge it
-  following this rules of thumb:
-    - if the PR consists of just one or two commits it could be merged via a fast-
+  following these rules of thumb:
+    - If the PR consists of just one or two commits it could be merged via a fast-
       forward merge (`merge --ff`, must be performed manually since GitHub does not
       offer this functionality in the web interface to perform it):
-    - if the PR consists of just one or two commits, but cannot be merged via a
+    - If the PR consists of just one or two commits, but cannot be merged via a
       fast-forward merge, a "rebase merge" can be used (this can be performed
       both manually and via the GitHub interface);
-    - if the PR consists of more than two commits a non-fast-forward merge should
+    - If the PR consists of more than two commits a non-fast-forward merge should
       be considered (`merge --no-ff`, it can be performed both manually and via
       the GitHub interface);
-    - in any case these rules must not be taken at absolute value: exceptions may
+    - In any case these rules must not be taken at absolute value: exceptions may
       arise which could require these rules to be broken or bent. If you have any
       doubts regarding the best route to take just ask and some collaborator will
       help you;
+11. If any issues remain open which would be auto-closed by the PR when its
+    target-branch finally gets merged to the default-branch (`master`), and it
+    will be a noticeable length of time before that will happen, then either the
+    `solved` or `wontfix` tag should be added to those issues to make it clear at
+    a glance that nothing else needs doing for them in order for them to
+    auto-close.
 
 ## Git mini-tutorial
 
@@ -143,9 +235,9 @@ Before starting the tutorial, it is important to clarify definitions of the
 following for beginners:
 
 - git commandline tool
-  - for running "git commands" with
+  - for running "git commands"
 - Git SCM (source code management) format
-  - Git repositories are directories of this format
+  - git repositories are directories of this format
 - Github
   - projects are hosted at this publicly accessible collaboration platform which
     is built around Git repositories
@@ -241,6 +333,8 @@ echo "silly command"
    an upstream branch other than the default `master`, then you should select
    that while opening it.
 
+----
+
 Below are other steps you **might** need to take sometimes. Don't worry though,
 if any of them are too intimidating the upstream maintainers can usually make
 the changes to your branch for you on request - when they have time! - and you
@@ -332,20 +426,23 @@ In the above steps:
 There are **many** more aspects to git for the adventurous, but they are out of
 scope for this intro.
 
-[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
-[Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
-[Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
-[Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
+[Code of conduct]: CODE_OF_CONDUCT.md
+[Unsolved issues page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue%20is%3Aopen%20-label%3Asolved%20-label%3Awontfix%20no%3Aassignee
+[Coding guidelines]: #coding-guidelines
 [Contribute with translation]: ../README.md#translation
 [Git mini tutorial]: #git-mini-tutorial
+[Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
+[Issue template file]: ISSUE_TEMPLATE.md
+[Unresponsive issues]: ../README.md#unresponsive-help-requests
+[Javascript semistandard]: https://github.com/Flet/semistandard
+[Commonmark specification]: http://commonmark.org
+[Markdown linter config]: ../.markdownlint.json
+[JSDoc]: http://usejsdoc.org
+[JSDoc config]: ../.jsdoc-conf.json
+[Tests file]: ../tests.gs
+[Markdown linter]: https://github.com/DavidAnson/markdownlint
+[JSDoc processor]: https://github.com/jsdoc3/jsdoc
 [Git]: https://git-scm.com
 [Git windows bundle]: https://git-for-windows.github.io
+[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
 [Add ssh key]: https://help.github.com/articles/connecting-to-github-with-ssh
-[Unresponsive issues]: ../README.md#unresponsive-help-requests
-[Code of conduct]: CODE_OF_CONDUCT.md
-[Coding guidelines]: #coding-guidelines
-[Issue template file]: ISSUE_TEMPLATE.md
-[Javascript semistandard]: https://github.com/Flet/semistandard
-[Markdown linter]: https://github.com/DavidAnson/markdownlint
-[Markdown linter config]: ../.markdownlint.json
-[Tests file]: ../unit-tests.gs
