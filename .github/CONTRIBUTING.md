@@ -74,7 +74,7 @@ Code consistency is what makes a project maintainable and accessible to
 everyone. To maintain consistency please make sure that your code submitted via
 Pull Requests complies with these rules:
 
-- The code must be in english (variable names, comments, documentation...);
+- The code must be in English (variable names, comments, documentation...);
 - The code in `.gs` files must be formatted following the [Javascript
   Semistandard Style][Javascript semistandard];
 - The text in `.md` files must be formatted following the [Markdown CommonMark
