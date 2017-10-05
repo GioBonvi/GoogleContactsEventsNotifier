@@ -135,7 +135,16 @@ var settings = {
      * This is used in the plaintext part of emails only (invisible to email clients which display
      * the html part by default).
      */
-    indentSize: 4
+    indentSize: 4,
+    /*
+     * GROUP ALL LABELS
+     *
+     * By default only the main emails and phone numbers (work, home, mobile, main) are displayed with their
+     * own label: all the other special and/or custom emails and phone numbers are grouped into a single
+     * "other" group. By setting this variable to false instead, every phone and email will be grouped
+     * under its own label.
+     */
+    compactGrouping: true
   },
   debug: {
     log: {
@@ -143,22 +152,23 @@ var settings = {
        * LOGGING FILTER LEVEL
        *
        * This settings lets you filter which type of events will get logged:
-       *  - 'info' will log all types of events event (messages, warnings and errors);
-       *  - 'warning' will log warnings and errors only (discarding messages);
-       *  - 'error' will log errors only (discarding messages and warnings);
-       *  - 'none' will effectively disable the logging (nothing will be logged);
+       *  - 'INFO' will log all types of events event (messages, warnings and errors);
+       *  - 'WARNING' will log warnings and errors only (discarding messages);
+       *  - 'ERROR' will log errors only (discarding messages and warnings);
+       *  - 'FATAL_ERROR' will log fatal errors only (discarding messages, warnings and non-fatal errors);
+       *  - 'MAX' will effectively disable the logging (nothing will be logged);
        */
-      filterLevel: 'info',
+      filterLevel: 'INFO',
       /*
-       * Set this variable to: 'info', 'warning', 'error' or 'none'. You will be sent an
+       * Set this variable to: 'INFO', 'WARNING', 'ERROR', 'FATAL_ERROR' or 'MAX'. You will be sent an
        * email containing the full execution log of the script if at least one event of priority
-       * equal or greater to sendTrigger has been logged. 'none' means that such emails will
+       * equal or greater to sendTrigger has been logged. 'MAX' means that such emails will
        * never be sent.
-       * Note: filterLevel have precedence over this setting! For example if you set filterLevel
-       * to 'none' and sendTrigger to 'warning' you will never receive any email as nothing will
+       * Note: filterLevel has precedence over this setting! For example if you set filterLevel
+       * to 'MAX' and sendTrigger to 'WARNING' you will never receive any email as nothing will
        * be logged due to the filterLevel setting.
        */
-      sendTrigger: 'warning'
+      sendTrigger: 'ERROR'
     },
     /*
      * TEST DATE
@@ -181,66 +191,155 @@ var settings = {
 
 /*
  * There is no need to edit anything below this line.
- * The script will work if you inserted valid values up until here, however feel free to take a peek at my code ;)
+ * The script will work if you inserted valid values up
+ * until here, however feel free to take a peek at the code ;)
  */
 
 // CLASSES
 
-/*
- * A Contact object holds the data about a contact which has been collected from multiple
- * sources (raw event data, Google Contacts, Google Plus profile).
+/**
+ * Initialize a LocalCache object.
+ *
+ * A LocalCache object is used to store external resources which are used multiple
+ * times to optimize the number of `UrlFetchApp.fetch()` calls.
+ *
+ * @class
  */
-function Contact () {
-  var self;
-
-  self = this; // for consistent access from sub-functions
-  self.contactId = null;
-  self.gPlusId = null;
-  self.data = new ContactDataDC(null, null, null);
-  self.emails = [];
-  self.phones = [];
-  self.events = [];
+function LocalCache () {
+  this.cache = {};
 }
 
-/*
- * All the events listed from the calendar contain some data that can be
- * used to describe the event in the notification.
- * Extract all the available data from the raw event object and store them in the Contact.
+/**
+ * Fetch an URL, optionally making more than one try.
+ *
+ * @param {!string} url - The URL which has to be fetched.
+ * @param {?number} [retry=1] - Number of times to try the fetch operation before failing.
+ * @returns {?Object} - The fetch response or null if the fetch failed.
+ */
+LocalCache.prototype.fetch = function (url, retry) {
+  var response, i, errors;
+
+  retry = retry || 1;
+
+  response = null;
+  errors = [];
+  // Try fetching the data.
+  for (i = 0; i < retry; i++) {
+    try {
+      response = UrlFetchApp.fetch(url);
+      if (response.getResponseCode() !== 200) {
+        throw new Error('');
+      }
+      // Break the loop if the fetch was successful.
+      break;
+    } catch (error) {
+      errors.push(error);
+      response = null;
+      Utilities.sleep(1000);
+    }
+  }
+  // Store the result in the cache and return it.
+  this.cache[url] = response;
+  return this.cache[url];
+};
+
+/**
+ * Determine whether an url has already been cached.
+ *
+ * @param {!string} url - The URL to check.
+ * @returns {boolean} - True if the cache contains an object for the URL, false otherwise.
+ */
+LocalCache.prototype.isCached = function (url) {
+  return !!this.cache[url];
+};
+
+/**
+ * Retrieve an object from the cache.
+ *
+ * The object is loaded from the cache if present, otherwise it is fetched.
+ *
+ * @param {!string} url - The URL to retrieve.
+ * @param {?number} retry - Number of times to retry in case of error.
+ * @returns {Object} - The response object.
+ */
+LocalCache.prototype.retrieve = function (url, retry) {
+  if (this.isCached(url)) {
+    return this.cache[url];
+  } else {
+    return this.fetch(url, retry);
+  }
+};
+
+/**
+ * Initialize an empty contact.
+ *
+ * A Contact object holds the data about a contact collected from multiple sources.
+ *
+ * @class
+ */
+function Contact () {
+  /** @type {?string} */
+  this.contactId = null;
+  /** @type {?string} */
+  this.gPlusId = null;
+  /** @type {ContactDataDC} */
+  this.data = new ContactDataDC(
+    null, // Name.
+    null, // Nickname.
+    null  // Profile image URL.
+  );
+  /** @type {EmailAddressDC[]} */
+  this.emails = [];
+  /** @type {PhoneNumberDC[]} */
+  this.phones = [];
+  /** @type {EventDC[]} */
+  this.events = [];
+}
+
+/**
+ * Extract all the available data from the raw event object and store them in the `Contact`.
+ *
+ * @param {Object} rawEvent - The object containing all the data about the event, obtained
+ *                            from the Google Calendar API.
  */
 Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   var eventData, eventDate, eventLabel;
 
-  log.add('Extracting info from raw event object...', 'info');
+  log.add('Extracting info from raw event object...', Priority.INFO);
 
   if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-    log.add(rawEvent, 'info');
-    log.add('The structure of this event cannot be parsed.', 'error');
+    log.add(rawEvent, Priority.INFO);
+    log.add('The structure of this event cannot be parsed.', Priority.ERROR);
   }
   eventData = rawEvent.gadget.preferences;
 
   // The raw event can contain the full name and profile photo of the contact (no nickname).
   this.data.merge(new ContactDataDC(
-    eventData['goo.contactsFullName'],
-    null, // Nickname.
-    eventData['goo.contactsPhotoUrl']
+    eventData['goo.contactsFullName'],  // Name.
+    null,                               // Nickname.
+    eventData['goo.contactsPhotoUrl']   // Profile image URL.
   ));
   // The raw event contains an email of the contact, but without label.
   this.addToField('emails', new EmailAddressDC(
-    null,
-    eventData['goo.contactsEmail']
+    null,                               // Label.
+    eventData['goo.contactsEmail']      // Email address.
   ));
   // The raw event contains the type, day and month of the event, but not the year.
   eventDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(rawEvent.start.date);
   if (eventDate) {
     eventLabel = eventData['goo.contactsEventType'];
-    if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+    if (eventLabel === 'SELF') {
+      // Your own birthday is marked as 'SELF'.
+      eventLabel = 'BIRTHDAY';
+    } else if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+      // Custom events have an additional field containing the custom name of the event.
       eventLabel = eventData['goo.contactsCustomEventType'];
     }
     this.addToField('events', new EventDC(
-      eventLabel, // Label.
-      null, // Year.
-      (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null), // Month.
-      (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null) // Day.
+      eventLabel,                                                   // Label.
+      null,                                                         // Year.
+      (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null),  // Month.
+      (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null)   // Day.
     ));
   }
   // Collect info from the contactId if not already collected and if contactsContactId exists.
@@ -253,32 +352,39 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   }
 };
 
-/*
+/**
+ * Update the `Contact` with info collect from a Google Contact.
+ *
  * Some raw events will contain a Google Contact ID which gives access
  * to a bunch of new data about the contact.
- * This data is used to update the information collected from the raw event.
+ *
+ * This data is used to update the information collected until now.
+ *
+ * @param {!string} contactId - The id from which to collect the data.
  */
 Contact.prototype.getInfoFromContact = function (contactId) {
   var self, googleContact;
 
   self = this;
 
-  log.add('Extracting info from Google Contact...', 'info');
+  log.add('Extracting info from Google Contact...', Priority.INFO);
 
   googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
   if (googleContact === null) {
-    log.add('Invalid Google Contact ID: ' + contactId, 'warning');
+    log.add('Invalid Google Contact ID: ' + contactId, Priority.INFO);
     return;
   }
 
   self.contactId = contactId;
 
+  // Contact identification data.
   self.data.merge(new ContactDataDC(
-    googleContact.getFullName(),
-    googleContact.getNickname(),
-    null // PhotoURL.
+    googleContact.getFullName(),  // Name.
+    googleContact.getNickname(),  // Nickname.
+    null                          // Profile image URL.
   ));
 
+  // Events.
   googleContact.getDates().forEach(function (dateField) {
     self.addToField('events', new EventDC(
       String(dateField.getLabel()),
@@ -287,6 +393,8 @@ Contact.prototype.getInfoFromContact = function (contactId) {
       dateField.getDay()
     ));
   });
+
+  // Email addresses.
   googleContact.getEmails().forEach(function (emailField, i) {
     if (settings.notifications.maxEmailsCount === -1 || i < settings.notifications.maxEmailsCount) {
       self.addToField('emails', new EmailAddressDC(
@@ -295,6 +403,8 @@ Contact.prototype.getInfoFromContact = function (contactId) {
       ));
     }
   });
+
+  // Phone numbers.
   googleContact.getPhones().forEach(function (phoneField, i) {
     if (settings.notifications.maxPhonesCount === -1 || i < settings.notifications.maxPhonesCount) {
       self.addToField('phones', new PhoneNumberDC(
@@ -305,95 +415,108 @@ Contact.prototype.getInfoFromContact = function (contactId) {
   });
 };
 
-/*
+/**
+ * Update the `Contact` with info collected from a Google+ Profile.
+ *
  * Some raw events will contain a Google Plus Profile ID which
  * gives access to a bunch of new data about the contact.
- * This data is used to update the information collected from
- * the raw event and the Google Contact.
+ *
+ * This data is used to update the information collected until now.
+ *
+ * @param {string} gPlusProfileId - The id from which to collect the data.
  */
 Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
-  var self, gPlusProfile, birthdayDate;
+  var gPlusProfile, birthdayDate;
 
   if (!settings.user.accessGooglePlus) {
-    log.add('Not extracting info from Google Plus Profile, as per configuration.', 'info');
+    log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
     return;
   }
 
-  self = this;
-
-  log.add('Extracting info from Google Plus Profile...', 'info');
+  log.add('Extracting info from Google Plus Profile...', Priority.INFO);
   try {
     gPlusProfile = Plus.People.get(gPlusProfileId);
     if (gPlusProfile === null) {
-      throw new Error('Invalid Google Plus Profile ID!');
+      throw new Error('');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, 'warning');
+    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, Priority.INFO);
     return;
   }
 
-  self.gPlusId = gPlusProfileId;
+  this.gPlusId = gPlusProfileId;
 
-  self.data.merge(new ContactDataDC(
-    gPlusProfile.name.formatted,
-    gPlusProfile.nickname,
-    gPlusProfile.image.url
+  this.data.merge(new ContactDataDC(
+    gPlusProfile.name.formatted,  // Name.
+    gPlusProfile.nickname,        // Nickname.
+    gPlusProfile.image.url        // Profile image URL.
   ));
 
-  // Google Plus Profile can have a birthday field in the form of YYYY-MM-DD
-  // but part of the date can be missing replaced by a bunch of zeroes
-  // (especially the year).
+  /* A Google Plus Profile can have a birthday field in the form of "YYYY-MM-DD",
+   * but part of the date can be missing, replaced by a bunch of zeroes
+   * (most frequently the year).
+   */
   if (gPlusProfile.birthday && gPlusProfile.birthday !== '0000-00-00') {
     birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gPlusProfile.birthday);
     if (birthdayDate) {
-      self.addToField('events', new EventDC(
-        'BIRTHDAY', // Label.
-        (birthdayDate[1] !== '0000' ? parseInt(birthdayDate[1], 10) : null), // Year.
-        (birthdayDate[2] !== '00' ? parseInt(birthdayDate[2], 10) : null), // Month.
-        (birthdayDate[3] !== '00' ? parseInt(birthdayDate[3], 10) : null) // Day.
+      this.addToField('events', new EventDC(
+        'BIRTHDAY',                                                           // Label.
+        (birthdayDate[1] !== '0000' ? parseInt(birthdayDate[1], 10) : null),  // Year.
+        (birthdayDate[2] !== '00' ? parseInt(birthdayDate[2], 10) : null),    // Month.
+        (birthdayDate[3] !== '00' ? parseInt(birthdayDate[3], 10) : null)     // Day.
       ));
     }
   }
 };
 
-/*
- * This method is used to insert add a new DataCollector to an array of
+/**
+ * This method is used to insert a new DataCollector into an array of
  * DataCollectors.
- * For example take 'EventDC e' and 'EventDC[] arr'; This method checks
- * all the elements of 'arr': if it finds one that is compatible with 'e'
- * it merges 'e' into that element, otherwise, if no element in the array
- * is compatible or if the array is empty, it just adds 'e' at the end of
+ *
+ * For example take `EventDC e` and `EventDC[] arr`; This method checks
+ * all the elements of `arr`: if it finds one that is compatible with `e`
+ * it merges `e` into that element, otherwise, if no element in the array
+ * is compatible or if the array is empty, it just adds `e` at the end of
  * the array.
+ *
+ * @param {!string} field - The name of the field in which to insert the object.
+ * @param {DataCollector} incData - The object to insert.
  */
 Contact.prototype.addToField = function (field, incData) {
-  var self, merged;
+  var merged;
 
-  self = this;
-  merged = false;
-
-  // incData must have at least a non-empty property.
-  if (Object.keys(incData.prop).length === 0 ||
-      Object.keys(incData.prop)
-      .filter(function (key) { return !incData.isPropEmpty(key); })
-      .length === 0) {
+  // incData must have at least one non-empty property.
+  if (
+    Object.keys(incData.prop).length === 0 ||
+    Object.keys(incData.prop)
+    .filter(function (key) { return !incData.isPropEmpty(key); })
+    .length === 0
+  ) {
     return;
   }
 
-  self[field].forEach(function (data) {
+  // Try to find a non-conflicting object to merge with in the given field.
+  merged = false;
+  this[field].forEach(function (data) {
     if (!merged && !data.isConflicting(incData)) {
       data.merge(incData);
       merged = true;
     }
   });
+  // If incData could not be merged simply append it to the field.
   if (!merged) {
-    self[field].push(incData);
+    this[field].push(incData);
   }
 };
 
-/*
- * Generate a list of text lines (of the given format - e.g. 'plain', 'html')
- * each describing an event of the contact of the type specified on the date
- * specified.
+/**
+ * Generate a list of text lines of the given format, each describing an
+ * event of the contact of the type specified on the date specified.
+ *
+ * @param {!string} type - The type of the event.
+ * @param {!Date} date - The date of the event.
+ * @param {!NotificationType} format - The format of the text line.
+ * @returns {string[]} - A list of the plain text descriptions of the events.
  */
 Contact.prototype.getLines = function (type, date, format) {
   var self;
@@ -402,9 +525,6 @@ Contact.prototype.getLines = function (type, date, format) {
   return self.events.filter(function (event) {
     var typeMatch;
     switch (event.getProp('label')) {
-      // Your own birthday is marked as 'SELF'.
-      case 'SELF':
-        // falls through
       case 'BIRTHDAY':
         typeMatch = (type === 'BIRTHDAY');
         break;
@@ -421,67 +541,68 @@ Contact.prototype.getLines = function (type, date, format) {
     line = [];
     // Start line.
     switch (format) {
-      case 'plain':
+      case NotificationType.PLAIN_TEXT:
         line.push(indent);
         break;
-      case 'html':
+      case NotificationType.HTML:
         line.push('<li>');
     }
     // Profile photo.
     switch (format) {
-      case 'html':
+      case NotificationType.HTML:
         imgCount = Object.keys(inlineImages).length;
         try {
-          inlineImages['contact-img-' + imgCount] = UrlFetchApp.fetch(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
+          // Get the default profile image from the cache.
+          inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
           line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
         } catch (err) {
-          log.add('Unable to get the profile picture', 'warning');
+          log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), Priority.WARNING);
         }
     }
     // Custom label
     if (type === 'CUSTOM') {
       switch (format) {
-        case 'plain':
-          line.push('<' + beautifyLabel(event.getProp('label')) + '> ');
+        case NotificationType.PLAIN_TEXT:
+          line.push('<', beautifyLabel(event.getProp('label')), '> ');
           break;
-        case 'html':
-          line.push('&lt;' + htmlEscape(beautifyLabel(event.getProp('label'))) + '&gt; ');
+        case NotificationType.HTML:
+          line.push(htmlEscape('<' + beautifyLabel(event.getProp('label')) + '> '));
       }
     }
     // Full name.
     switch (format) {
-      case 'plain':
+      case NotificationType.PLAIN_TEXT:
         line.push(self.data.getProp('fullName'));
         break;
-      case 'html':
+      case NotificationType.HTML:
         line.push(htmlEscape(self.data.getProp('fullName')));
     }
     // Nickname.
     if (!self.data.isPropEmpty('nickname')) {
       switch (format) {
-        case 'plain':
+        case NotificationType.PLAIN_TEXT:
           line.push(' "', self.data.getProp('nickname'), '"');
           break;
-        case 'html':
-          line.push(' &quot;', htmlEscape(self.data.getProp('nickname')), '&quot;');
+        case NotificationType.HTML:
+          line.push(htmlEscape(' "' + self.data.getProp('nickname') + '"'));
       }
     }
     // Age/years passed.
     if (!event.isPropEmpty('year')) {
       if (type === 'BIRTHDAY') {
         switch (format) {
-          case 'plain':
+          case NotificationType.PLAIN_TEXT:
             line.push(' - ', _('Age'), ': ');
             break;
-          case 'html':
+          case NotificationType.HTML:
             line.push(' - ', htmlEscape(_('Age')), ': ');
         }
       } else {
         switch (format) {
-          case 'plain':
+          case NotificationType.PLAIN_TEXT:
             line.push(' - ', _('Years'), ': ');
             break;
-          case 'html':
+          case NotificationType.HTML:
             line.push(' - ', htmlEscape(_('Years')), ': ');
         }
       }
@@ -491,66 +612,74 @@ Contact.prototype.getLines = function (type, date, format) {
     if (self.emails.length + self.phones.length) {
       var collected;
 
+      // Emails and phones are grouped by label: these are the default main label groups.
       collected = {
         HOME_EMAIL: [],
         WORK_EMAIL: [],
         OTHER_EMAIL: [],
+        MAIN_PHONE: [],
         HOME_PHONE: [],
         WORK_PHONE: [],
         MOBILE_PHONE: [],
         OTHER_PHONE: []
       };
-      line.push(' (');
-      // Email addresses.
+      // Collect and group the email addresses.
       self.emails.forEach(function (email) {
         var label, emailAddr;
 
         label = email.getProp('label');
         emailAddr = email.getProp('address');
-        switch (label) {
-          case 'HOME_EMAIL':
-          case 'WORK_EMAIL':
-            collected[label].push(emailAddr);
-            break;
-          default:
-            collected.OTHER_EMAIL.push(emailAddr);
+        if (typeof collected[label] !== 'undefined') {
+          // Store the value if the label group is already defined.
+          collected[label].push(emailAddr);
+        } else if (!settings.notifications.compactGrouping && label) {
+          // Define a new label groups different from the main ones only if compactGrouping is set to false.
+          // Note: Google's OTHER label actually is an empty string.
+          collected[label] = [emailAddr];
+        } else {
+          // Store any other label in the OTHER_EMAIL label group.
+          collected['OTHER_EMAIL'].push(emailAddr);
         }
       });
-      // Phone numbers.
+      // Collect and group the phone numbers.
       self.phones.forEach(function (phone) {
         var label, phoneNum;
 
         label = phone.getProp('label');
         phoneNum = phone.getProp('number');
-        switch (label) {
-          case 'HOME_PHONE':
-          case 'WORK_PHONE':
-          case 'MOBILE_PHONE':
-            collected[label].push(phoneNum);
-            break;
-          default:
-            collected.OTHER_PHONE.push(phoneNum);
+        if (typeof collected[label] !== 'undefined') {
+          // Store the value if the label group is already defined.
+          collected[label].push(phoneNum);
+        } else if (!settings.notifications.compactGrouping && label) {
+          // Define a new label groups different from the main ones only if compactGrouping is set to false.
+          // Note: Google's OTHER label actually is an empty string.
+          collected[label] = [phoneNum];
+        } else {
+          // Store any other label in the OTHER_PHONE label group.
+          collected['OTHER_PHONE'].push(phoneNum);
         }
       });
+      // Generate the text from the grouped emails and phone numbers..
+      line.push(' (');
       line.push(
-        ['HOME_EMAIL', 'WORK_EMAIL', 'OTHER_EMAIL', 'HOME_PHONE', 'WORK_PHONE', 'MOBILE_PHONE', 'OTHER_PHONE'].map(function (label) {
+        Object.keys(collected).map(function (label) {
           var output;
 
           if (collected[label].length) {
             switch (format) {
-              case 'plain':
+              case NotificationType.PLAIN_TEXT:
                 output = beautifyLabel(label);
                 break;
-              case 'html':
+              case NotificationType.HTML:
                 output = htmlEscape(beautifyLabel(label));
             }
             return output + ': ' + collected[label].map(function (val) {
               var buffer;
 
               switch (format) {
-                case 'plain':
+                case NotificationType.PLAIN_TEXT:
                   return val;
-                case 'html':
+                case NotificationType.HTML:
                   buffer = '<a href="';
                   if (label.match(/_EMAIL$/)) {
                     buffer += 'mailto';
@@ -569,16 +698,17 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     // Finish line.
     switch (format) {
-      case 'html':
+      case NotificationType.HTML:
         line.push('</li>');
     }
     return line.join('');
   });
 };
 
-/*
+/**
  * DataCollector is a structure used to collect data about any "object" (an event, an
  * email address, a phone number...) from multiple incomplete sources.
+ *
  * For example the raw event could contain the day and month of the birthday, while
  * the Google Contact could hold the year as well. DataCollector can be used to accumulate
  * the data in multiple takes: each take updates the values that were left empty by the
@@ -586,64 +716,91 @@ Contact.prototype.getLines = function (type, date, format) {
  *
  * Each DataCollector object can contain an arbitrary number of properties in the form of
  * name -> value, stored in the prop object.
+ *
  * Empty properties have null value.
  *
  * DataCollector is an abstract class. Each data type should have its own implementation
- * (EventDC, EmailAddressDC, PhoneNumberDC).
+ * (`EventDC`, `EmailAddressDC`, `PhoneNumberDC`).
+ *
+ * @class
  */
 var DataCollector = function () {
   if (this.constructor === DataCollector) {
     throw new Error('DataCollector is an abstract class and cannot be instantiated!');
   }
+  /** @type {Object.<string,string>} */
   this.prop = {};
 };
 
+/**
+ * Get the value of a given property.
+ *
+ * @param {!string} key - The name of the property.
+ * @returns {?string} - The value of the property.
+ */
 DataCollector.prototype.getProp = function (key) {
   return this.prop[key];
 };
 
+/**
+ * Set a given property to a certain value.
+ *
+ * If the value is undefined or an empty string it's replaced by `null`.
+ *
+ * @param {!string} key - The name of the property.
+ * @param {?string} value - The value of the property.
+ */
 DataCollector.prototype.setProp = function (key, value) {
   this.prop[key] = (typeof value !== 'undefined' && value !== '' ? value : null);
 };
 
+/**
+ * Determines whether a given property is empty or not.
+ *
+ * @param {!string} key - The name of the property.
+ * @returns {boolean} - True if the property is empty, false otherwise.
+ */
 DataCollector.prototype.isPropEmpty = function (key) {
   return this.prop[key] === null;
 };
 
-/*
+/**
  * Detect whether two DataCollectors have the same constructor or not.
  *
- * Examples:
- * DC_1 = new EventDC(...a, b, c...)
- * DC_2 = new EventDC(...x, y, z...)
- * DC_3 = new EmailAddressDC(...a, b, c...)
- * DC_4 = new EmailAddressDC(...x, y, z...)
+ * * Examples:
+ *         DC_1 = new EventDC(...a, b, c...)
+ *         DC_2 = new EventDC(...x, y, z...)
+ *         DC_3 = new EmailAddressDC(...a, b, c...)
+ *         DC_4 = new EmailAddressDC(...x, y, z...)
  *
- * DC_1.isCompatible(DC_2) -> true
- * DC_1.isCompatible(DC_3) -> false
- * DC_1.isCompatible(DC_4) -> false
+ *         DC_1.isCompatible(DC_2) -> true
+ *         DC_1.isCompatible(DC_3) -> false
+ *         DC_1.isCompatible(DC_4) -> false
+ *
+ * @param {DataCollector} otherData - The object to compare the current one with.
+ * @returns {boolean} - True if the tow objects have the same constructor, false otherwise.
  */
 DataCollector.prototype.isCompatible = function (otherData) {
-  var self;
-
-  self = this;
   // Only same-implementation objects of DataCollector can be compared.
-  return self.constructor === otherData.constructor;
+  return this.constructor === otherData.constructor;
 };
 
-/*
+/**
  * Detect whether two DataCollectors are conflicting or not.
  *
- * Examples:
- * DC_1 = {name='test', number=3, field=null}
- * DC_2 = {name=null, number=3, field=3}
- * DC_3 = {name='test', number=null, field=1}
- * DC_4 = {name='test', number=3, otherfield=null} (using different DC implementation)
+ * * Examples:
+ *         DC_1 = {name='test', number=3, field=null}
+ *         DC_2 = {name=null, number=3, field=3}
+ *         DC_3 = {name='test', number=null, field=1}
+ *         DC_4 = {name='test', number=3, otherfield=null} (using different DC implementation)
  *
- * DC_1.isConflicting(DC_2) -> false
- * DC_1.isConflicting(DC_3) -> false
- * DC_1.isConflicting(DC_4) -> false (not .isCompatible())
- * DC_2.isConflicting(DC_3) -> true (conflict on field)
+ *         DC_1.isConflicting(DC_2) -> false
+ *         DC_1.isConflicting(DC_3) -> false
+ *         DC_1.isConflicting(DC_4) -> false (not .isCompatible())
+ *         DC_2.isConflicting(DC_3) -> true (conflict on field)
+ *
+ * @param {DataCollector} otherData - The object to compare the current one with.
+ * @returns {boolean} - True if the two objects are conflicting, false otherwise.
  */
 DataCollector.prototype.isConflicting = function (otherData) {
   var self;
@@ -652,28 +809,26 @@ DataCollector.prototype.isConflicting = function (otherData) {
   if (!self.isCompatible(otherData)) {
     return false;
   }
-  // Returns true if there are any conflicting properties between the two objects.
   return Object.keys(otherData.prop)
     .filter(function (key) {
       return !self.isPropEmpty(key) && !otherData.isPropEmpty(key) && self.getProp(key) !== otherData.getProp(key);
     }).length !== 0;
 };
 
-/*
- * Merge two DataCollector objects, filling the empty properties of the
- * first one with the non-empty ones of the second one.
+/**
+ * Merge two `DataCollector` objects, filling the empty properties of the
+ * first one with the non-empty properties of the second one.
  *
- * WARNING
- * Merging two incompatible DataCollectors will cause unexpected results.
+ * * Examples:
+ *         DC_1 = {name='test', number=3, field=null}
+ *         DC_2 = {name=null, number=3, field=3}
+ *         DC_2 = {name='test', number=null, field=1}
  *
- * Examples:
- * DC_1 = {name='test', number=3, field=null}
- * DC_2 = {name=null, number=3, field=3}
- * DC_2 = {name='test', number=null, field=1}
+ *         DC_1.merge(DC_2) -> {name='test', number=3, field=3}
+ *         DC_1.isCompatible(DC_3) -> {name='test', number=3, field=1}
+ *         DC_2.isCompatible(DC_3) -> INCOMPATIBLE
  *
- * DC_1.merge(DC_2) -> {name='test', number=3, field=3}
- * DC_1.isCompatible(DC_3) -> {name='test', number=3, field=1}
- * DC_2.isCompatible(DC_3) -> INCOMPATIBLE
+ * @param {DataCollector} otherDataCollector - The object to merge into the current one.
  */
 DataCollector.prototype.merge = function (otherDataCollector) {
   var self;
@@ -682,7 +837,7 @@ DataCollector.prototype.merge = function (otherDataCollector) {
   if (!self.isCompatible(otherDataCollector)) {
     throw new Error('Trying to merge two different implementations of IncompleteData!');
   }
-  // Fill each empty key of the first DataCollector with the value from the second one.
+  // Fill each empty key of the current DataCollector with the value from the given one.
   Object.keys(self.prop).forEach(function (key) {
     if (self.isPropEmpty(key)) {
       self.setProp(key, otherDataCollector.getProp(key));
@@ -692,7 +847,14 @@ DataCollector.prototype.merge = function (otherDataCollector) {
 
 // Implementations of DataCollector.
 
-// Event Data Collector.
+/**
+ * Init an Event Data Collector.
+ *
+ * @param {!string} label - Label of the event (BIRTHDAY, ANNIVERSARY, ANYTHING_ELSE...)
+ * @param {!number} year - Year of the event.
+ * @param {!number} month - Month of the event.
+ * @param {!number} day - Day of the event.
+ */
 var EventDC = function (label, year, month, day) {
   DataCollector.apply(this);
   this.setProp('label', label);
@@ -703,7 +865,12 @@ var EventDC = function (label, year, month, day) {
 EventDC.prototype = Object.create(DataCollector.prototype);
 EventDC.prototype.constructor = EventDC;
 
-// EmailAddress Data Collector.
+/**
+ * Init an EmailAddress Data Collector.
+ *
+ * @param {!string} label - The label of the email address (WORK_EMAIL, HOME_EMAIL...).
+ * @param {!string} address - The email address.
+ */
 var EmailAddressDC = function (label, address) {
   DataCollector.apply(this);
   this.setProp('label', label);
@@ -712,7 +879,12 @@ var EmailAddressDC = function (label, address) {
 EmailAddressDC.prototype = Object.create(DataCollector.prototype);
 EmailAddressDC.prototype.constructor = EmailAddressDC;
 
-// PhoneNumber Data Collector.
+/**
+ * Init a PhoneNumber Data Collector.
+ *
+ * @param {!string} label - The label of the phone number (WORK_PHONE, HOME_PHONE...).
+ * @param {!string} number - The phone number.
+ */
 var PhoneNumberDC = function (label, number) {
   DataCollector.apply(this);
   this.setProp('label', label);
@@ -721,7 +893,13 @@ var PhoneNumberDC = function (label, number) {
 PhoneNumberDC.prototype = Object.create(DataCollector.prototype);
 PhoneNumberDC.prototype.constructor = PhoneNumberDC;
 
-// ContactData Data Collector.
+/**
+ * Init a ContactData Data Collector.
+ *
+ * @param {!string} fullName - The full name of the contact.
+ * @param {!string} nickname - The nickname of the contact.
+ * @param {!string} photoURL - The URL of the profile image of the contact.
+ */
 var ContactDataDC = function (fullName, nickname, photoURL) {
   DataCollector.apply(this);
   this.setProp('fullName', fullName);
@@ -731,27 +909,34 @@ var ContactDataDC = function (fullName, nickname, photoURL) {
 ContactDataDC.prototype = Object.create(DataCollector.prototype);
 ContactDataDC.prototype.constructor = ContactDataDC;
 
-/*
- * Manage a collection of logEvents {time, text, priority}.
+/**
+ * Init a Log object, used to manage a collection of logEvents {time, text, priority}.
  *
- * Parameters:
- *  minimumPriority (string): events with lower priority than this will not be logged.
- *  emailMinimumPriority (string): an email with the log output will be sent to the user if at least one
- *                                 event was recorded with priority greater than or equal to this priority.
+ * @param {?Priority} [minimumPriority=Priority.INFO] - Logs with priority lower than this will not be recorded.
+ * @param {?Priority} [emailMinimumPriority=Priority.ERROR] - If at least one log with priority greater than or
+                                       equal to this is recorded an email with all the logs will be sent to the user.
+ * @param {?boolean} [testing=false] - If this is true logging an event with Priority.FATAL_ERROR will not
+ *                                     cause execution to stop.
+ * @class
  */
-function Log (minimumPriority, emailMinimumPriority) {
-  this.minimumPriority = this.evalPriority(minimumPriority);
-  this.emailMinimumPriority = this.evalPriority(emailMinimumPriority);
+function Log (minimumPriority, emailMinimumPriority, testing) {
+  this.minimumPriority = minimumPriority || Priority.INFO;
+  this.emailMinimumPriority = emailMinimumPriority || Priority.ERROR;
+  this.testing = testing || false;
+  /** @type {Object[]} */
   this.events = [];
 }
 
-/*
- * Store a new event in the log. The default priority is the lowest one ('info').
+/**
+ * Store a new event in the log. The default priority is the lowest one (`INFO`).
+ *
+ * @param {!any} data - The data to be logged: best if a string, Objects get JSONized.
+ * @param {?Priority} [priority=Priority.INFO] - Priority of the log event.
  */
-Log.prototype.add = function (data, priority, testing) {
+Log.prototype.add = function (data, priority) {
   var text;
 
-  priority = priority || 'info';
+  priority = priority || Priority.INFO;
   if (typeof data === 'object') {
     text = JSON.stringify(data);
   } else if (typeof data !== 'string') {
@@ -759,133 +944,183 @@ Log.prototype.add = function (data, priority, testing) {
   } else {
     text = data;
   }
-  if (this.evalPriority(priority) >= this.minimumPriority) {
-    this.events.push({
-      time: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone(),
-      priorityDescr: priority,
-      priorityVal: this.evalPriority(priority),
-      text: text
-    });
+  if (priority.value >= this.minimumPriority.value) {
+    this.events.push(new LogEvent(new Date(), text, priority));
   }
 
   // Still log into the standard logger as a backup in case the program crashes.
-  Logger.log(priority[0].toUpperCase() + ': ' + text);
+  Logger.log(priority.name[0] + ': ' + text);
 
-  // Throw an Error and interrupt the execution if the log event had 'error' priority.
-  if (priority === 'error' && !testing) {
+  // Throw an Error and interrupt the execution if the log event had FATAL_ERROR
+  // priority and we are not in test mode.
+  if (priority.value === Priority.FATAL_ERROR.value && !this.testing) {
     this.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
     throw new Error(text);
   }
 };
 
-/*
- * Calculate a numeric value for a textual description of a priority.
- */
-Log.prototype.evalPriority = function (priority) {
-  switch (priority) {
-    case 'none':
-      return 100;
-    case 'error':
-      return 10;
-    case 'warning':
-      return 5;
-    case 'info':
-      // falls through
-    default:
-      return 1;
-  }
-};
-
-/*
+/**
  * Get the output of the log as an array of messages.
+ *
+ * @returns {string[]}
  */
 Log.prototype.getOutput = function () {
   return this.events.map(function (e) {
-    return '[' + e.time + ']' + e.priorityDescr[0].toUpperCase() + ': ' + e.text;
+    return e.toString();
   });
 };
 
-/*
+/**
  * Verify if the log contains at least an event with priority equal to or greater than
  * the specified priority.
+ *
+ * @param {!Priority} minimumPriority - The numeric value representing the priority limit.
+ * @returns {boolean}
  */
 Log.prototype.containsMinimumPriority = function (minimumPriority) {
   var i;
 
   for (i = 0; i < this.events.length; i++) {
-    if (this.events[i].priorityVal >= minimumPriority) {
+    if (this.events[i].priority.value >= minimumPriority.value) {
       return true;
     }
   }
   return false;
 };
 
-/*
+/**
  * If the filter condition is met send all the logs collected to the specified email.
+ *
+ * @param {!string} to - The email address of the recipient of the email.
+ * @param {!string} senderName - The name of the sender.
  */
 Log.prototype.sendEmail = function (to, senderName) {
   if (this.containsMinimumPriority(this.emailMinimumPriority)) {
-    this.add('Sending logs via email.');
+    this.add('Sending logs via email.', Priority.INFO);
     MailApp.sendEmail({
       to: to,
       subject: 'Logs for Google Contacts Events Notifications',
       body: this.getOutput().join('\n'),
       name: senderName
     });
+    this.add('Email sent.', Priority.INFO);
   }
 };
 
-/*
+/**
+ * A logged event.
+ *
+ * @param {Date} time - The time of the event.
+ * @param {string} message - The message of the event.
+ * @param {Priority} priority - The priority of the event.
+ */
+function LogEvent (time, message, priority) {
+  this.time = time;
+  this.message = message;
+  this.priority = priority;
+}
+
+/**
+ * Get a textual description of the LogEvent in this format
+ * (P is the first letter of the priority):
+ *
+ *     [TIME] P: MESSAGE
+ *
+ * @returns {string} - The textual description of the event.
+ */
+LogEvent.prototype.toString = function () {
+  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
+};
+
+/**
+ * A priority enum.
+ *
+ * @readonly
+ * @enum {Object.<string,number>}
+ */
+var Priority = {
+  NONE: {name: 'None', value: 0},
+  INFO: {name: 'Info', value: 10},
+  WARNING: {name: 'Warning', value: 20},
+  ERROR: {name: 'Error', value: 30},
+  FATAL_ERROR: {name: 'Fatal error', value: 40},
+  MAX: {name: 'Max', value: 100}
+};
+
+/**
+ * Enum for notification type.
+ *
+ * @readonly
+ * @enum {number}
+ */
+var NotificationType = {
+  PLAIN_TEXT: 0,
+  HTML: 1
+};
+
+/**
  * An object representing a simplified semantic version number.
+ *
  * It must be composed of:
- *  - three dot-separated positive integers (major version,
- *    minor version and patch number);
- *  - optionally a pre-release identifier, prefixed by a hyphen;
- *  - optionally a metadata identifier, prefixed by a plus sign;
+ *
+ * * three dot-separated positive integers (major version,
+ *   minor version and patch number);
+ * * optionally a pre-release identifier, prefixed by a hyphen;
+ * * optionally a metadata identifier, prefixed by a plus sign;
+ *
  * This differs from the official SemVer style because the pre-release
  * string is compared as a whole in version comparison instead of
  * being spliced into chunks.
- * Valid examples:
- *  4.6.2, 3.12.234-alpha,  0.11.0+20170827, 2.0.0-beta+20170827
+ *
+ * @param {!string} versionNumber - The version number to build the object with.
+ *
+ * @class
  */
 function SimplifiedSemanticVersion (versionNumber) {
   var matches, self;
 
   self = this;
-  this.numbers = [0, 0, 0];
-  this.prerelease = '';
-  this.metadata = '';
 
+  /** @type {number[]} */
+  self.numbers = [0, 0, 0];
+  /** @type {string} */
+  self.preRelease = '';
+  /** @type {string} */
+  self.metadata = '';
+
+  // Extract the pieces of information from the given string.
   matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
   if (matches) {
     self.numbers[0] = parseInt(matches[1]);
     self.numbers[1] = parseInt(matches[2]);
     self.numbers[2] = parseInt(matches[3]);
-    self.prerelease = typeof matches[4] === 'undefined' ? '' : matches[4];
+    self.preRelease = typeof matches[4] === 'undefined' ? '' : matches[4];
     self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
   } else {
     throw new Error('The version number "' + versionNumber + '" is not valid!');
   }
 }
 
-/*
- * Rebuild the version number string from the extracted data.
+/**
+ * Build the version number string from the data.
+ *
+ * @returns {string} - The version number of this version.
  */
 SimplifiedSemanticVersion.prototype.toString = function () {
   return this.numbers.join('.') +
-    (this.prerelease !== '' ? '-' + this.prerelease : '') +
+    (this.preRelease !== '' ? '-' + this.preRelease : '') +
     (this.metadata !== '' ? '+' + this.metadata : '');
 };
 
-/*
+/**
  * Compare a semantic version number with another one.
  *
- * Returns -1, 0 , 1 if this version number is smaller than,
- * equal to or bigger than the one passed as the parameter.
- *
  * Order of comparison: major number, minor number, patch number,
- * prerelease string (ASCII comparison). Metadata do not influence
+ * preRelease string (ASCII comparison). Metadata do not influence
  * comparisons.
+ *
+ * @param {!SimplifiedSemanticVersion} comparedVersion - The version to compare.
+ * @returns {number} - 1, 0 , -1 if this version number is greater than, equal to or smaller than the one passed as the parameter.
  */
 SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
   var i;
@@ -894,25 +1129,33 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
       return (this.numbers[i] < comparedVersion.numbers[i] ? -1 : 1);
     }
   }
-  if (this.prerelease !== comparedVersion.prerelease) {
-    // Between two version with the same numbers, one in pre-release and the other not
-    // the one in pre-release must be considered smaller.
-    if (this.prerelease === '') {
+  if (this.preRelease !== comparedVersion.preRelease) {
+    // Between two versions with the same numbers, one in pre-release and the
+    // other not, the one in pre-release must be considered smaller.
+    if (this.preRelease === '') {
       return 1;
-    } else if (comparedVersion.prerelease === '') {
+    } else if (comparedVersion.preRelease === '') {
       return -1;
     }
-    return (this.prerelease < comparedVersion.prerelease ? -1 : 1);
+    return (this.preRelease < comparedVersion.preRelease ? -1 : 1);
   }
   return 0;
 };
 
 // EXTENDED NATIVE PROTOTYPES
 
-/*
- * Merge an array at the end of an existing array.
- */
 if (typeof Array.prototype.extend === 'undefined') {
+  /**
+   * Merge an array at the end of an existing array.
+   *
+   * * Example:
+   *         a = [1, 2, 3], b = [4, 5, 6];
+   *         a.extend(b);
+   *         a -> [1, 2, 3, 4, 5, 6]
+   *
+   * @param {any[]} array - The array used to extend.
+   * @returns {any[]} - Returns this for subsequent calls.
+   */
   Array.prototype.extend = function (array) { // eslint-disable-line no-extend-native
     var i;
 
@@ -923,10 +1166,17 @@ if (typeof Array.prototype.extend === 'undefined') {
   };
 }
 
-/*
- * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
- */
 if (typeof String.prototype.format === 'undefined') {
+  /**
+   * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
+   *
+   * * Examples:
+   *         'This is a {0}'.format('test') -> 'This is a test.'
+   *         'This {0} a {1}'.format('is') -> 'This is a {1}.'
+   *
+   * @param {...!string} arguments
+   * @returns {string}
+   */
   String.prototype.format = function () { // eslint-disable-line no-extend-native
     var args;
 
@@ -940,37 +1190,58 @@ if (typeof String.prototype.format === 'undefined') {
   };
 }
 
-/*
- * Replace all occurrences of a substring (not a regex).
- */
 if (typeof String.prototype.replaceAll === 'undefined') {
+  /**
+   * Replace all occurrences of a substring (not a regex).
+   *
+   * @param {!string} substr - The substring to be replaced.
+   * @param {!string} repl - The replacement for the substring.
+   * @returns {string} - The string with the substrings replaced.
+   */
   String.prototype.replaceAll = function (substr, repl) { // eslint-disable-line no-extend-native
     return this.split(substr).join(repl);
   };
 }
 
+if (typeof Number.isInteger === 'undefined') {
+  /**
+   * Determine if a number is an integer.
+   *
+   * @param {number} n - The number to check.
+   * @returns {boolean} - True if the number is an integer, false otherwise.
+   */
+  Number.isInteger = function (n) {
+    return typeof n === 'number' && (n % 1) === 0;
+  };
+}
+
 // GLOBAL VARIABLES
 
- /*
+/**
  * The version of the script.
- * It must be a valid SimplifiedSemanticVersion.
+ *
+ * @type {!SimplifiedSemanticVersion}
  */
 var version = new SimplifiedSemanticVersion(settings.developer.version);
+
+var cache = new LocalCache();
 
 // These URLs are used to access the files in the repository or specific pages on GitHub.
 var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
 var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
 var baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
+var defaultProfileImageURL = baseRawFilesURL + 'images/default_profile.jpg';
 
 // Convert user-configured hash to an array
 var eventTypes = Object.keys(settings.notifications.eventTypes)
   .filter(function (x) { return settings.notifications.eventTypes[x]; });
 
+// Build the indentation from the setting.
 var indent = Array(settings.notifications.indentSize + 1).join(' ');
 
 var inlineImages;
 
-var log = new Log(settings.debug.log.filterLevel, settings.debug.log.sendTrigger);
+var log = new Log(Priority[settings.debug.log.filterLevel], Priority[settings.debug.log.sendTrigger]);
 
 // NB: When Google fixes their too-broad scope bug with ScriptApp, re-wrap this i18n
 //     table in `eslint-*able comma-dangle` comments (see old git-commits to find it)
@@ -1000,7 +1271,6 @@ var i18n = {
     'Custom events in {0} days': 'Προσαρμοσμένα γεγονότα σε {0} ημέρες',
     'Hey! Don\'t forget these events': 'Hey! Μην ξεχάσεις αυτά τα γεγονότα',
     'version': 'εκδοχή',
-    'by': 'από τον', // τον=masculine,την=feminine (using the masculine, in one place, for now but may need more context in future)
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Κινητό',
     'Work phone': 'Τηλέφωνο εργασίας',
@@ -1009,6 +1279,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     'Home fax': 'Φαξ οικίας',
     'Work fax': 'Φαξ εργασίας',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     'Home email': 'Email οικίας',
     'Work email': 'Email εργασίας',
     // TODO: 'Other email': '',
@@ -1030,7 +1302,6 @@ var i18n = {
     'Custom events in {0} days': 'Eventos personalizados en {0} das',
     'Hey! Don\'t forget these events': 'Hey! No olvides estos eventos',
     'version': 'versión',
-    'by': 'por',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Celular',
     'Work phone': 'Teléfono del trabajo',
@@ -1039,6 +1310,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1060,18 +1333,19 @@ var i18n = {
     'Custom events in {0} days': 'Eventi personalizzati fra {0} giorni',
     'Hey! Don\'t forget these events': 'Hey! Non dimenticare questi eventi',
     'version': 'versione',
-    'by': 'by',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Cellulare',
     'Work phone': 'Telefono di lavoro',
     'Home phone': 'Telefono di casa',
     'Main phone': 'Telefono principale',
-    // TODO: 'Other phone': '',
+    'Other phone': 'Altro telefono',
     'Home fax': 'Fax di casa',
     'Work fax': 'Fax di lavoro',
+    'Google voice': 'Google voice',
+    'Pager': 'Cercapersone',
     'Home email': 'Email di casa',
     'Work email': 'Email di lavoro',
-    // TODO: 'Other email': '',
+    'Other email': 'Altra email',
     'It looks like you are using an outdated version of this script': 'Sembra che tu stia usando una vecchia versione di questo script',
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
@@ -1090,7 +1364,6 @@ var i18n = {
     'Custom events in {0} days': 'Peristiwa khusus dalam {0} hari mendatang',
     'Hey! Don\'t forget these events': 'Hai! Jangan lupa peristiwa-peristiwa berikut',
     'version': 'versi',
-    'by': 'oleh',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telp. Selular',
     'Work phone': 'Telp. Kantor',
@@ -1099,6 +1372,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1120,7 +1395,6 @@ var i18n = {
     'Custom events in {0} days': 'Benutzerdefinierte Termine in {0} Tagen',
     'Hey! Don\'t forget these events': 'Hey! Vergiss diese Termine nicht',
     'version': 'Version',
-    'by': 'von',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Mobiltelefon',
     'Work phone': 'Geschäftlich',
@@ -1129,6 +1403,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1150,7 +1426,6 @@ var i18n = {
     'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
     'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
-    'by': 'Stworzone przez',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Telefon komórkowy',
     'Work phone': 'Telefon (praca)',
@@ -1159,6 +1434,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1180,7 +1457,6 @@ var i18n = {
     'Custom events in {0} days': 'Autres événements dans {0} jours',
     'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
     'version': 'version',
-    'by': 'par',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Mobile',
     'Work phone': 'Travail',
@@ -1189,6 +1465,8 @@ var i18n = {
     // TODO: 'Other phone': '',
     // TODO: 'Home fax': '',
     // TODO: 'Work fax': '',
+    // TODO: 'Google voice': '',
+    // TODO: 'Pager': '',
     // TODO: 'Home email': '',
     // TODO: 'Work email': '',
     // TODO: 'Other email': '',
@@ -1206,37 +1484,49 @@ var i18n = {
 
 // HELPER FUNCTIONS
 
-/*
+/**
  * Get the translation of a string.
+ *
  * If the language or the chosen string is invalid return the string itself.
+ *
+ * @param {!string} str - String to attempt translation for.
+ * @returns {string}
  */
-function _ (string) {
-  return i18n[settings.user.lang][string] || string;
+function _ (str) {
+  return i18n[settings.user.lang][str] || str;
 }
 
-/*
- * Replace a Field.Label object with its "beautified" text representation.
+/**
+ * Replace a `Field.Label` object with its "beautified" text representation.
+ *
+ * @param {?string} label - The internal label to transform to readable form.
+ * @returns {string}
  */
 function beautifyLabel (label) {
-  switch (label) {
+  switch (String(label)) {
     case 'MOBILE_PHONE':
     case 'WORK_PHONE':
     case 'HOME_PHONE':
     case 'MAIN_PHONE':
     case 'HOME_FAX':
     case 'WORK_FAX':
+    case 'GOOGLE_VOICE':
+    case 'PAGER':
     case 'HOME_EMAIL':
     case 'WORK_EMAIL':
-    case 'OTHER_EMAIL': // fake label for output
-    case 'OTHER_PHONE': // fake label for output
+    case 'OTHER_EMAIL': // Fake label for output.
+    case 'OTHER_PHONE': // Fake label for output,
       return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
     default:
       return String(label);
   }
 }
 
-/*
- * Escape text for embedding in HTML.
+/**
+ * Replace HTML special characters in a string with their HTML-escaped equivalent.
+ *
+ * @param {?string} str - The string to escape.
+ * @returns {string} - The escaped string.
  */
 function htmlEscape (str) {
   str = str || '';
@@ -1249,54 +1539,62 @@ function htmlEscape (str) {
          .replace(/\//g, '&#x2F;');
 }
 
-/*
- * Get the last version number from the GitHub API and compare it with the script's one.
- * If they do not match the user is running an outdated version of the script.
- * If there is any problem retrieving the latest version number just return false.
+/**
+ * Check if the script is not updated to the latest version.
+ *
+ * The latest version number is obtained from the GitHub API and compared with the
+ * script's one.
+ *
+ * If there is any problem retrieving the latest version number false is returned.
+ *
+ * @returns {boolean} - True if the script version is lower than the latest released one, false otherwise.
  */
 function isRunningOutdatedVersion () {
   var response, latestVersion;
 
+  // Retrieve the last version info.
   try {
-    response = UrlFetchApp.fetch(baseGitHubApiURL + 'releases/latest');
-    if (response.getResponseCode() !== 200) {
+    response = cache.retrieve(baseGitHubApiURL + 'releases/latest');
+    if (response === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number' + (response ? ': the requested URL returned a ' + response.getResponseCode() + ' response.' : ''), 'warning');
+    log.add('Unable to get the latest version number', Priority.WARNING);
     return false;
   }
-
+  // Parse the info for the version number.
   try {
     response = JSON.parse(response);
     if (typeof response !== 'object') {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', 'warning');
+    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', Priority.WARNING);
     return false;
   }
-
   latestVersion = response.tag_name;
   if (typeof latestVersion !== 'string' || latestVersion.length === 0) {
-    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', 'warning');
+    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', Priority.WARNING);
     return false;
   }
-
   if (latestVersion.substring(0, 1) === 'v') {
     latestVersion = latestVersion.substring(1);
   }
 
+  // Compare the versions.
   try {
     return (version).compare(new SimplifiedSemanticVersion(latestVersion)) === -1;
   } catch (err) {
-    log.add(err.message, 'warning');
+    log.add(err.message, Priority.WARNING);
     return false;
   }
 }
 
-/*
- * Get a a ContactsApp.Month's numerical representation (JAN = 0).
+/**
+ * Get a `ContactsApp.Month`'s numerical representation.
+ *
+ * @param {!Object} month
+ * @returns {number} - 0-11 for each month, -1 for wrong values.
  */
 function monthToInt (month) {
   var i;
@@ -1322,38 +1620,171 @@ function monthToInt (month) {
   return -1;
 }
 
-/*
- * Return a list with duplicates removed.
+/**
+ * Return an array of strings with duplicate strings removed.
+ *
+ * @param {!string[]} arr - The array containing the duplicates.
+ * @returns {string[]} - The array without duplicates.
  */
-function uniqueStrings (x) {
+function uniqueStrings (arr) {
   var seen = {};
-  return x.filter(function (str) {
+  return arr.filter(function (str) {
     return seen.hasOwnProperty(str) ? false : (seen[str] = true);
   });
 }
 
 // MAIN FUNCTIONS
 
-/*
+/**
+ * Validate the settings, logging all problems found and stopping the script
+ * execution if a FATAL_ERROR is thrown.
+ */
+function validateSettings () {
+  var setting;
+
+  log.add('validateSettings() running.');
+
+  setting = settings.user.googleEmail;
+  if (!setting || !/^(?!YOUREMAILHERE)\S+@\S+\.\S+$/.test(setting)) {
+    log.add('Your user.googleEmail setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  setting = settings.user.notificationEmail;
+  if (!setting || !/^(?!YOUREMEAILHERE)\S+@(?!example)\S+\.\S+$/.test(setting)) {
+    log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  try {
+    if (Calendar.Calendars.get(settings.user.calendarId) === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Your user.calendarId setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  // emailSenderName has no restrictions.
+
+  // lang has no restrictions.
+
+  if (typeof settings.user.accessGooglePlus !== 'boolean') {
+    log.add('Your user.accessGooglePlus setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.user.accessGooglePlus = true;
+  }
+
+  setting = settings.notifications.hour;
+  if (!Number.isInteger(setting) || setting < 0 || setting >= 24) {
+    log.add('Your notifications.hour setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.hour = 6;
+  }
+
+  // It would be quite difficult to test the timeZone.
+
+  setting = settings.notifications.anticipateDays;
+  if (
+    setting.constructor !== Array ||
+    setting.filter(function (x) {
+      return Number.isInteger(x) && x >= 0;
+    }).length !== setting.length
+  ) {
+    log.add('Your notifications.anticipateDays setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.anticipateDays = [0, 1, 7];
+  }
+
+  setting = settings.notifications.eventTypes;
+  if (
+    typeof setting.BIRTHDAY !== 'boolean' ||
+    typeof setting.ANNIVERSARY !== 'boolean' ||
+    typeof setting.CUSTOM !== 'boolean'
+  ) {
+    log.add('Your notifications.eventTypes setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.eventTypes = {
+      BIRTHDAY: true,
+      ANNIVERSARY: false,
+      CUSTOM: false
+    };
+  }
+
+  setting = settings.notifications.maxEmailsCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxEmailsCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxEmailsCount = -1;
+  }
+
+  setting = settings.notifications.maxPhonesCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxPhonesCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxPhonesCount = -1;
+  }
+
+  setting = settings.notifications.indentSize;
+  if (!Number.isInteger(setting) || setting <= 0) {
+    log.add('Your notifications.indentSize setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.indentSize = 4;
+  }
+
+  if (typeof settings.notifications.compactGrouping !== 'boolean') {
+    log.add('Your notifications.compactGrouping setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.compactGrouping = true;
+  }
+
+  setting = settings.debug.log.filterLevel;
+  if (typeof Priority[setting] !== 'object') {
+    log.add('Your debug.log.filterLevel setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.filterLevel = 'INFO';
+  }
+
+  setting = settings.debug.log.sendTrigger;
+  if (typeof Priority[setting] !== 'object') {
+    log.add('Your debug.log.sendTrigger setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.sendTrigger = 'ERROR';
+  }
+
+  setting = settings.debug.testDate;
+  if (setting.constructor !== Date) {
+    log.add('Your debug.log.testDate setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.debug.log.testDate = new Date();
+  }
+}
+
+/**
  * Returns an array with the events happening in the calendar with
- * ID 'calendarId' on date 'eventDate'.
+ * ID `calendarId` on date `eventDate`.
+ *
+ * @param {!Date} eventDate - The date the events must fall on.
+ * @param {!string} calendarId - The id of the calendar from which events are collected.
+ * @returns {Object[]} - A list of rawEvent Objects.
  */
 function getEventsOnDate (eventDate, calendarId) {
   var eventCalendar, startDate, endDate, events;
 
   // Verify the existence of the events calendar.
-  eventCalendar = Calendar.Calendars.get(calendarId);
-  if (eventCalendar === null) {
-    log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', 'error');
+  try {
+    eventCalendar = Calendar.Calendars.get(calendarId);
+    if (eventCalendar === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', Priority.FATAL_ERROR);
   }
 
   // Query the events calendar for events on the specified date.
   try {
     startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
     endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-    log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', 'info');
+    log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
-    log.add(err.message, 'error');
+    log.add(err.message, Priority.FATAL_ERROR);
   }
   events = Calendar.Events.list(
     calendarId,
@@ -1369,19 +1800,23 @@ function getEventsOnDate (eventDate, calendarId) {
   return events;
 }
 
-/*
+/**
+ * <div style="clear:both"></div>
  * Send an email notification to the user containing a list of the events
  * of his/her contacts scheduled for the next days.
+ *
+ * @param {?Date} forceDate - If this value is not null it's used as 'now'.
  */
 function main (forceDate) {
-  log.add('main() running.', 'info');
+  log.add('main() running.', Priority.INFO);
+
+  validateSettings();
 
   var emailData = generateEmailNotification(forceDate);
 
   // If generateEmailNotification returned mail content send it.
   if (emailData !== null) {
-    log.add('Sending email...', 'info');
-
+    log.add('Sending email...', Priority.INFO);
     MailApp.sendEmail({
       to: settings.user.notificationEmail,
       subject: emailData.subject,
@@ -1391,24 +1826,27 @@ function main (forceDate) {
       name: settings.user.emailSenderName
     });
 
-    log.add('Email sent.', 'info');
+    log.add('Email sent.', Priority.INFO);
   }
 
   // Send the log if the debug options say so.
   log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }
 
-/*
- * Generate an email content to the user containing a list of the events
- * of his/her contacts scheduled for the next days.
+/**
+ * Generate the content of an email to the user containing a list of the events
+ * of his/her contacts scheduled on agiven date.
+ *
+ * @param {?Date} forceDate - If this value is not null it's used as 'now'.
+ * @returns {Object.<string,any>} - The content of the email.
  */
 function generateEmailNotification (forceDate) {
   var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
 
-  log.add('generateEmailNotification() running.', 'info');
+  log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
-  log.add('Date used: ' + now, 'info');
+  log.add('Date used: ' + now, Priority.INFO);
 
   events = [].concat.apply(
     [],
@@ -1422,23 +1860,24 @@ function generateEmailNotification (forceDate) {
   );
 
   if (events.length === 0) {
-    log.add('No events found. Exiting now.', 'info');
+    log.add('No events found. Exiting now.', Priority.INFO);
     return null;
   }
-  log.add('Found ' + events.length + ' events.', 'info');
+  log.add('Found ' + events.length + ' events.', Priority.INFO);
 
   contactList = [];
 
   /*
    * Build a list of contacts (with complete information) from the event list.
-   * Note: multiple events can refer to the same contact.
+   *
+   * **Note:** multiple events can refer to the same contact.
    */
   events.forEach(function (rawEvent) {
     var eventData, i;
 
     if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-      log.add(rawEvent, 'info');
-      log.add('The structure of this event cannot be parsed.', 'error');
+      log.add(rawEvent, Priority.INFO);
+      log.add('The structure of this event cannot be parsed.', Priority.FATAL_ERROR);
     }
     eventData = rawEvent.gadget.preferences;
 
@@ -1451,7 +1890,7 @@ function generateEmailNotification (forceDate) {
         ) ||
         (
           eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[i]
+          eventData['goo.contactsProfileId'] === contactList[i].gPlusId
         )
       ) {
         // FOUND!
@@ -1469,16 +1908,16 @@ function generateEmailNotification (forceDate) {
   });
 
   if (contactList.length === 0) {
-    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', 'error');
+    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', Priority.FATAL_ERROR);
   }
-  log.add('Built ' + contactList.length + ' contacts.', 'info');
+  log.add('Built ' + contactList.length + ' contacts.', Priority.INFO);
 
   // Give a default profile image to the contacts without one.
   contactList.forEach(function (contact) {
     contact.data.merge(new ContactDataDC(
-      null, // FullName.
-      null, // Nickname.
-      baseRawFilesURL + 'images/default_profile.jpg')
+      null,                                             // Full name.
+      null,                                             // Nickname.
+      defaultProfileImageURL)                           // Profile photo URL.
     );
   });
 
@@ -1488,7 +1927,6 @@ function generateEmailNotification (forceDate) {
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffixes = [
     _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
-    _('by') + ' Giorgio Bonvicini',
     _('It looks like you are using an outdated version of this script') + '.',
     _('You can find the latest one here')
   ];
@@ -1522,20 +1960,20 @@ function generateEmailNotification (forceDate) {
           }
 
           // Get all the matching 'eventType' events.
-          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, 'info');
+          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, Priority.INFO);
 
           subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
           plaintextLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, 'plain'); })
+            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
             .filter(function (lines) { return lines.length > 0; });
           htmlLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, 'html'); })
+            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
             .filter(function (lines) { return lines.length > 0; });
           if (plaintextLines.length === 0 || htmlLines.length === 0) {
-            log.add('No events found on this date.', 'info');
+            log.add('No events found on this date.', Priority.INFO);
             return;
           }
-          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, 'info');
+          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, Priority.INFO);
           // Build the headers of 'eventType' event grouping by date.
           bodyBuilder.push('\n * ');
           htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
@@ -1559,25 +1997,25 @@ function generateEmailNotification (forceDate) {
         });
     });
 
-  // If there is an email to send...
   if (bodyBuilder.length === 0) {
+    // If there is no email to send
     return null;
   } else {
-    log.add('Building the email notification.', 'info');
+    // If there is an email to send build the content...
+    log.add('Building the email notification.', Priority.INFO);
     subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
-      .concat(['\n\n ', bodySuffixes[0], '\n ', bodySuffixes[1], '\n'])
-      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[2], ' ', bodySuffixes[3], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+      .concat(['\n\n ', bodySuffixes[0], '\n '])
+      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
       .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
       .concat(htmlBodyBuilder)
-      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a><br/>', htmlEscape(bodySuffixes[1])])
-      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[2]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[3]), '</a>.</b></p>'] : ['</p>'])
+      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
+      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
       .join('');
 
-    // ...return mail content.
-
+    // ...and return it.
     return {
       'subject': subject,
       'body': body,
@@ -1587,35 +2025,29 @@ function generateEmailNotification (forceDate) {
   }
 }
 
-/*
- * Execute the main() function without forcing any date as "now".
+/**
+ * Execute the `main()` function without forcing any date as "now".
  */
 function normal () { // eslint-disable-line no-unused-vars
-  log.add('normal() running.', 'info');
+  log.add('normal() running.', Priority.INFO);
   main(null);
 }
 
-/*
- * Execute the main() function forcing a given date as "now".
+/**
+ * Execute the `main()` function forcing a given date (`settings.debug.testDate`) as "now".
  */
 function test () { // eslint-disable-line no-unused-vars
-  log.add('test() running.', 'info');
+  log.add('test() running.', Priority.INFO);
   main(settings.debug.testDate);
 }
 
 // NOTIFICATION SERVICE FUNCTIONS
 
-/*
+/**
  * Start the notification service.
  */
 function notifStart () { // eslint-disable-line no-unused-vars
-  if (
-    settings.notifications.hour < 0 ||
-    settings.notifications.hour > 23 ||
-    parseInt(settings.notifications.hour, 10) !== settings.notifications.hour
-  ) {
-    log.add('Invalid parameter: notificationHour. Must be an integer between 0 and 23.', 'error');
-  }
+  validateSettings();
   // Delete old triggers.
   notifStop();
   // Add a new trigger.
@@ -1627,12 +2059,12 @@ function notifStart () { // eslint-disable-line no-unused-vars
     .inTimezone(settings.notifications.timeZone)
     .create();
   } catch (err) {
-    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', 'error');
+    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', Priority.FATAL_ERROR);
   }
-  log.add('Notification service started.', 'info');
+  log.add('Notification service started.', Priority.INFO);
 }
 
-/*
+/**
  * Stop the notification service.
  */
 function notifStop () {
@@ -1642,10 +2074,10 @@ function notifStop () {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
-  log.add('Notification service stopped.', 'info');
+  log.add('Notification service stopped.', Priority.INFO);
 }
 
-/*
+/**
  * Check if notification service is running.
  */
 function notifStatus () { // eslint-disable-line no-unused-vars
