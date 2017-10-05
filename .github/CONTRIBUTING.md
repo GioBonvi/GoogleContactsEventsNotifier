@@ -74,6 +74,8 @@ Code consistency is what makes a project maintainable and accessible to
 everyone. To maintain consistency please make sure that your code submitted via
 Pull Requests complies with these rules:
 
+- PRs should be based against the `development` branch (or any other feature
+  branch), but not against the `master` branch;
 - If contributing translation strings you just need to ensure they are correctly
   formatted (see the first point below under [Testing](#Testing)), and you can
   ignore all the other guidelines/testing instructions;
