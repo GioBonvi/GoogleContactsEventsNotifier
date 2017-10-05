@@ -183,9 +183,9 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '3.2.0-alpha',
+    version: '4.0.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'development'
+    gitHubBranch: 'master'
   }
 };
 
