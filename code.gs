@@ -1473,13 +1473,36 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
     'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
-  /* To add a language:
-  '[lang-code]': {
-    '[first phrase]': '[translation here]',
-    '[second phrase]': '[translation here]',
-    ...
-  }
-  */
+  'nl': {
+    'Age': 'Leeftijd',
+    'Years': 'Jaar',
+    'Events': 'Gebeurtenissen',
+    'Birthdays today': 'Verjaardagen vandaag',
+    'Birthdays tomorrow': 'Verjaardagen morgen',
+    'Birthdays in {0} days': 'Verjaardagen over {0} dagen',
+    'Anniversaries today': 'Jubilea vandaag',
+    'Anniversaries tomorrow': 'Jubilea morgen',
+    'Anniversaries in {0} days': 'Jubilea over {0} dagen',
+    'Custom events today': 'Aangepaste gebeurtenissen vandaag',
+    'Custom events tomorrow': 'Aangepaste gebeurtenissen morgen',
+    'Custom events in {0} days': 'Aangepaste gebeurtenissen over {0} dagen',
+    'Hey! Don\'t forget these events': 'Hey! Vergeet volgende gebeurtenissen niet',
+    'version': 'versie',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Mobiel',
+    'Work phone': 'Tel. werk',
+    'Home phone': 'Tel. thuis',
+    'Main phone': 'Algemeen telefoonnummer',
+    'Other phone': 'Ander telefoonnummer',
+    'Home fax': 'Fax thuis',
+    'Work fax': 'Fax werk',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'E-mail thuis',
+    'Work email': 'E-mail werk',
+    'Other email': 'Ander e-mailadres',
+    'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
+    'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
 };
 
 // HELPER FUNCTIONS
