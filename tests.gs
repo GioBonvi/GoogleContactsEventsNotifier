@@ -103,7 +103,7 @@ function testSemVer () {
 /**
  * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into the log.
  *
- * **NB:** Execution of this function very often exceeds maximum time (30s).
+ * **NB:** Execution of this function very often exceeds maximum time (5min - 300s).
  *
  * @param {Date} [testDate=01/01/CURRENT_YEAR] - First date to test.
  * @param {number} [numberOfDaysToTest=365] - Number of days to test.
