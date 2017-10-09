@@ -536,7 +536,7 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
   }).map(function (event) {
-    var line, imgCount;
+    var line, eventLabel, imgCount;
 
     line = [];
     // Start line.
@@ -561,12 +561,13 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     // Custom label
     if (type === 'CUSTOM') {
+      eventLabel = event.getProp('label') || 'OTHER';
       switch (format) {
         case NotificationType.PLAIN_TEXT:
-          line.push('<', beautifyLabel(event.getProp('label')), '> ');
+          line.push('<', beautifyLabel(eventLabel), '> ');
           break;
         case NotificationType.HTML:
-          line.push(htmlEscape('<' + beautifyLabel(event.getProp('label')) + '> '));
+          line.push(htmlEscape('<' + beautifyLabel(eventLabel) + '> '));
       }
     }
     // Full name.
