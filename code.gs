@@ -1505,6 +1505,9 @@ function _ (str) {
  */
 function beautifyLabel (label) {
   switch (String(label)) {
+    /*
+     * Phone labels:
+     */
     case 'MOBILE_PHONE':
     case 'WORK_PHONE':
     case 'HOME_PHONE':
@@ -1513,10 +1516,19 @@ function beautifyLabel (label) {
     case 'WORK_FAX':
     case 'GOOGLE_VOICE':
     case 'PAGER':
+    case 'OTHER_PHONE': // Fake label for output.
+    /*
+     * (falls through)
+     * Email labels:
+     */
     case 'HOME_EMAIL':
     case 'WORK_EMAIL':
     case 'OTHER_EMAIL': // Fake label for output.
-    case 'OTHER_PHONE': // Fake label for output,
+    /*
+     * (falls through)
+     * Event labels:
+     */
+    case 'OTHER':
       return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
     default:
       return String(label);
