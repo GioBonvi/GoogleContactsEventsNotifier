@@ -1,4 +1,4 @@
-/* global Logger Plus ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp Session */
+/* global Logger Plus ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
 
 /*
  * Thanks to this script you are going to receive an email before events of each of your contacts.
@@ -25,15 +25,26 @@ var settings = {
      */
     notificationEmail: 'YOUREMEAILHERE@example.com',
     /*
-     * ID OF THE CONTACTS EVENTS CALENDAR
+     * SOURCE OF THE EVENTS
      *
-     * Open https://calendar.google.com, in the menu on the left click on the arrow next to the
-     * the contacts events calendar (which should have a name like 'Birthdays and events'), choose
-     * 'Calendar settings' and finally look for the "Calendar ID field" (it could be something
-     * similar to the default value of '#contacts@group.v.calendar.google.com', but also really
-     * different from it): copy and paste it between the quotes in the next line.
+     * In your birthday calendar settings you have chosen whether to track the birthdays
+     * of just your Google Contacts or those of your Google Contacts and of your Google
+     * Plus contacts as well.
+     * You can check which setting you chose by opening https://calendar.google.com, clicking
+     * on the arrow next to the the contacts events calendar (which should have a name like
+     * 'Birthdays and events') in the menu on the left and opening 'Calendar settings'.
+     *
+     * You can set this variable to:
+     *  'DEFAULT'              This will make the script follow your Google Calendar setting.
+     *  'CONTACTS_ONLY'        This will force the script to track just the birthdays of your
+     *                         Google Contacts, ignoring your Google Calendar setting.
+     *  'CONTACTS_AND_GPLUS'   This will force the script to track the birthdays of both
+     *                         your Google Contacts and Google Plus contacts, ignoring your
+     *                         Google Calendar setting.
+     *   Anything else will be interpreted as a a hard-coded Google Calendar ID from which
+     *   to extract the events.
      */
-    calendarId: '#contacts@group.v.calendar.google.com',
+    eventSource: 'DEFAULT',
     /*
      * EMAIL SENDER NAME
      *
@@ -177,7 +188,7 @@ var settings = {
      * YYYY/MM/DD HH:MM:SS format.
      * Choose a date you know should trigger an event notification.
      */
-    testDate: new Date('2017/10/19 06:00:00')
+    testDate: new Date('2017/08/01 06:00:00')
   },
   developer: {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
@@ -1640,7 +1651,7 @@ function uniqueStrings (arr) {
  * execution if a FATAL_ERROR is thrown.
  */
 function validateSettings () {
-  var setting;
+  var setting, calendarId;
 
   log.add('validateSettings() running.');
 
@@ -1654,12 +1665,36 @@ function validateSettings () {
     log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
   }
 
+  switch (settings.user.eventSource) {
+    case 'DEFAULT':
+      // Get the calendar ID from Google Calendar.
+      calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
+        // All the valid calendar IDs contain this string.
+        return cal.getId().indexOf('#contacts@group.v.calendar.google.com') !== -1;
+      }).map(function (cal) { return cal.getId(); });
+
+      if (calendarId.length > 0) {
+        settings.user.calendarId = calendarId[0];
+      } else {
+        log.add('Could not find the birthday calendar! Please check that you have enabled it and that your user.eventSource setting is correct!', Priority.FATAL_ERROR);
+      }
+      break;
+    case 'CONTACTS_ONLY':
+      settings.user.calendarId = 'addressbook#contacts@group.v.calendar.google.com';
+      break;
+    case 'CONTACTS_AND_GPLUS':
+      settings.user.calendarId = '#contacts@group.v.calendar.google.com';
+      break;
+    default:
+      settings.user.calendarId = settings.user.eventSource;
+  }
+
   try {
     if (Calendar.Calendars.get(settings.user.calendarId) === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Your user.calendarId setting is invalid!', Priority.FATAL_ERROR);
+    log.add('Your user.eventSource setting is invalid!', Priority.FATAL_ERROR);
   }
 
   // emailSenderName has no restrictions.

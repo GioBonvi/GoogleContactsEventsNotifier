@@ -76,7 +76,6 @@ These are the names of the variables:
 
 - `settings.user.googleEmail`
 - `settings.user.notificationEmail`
-- `settings.user.calendarId`
 
 #### Optional customization
 
@@ -85,6 +84,7 @@ they are, but you are warmly encouraged to edit them, so as to fit your exact
 needs.  
 These are the names of the variables:
 
+- `settings.user.eventSource`
 - `settings.user.emailSenderName`
 - `settings.user.lang`
 - `settings.user.accessGooglePlus`
