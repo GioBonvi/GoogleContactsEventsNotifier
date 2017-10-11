@@ -432,7 +432,7 @@ There are **many** more aspects to git for the adventurous, but they are out of
 scope for this intro.
 
 [Code of conduct]: CODE_OF_CONDUCT.md
-[Unsolved issues page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue%20is%3Aopen%20-label%3Asolved%20-label%3Awontfix%20no%3Aassignee
+[Unsolved issues page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue%20is%3Aopen%20-label%3Asolved%20-label%3Awontfix%20-label%3Aunresponsive%20no%3Aassignee
 [Coding guidelines]: #coding-guidelines
 [Contribute with translation]: ../README.md#translation
 [Git mini tutorial]: #git-mini-tutorial
