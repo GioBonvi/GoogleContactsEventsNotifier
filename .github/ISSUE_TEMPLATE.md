@@ -1,9 +1,9 @@
 <!-- markdownlint-disable-->
 Before reporting a new issue please double check that:
 
-- that you followed the instructions at https://giobonvi.github.io/GoogleBirthdayNotifier correctly in every step;
-- there is no open issue discussing your problem (check here: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues);
-- there is no closed issue  which has solved or declared unsolvable your problem (check here: https://github.com/GioBonvi/GoogleBirthdayNotifier/issues?q=is%3Aissue+is%3Aclosed);
+- you followed the instructions at https://giobonvi.github.io/GoogleContactsEventsNotifier correctly in every step;
+- there is no open issue discussing your problem (check here: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues);
+- there is no closed issue which has solved or declared unsolvable your problem (check here: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue+is%3Aclosed);
 
 If this issue is not about a bug or a problem you can delete all of this and write whatever you want.
 
@@ -31,14 +31,17 @@ What happens instead?
 
 ### Context
 
-- Version of the script: x.x (look for a line in the code which reads `var
-  version = '2.1.2';`);
+- Version of the script: x.x.x - look for a line near the top of the code which
+  reads:
+  ```javascript
+  version: 'w.x.y-z',
+  ```
 - Any other details which might be related to the context;
 
 ### Extended description
 
-Try to describe the problem in the most complete way you can; add here images,
-error messages, hypothesis and observations regarding the problem.
+Try to describe the problem in the most complete way you can add images,
+error messages, hypothesis and observations regarding the problem here.
 
 ### Possible solution
 
