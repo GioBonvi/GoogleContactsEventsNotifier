@@ -47,7 +47,7 @@ var settings = {
      *
      * To translate the notifications messages into your language enter the two-letter language
      * code here.
-     * Available languages are: en, el, es, it, de, id, pl, fr.
+     * Available languages are: en, el, es, it, de, id, pl, fr, nl.
      * If you want to add your own language find the variable called i18n below and follow the
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
@@ -1503,7 +1503,7 @@ var i18n = {
     'Other email': 'Ander e-mailadres',
     'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
     'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
-    },
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
