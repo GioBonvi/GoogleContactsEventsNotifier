@@ -1503,6 +1503,14 @@ var i18n = {
     'Other email': 'Ander e-mailadres',
     'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
     'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
+    },
+  /* To add a language:
+  '[lang-code]': {
+    '[first phrase]': '[translation here]',
+    '[second phrase]': '[translation here]',
+    ...
+  }
+  */
 };
 
 // HELPER FUNCTIONS
