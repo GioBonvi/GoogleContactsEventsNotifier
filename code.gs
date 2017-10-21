@@ -58,7 +58,7 @@ var settings = {
      *
      * To translate the notifications messages into your language enter the two-letter language
      * code here.
-     * Available languages are: en, el, es, it, de, id, pl, fr.
+     * Available languages are: en, el, es, it, de, id, pl, fr, nl.
      * If you want to add your own language find the variable called i18n below and follow the
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
@@ -194,9 +194,9 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '3.2.0-alpha',
+    version: '4.0.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'development'
+    gitHubBranch: 'master'
   }
 };
 
@@ -547,7 +547,7 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     return typeMatch && event.getProp('day') === date.getDate() && event.getProp('month') === (date.getMonth() + 1);
   }).map(function (event) {
-    var line, imgCount;
+    var line, eventLabel, imgCount;
 
     line = [];
     // Start line.
@@ -572,12 +572,13 @@ Contact.prototype.getLines = function (type, date, format) {
     }
     // Custom label
     if (type === 'CUSTOM') {
+      eventLabel = event.getProp('label') || 'OTHER';
       switch (format) {
         case NotificationType.PLAIN_TEXT:
-          line.push('<', beautifyLabel(event.getProp('label')), '> ');
+          line.push('<', beautifyLabel(eventLabel), '> ');
           break;
         case NotificationType.HTML:
-          line.push(htmlEscape('<' + beautifyLabel(event.getProp('label')) + '> '));
+          line.push(htmlEscape('<' + beautifyLabel(eventLabel) + '> '));
       }
     }
     // Full name.
@@ -1287,14 +1288,14 @@ var i18n = {
     'Work phone': 'Τηλέφωνο εργασίας',
     'Home phone': 'Τηλέφωνο οικίας',
     'Main phone': 'Κύριο τηλέφωνο',
-    // TODO: 'Other phone': '',
+    'Other phone': 'Άλλο τηλέφωνο',
     'Home fax': 'Φαξ οικίας',
     'Work fax': 'Φαξ εργασίας',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    'Home email': 'Email οικίας',
-    'Work email': 'Email εργασίας',
-    // TODO: 'Other email': '',
+    'Google voice': 'Google voice',
+    'Pager': 'Τηλεειδοποίηση',
+    'Home email': 'Προσωπικό email',
+    'Work email': 'Επαγγελματικό email',
+    'Other email': 'Άλλο email',
     'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
     'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
@@ -1318,14 +1319,14 @@ var i18n = {
     'Work phone': 'Teléfono del trabajo',
     'Home phone': 'Teléfono del hogar',
     'Main phone': 'Teléfono principal',
-    // TODO: 'Other phone': '',
-    // TODO: 'Home fax': '',
-    // TODO: 'Work fax': '',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    // TODO: 'Home email': '',
-    // TODO: 'Work email': '',
-    // TODO: 'Other email': '',
+    'Other phone': 'Otro teléfono',
+    'Home fax': 'Fax del hogar',
+    'Work fax': 'Fax del trabajo',
+    'Google voice': 'Google voice',
+    'Pager': 'Buscapersonas',
+    'Home email': 'Correo electrónico del hogar',
+    'Work email': 'Correo electrónico del trabajo',
+    'Other email': 'Otro correo electrónico',
     'It looks like you are using an outdated version of this script': 'Parece que estás usando una versión antigua de este script',
     'You can find the latest one here': 'Puedes encontrar la última aquí',
   },
@@ -1424,7 +1425,7 @@ var i18n = {
   },
   'pl': {
     'Age': 'Wiek',
-    'Years': 'Lat',
+    'Years': 'Lat(a)',
     'Events': 'Wydarzenia',
     'Birthdays today': 'Urodziny dzisiaj',
     'Birthdays tomorrow': 'Urodziny jutro',
@@ -1437,19 +1438,19 @@ var i18n = {
     'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
     'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
     'version': 'wersja',
-    'dd-MM-yyyy': 'dd-MM-yyyy',
-    'Mobile phone': 'Telefon komórkowy',
-    'Work phone': 'Telefon (praca)',
-    'Home phone': 'Telefon (domowy)',
+    'dd-MM-yyyy': 'dd.MM.yyyy',
+    'Mobile phone': 'Telefon',
+    'Work phone': 'Telefon (służbowy)',
+    'Home phone': 'Telefon (stacjonarny)',
     'Main phone': 'Telefon (główny)',
-    // TODO: 'Other phone': '',
-    // TODO: 'Home fax': '',
-    // TODO: 'Work fax': '',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    // TODO: 'Home email': '',
-    // TODO: 'Work email': '',
-    // TODO: 'Other email': '',
+    'Other phone': 'Inne numery',
+    'Home fax': 'Fax (domowy)',
+    'Work fax': 'Fax (służbowy)',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'E-mail (prywatny)',
+    'Work email': 'E-mail (służbowy)',
+    'Other email': 'Inne adresy e-mail',
     'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
     'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
@@ -1469,20 +1470,51 @@ var i18n = {
     'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
     'version': 'version',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'Mobile phone': 'Mobile',
-    'Work phone': 'Travail',
-    'Home phone': 'Maison',
-    'Main phone': 'Principal',
-    // TODO: 'Other phone': '',
-    // TODO: 'Home fax': '',
-    // TODO: 'Work fax': '',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    // TODO: 'Home email': '',
-    // TODO: 'Work email': '',
-    // TODO: 'Other email': '',
+    'Mobile phone': 'Téléphone portable',
+    'Work phone': 'Téléphone travail',
+    'Home phone': 'Téléphone maison',
+    'Main phone': 'Téléphone principale',
+    'Other phone': 'Autre téléphone',
+    'Home fax': 'Fax maison',
+    'Work fax': 'Fax travail',
+    'Google voice': 'Google voice',
+    'Pager': 'Téléavertisseur',
+    'Home email': 'Adresse mail personelle',
+    'Work email': 'Adresse mail professionelle',
+    'Other email': 'Autre adresse mail',
     'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
     'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
+  },
+  'nl': {
+    'Age': 'Leeftijd',
+    'Years': 'Jaar',
+    'Events': 'Gebeurtenissen',
+    'Birthdays today': 'Verjaardagen vandaag',
+    'Birthdays tomorrow': 'Verjaardagen morgen',
+    'Birthdays in {0} days': 'Verjaardagen over {0} dagen',
+    'Anniversaries today': 'Jubilea vandaag',
+    'Anniversaries tomorrow': 'Jubilea morgen',
+    'Anniversaries in {0} days': 'Jubilea over {0} dagen',
+    'Custom events today': 'Aangepaste gebeurtenissen vandaag',
+    'Custom events tomorrow': 'Aangepaste gebeurtenissen morgen',
+    'Custom events in {0} days': 'Aangepaste gebeurtenissen over {0} dagen',
+    'Hey! Don\'t forget these events': 'Hey! Vergeet volgende gebeurtenissen niet',
+    'version': 'versie',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Mobiel',
+    'Work phone': 'Tel. werk',
+    'Home phone': 'Tel. thuis',
+    'Main phone': 'Algemeen telefoonnummer',
+    'Other phone': 'Ander telefoonnummer',
+    'Home fax': 'Fax thuis',
+    'Work fax': 'Fax werk',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'E-mail thuis',
+    'Work email': 'E-mail werk',
+    'Other email': 'Ander e-mailadres',
+    'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
+    'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
   },
   /* To add a language:
   '[lang-code]': {
@@ -1515,6 +1547,9 @@ function _ (str) {
  */
 function beautifyLabel (label) {
   switch (String(label)) {
+    /*
+     * Phone labels:
+     */
     case 'MOBILE_PHONE':
     case 'WORK_PHONE':
     case 'HOME_PHONE':
@@ -1523,10 +1558,19 @@ function beautifyLabel (label) {
     case 'WORK_FAX':
     case 'GOOGLE_VOICE':
     case 'PAGER':
+    case 'OTHER_PHONE': // Fake label for output.
+    /*
+     * (falls through)
+     * Email labels:
+     */
     case 'HOME_EMAIL':
     case 'WORK_EMAIL':
     case 'OTHER_EMAIL': // Fake label for output.
-    case 'OTHER_PHONE': // Fake label for output,
+    /*
+     * (falls through)
+     * Event labels:
+     */
+    case 'OTHER':
       return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
     default:
       return String(label);
