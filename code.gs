@@ -196,7 +196,7 @@ var settings = {
      */
     version: '4.0.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'master'
+    gitHubBranch: 'development'
   }
 };
 
