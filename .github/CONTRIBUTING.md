@@ -247,7 +247,7 @@ which you can find [here][Git guide].
 [Coding guidelines]: #coding-guidelines
 [Contribute with translation]: ../docs/translation-guide.md
 [Issue template file]: ISSUE_TEMPLATE.md
-[Unresponsive issues]: ../README.md#unresponsive-help-requests
+[Unresponsive issues]: https://giobonvi.github.io/GoogleContactsEventsNotifier/#unresponsive-help-requests
 [Javascript semistandard]: https://github.com/Flet/semistandard
 [Commonmark specification]: http://commonmark.org
 [Markdown linter config]: ../.markdownlint.json
