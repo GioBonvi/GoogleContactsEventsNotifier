@@ -66,7 +66,7 @@ steps:
 ### Translation
 
 The text of the email notification can be translated into any language if a
-translation for that language is provided to the script. Soe languages already
+translation for that language is provided to the script. Some languages already
 have a translation, but you can easily add your own.
 
 To learn more about translations (how to create your own one, how to share
@@ -170,8 +170,8 @@ This is an exhaustive description of the reason the script needs each of the per
 Google Contacts Events Notifier is an open source project: if you want to
 know how to contribute please read the [CONTRIBUTING][Contributing file] file.
 
-If you just want to contribute with a translation then the [translation guide]
-[Translation guide] might be a better place where to start.
+If you just want to contribute with a translation then the
+[translation guide][Translation guide] might be a better place to start.
 
 ## License
 
