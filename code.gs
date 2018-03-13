@@ -1,4 +1,6 @@
 /* global Logger Plus ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
+/* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
+/* eslint comma-dangle: ["error", "only-multiline"] */
 
 /*
  * Thanks to this script you are going to receive an email before events of each of your contacts.
@@ -500,8 +502,8 @@ Contact.prototype.addToField = function (field, incData) {
   if (
     Object.keys(incData.prop).length === 0 ||
     Object.keys(incData.prop)
-    .filter(function (key) { return !incData.isPropEmpty(key); })
-    .length === 0
+      .filter(function (key) { return !incData.isPropEmpty(key); })
+      .length === 0
   ) {
     return;
   }
@@ -1586,12 +1588,12 @@ function beautifyLabel (label) {
 function htmlEscape (str) {
   str = str || '';
   return str
-         .replace(/&/g, '&amp;')
-         .replace(/"/g, '&quot;')
-         .replace(/'/g, '&#39;')
-         .replace(/</g, '&lt;')
-         .replace(/>/g, '&gt;')
-         .replace(/\//g, '&#x2F;');
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\//g, '&#x2F;');
 }
 
 /**
@@ -2132,11 +2134,11 @@ function notifStart () { // eslint-disable-line no-unused-vars
   // Add a new trigger.
   try {
     ScriptApp.newTrigger('normal')
-    .timeBased()
-    .atHour(settings.notifications.hour)
-    .everyDays(1)
-    .inTimezone(settings.notifications.timeZone)
-    .create();
+      .timeBased()
+      .atHour(settings.notifications.hour)
+      .everyDays(1)
+      .inTimezone(settings.notifications.timeZone)
+      .create();
   } catch (err) {
     log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', Priority.FATAL_ERROR);
   }
