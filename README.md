@@ -334,6 +334,7 @@ file].
   - [cezarylaksa][Github cezarylaksa] and [baatochan (Bartosz
     Rodziewicz)][Github baatochan] - Polish;
   - [JayForce][GitHub JayForce] - French;
+  - [miguel-r (Miguel Ribeiro)][Github miguel-r] - Portuguese;
 - all of the contributors that you can find [here][Project contributors page];
 
 [Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
@@ -356,3 +357,4 @@ file].
 [Github cezarylaksa]: https://github.com/cezarylaksa
 [Github baatochan]: https://github.com/baatochan
 [Github JayForce]: https://github.com/JayForce
+[Github miguel-r]: https://github.com/miguel-r

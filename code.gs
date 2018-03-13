@@ -47,7 +47,7 @@ var settings = {
      *
      * To translate the notifications messages into your language enter the two-letter language
      * code here.
-     * Available languages are: en, el, es, it, de, id, pl, fr, nl.
+     * Available languages are: en, el, es, it, de, id, pl, fr, nl, pt.
      * If you want to add your own language find the variable called i18n below and follow the
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
