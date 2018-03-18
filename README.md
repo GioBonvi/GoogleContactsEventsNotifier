@@ -180,6 +180,8 @@ file].
 
 ## Credits
 
+- [GioBonvi (Giorgio Bonvicini)][Github GioBonvi] created the project and is
+  primary maintainer;
 - Google user `ajparag` for the [code][Original Google Help Forum
   post] that inspired this project;
 - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe], whose help was invaluable:
@@ -210,6 +212,7 @@ file].
 [Google Drive trash]: https://drive.google.com/drive/trash
 [Google connected apps]: https://myaccount.google.com/permissions
 [Original Google Help Forum Post]: https://productforums.google.com/d/msg/calendar/OaaO2og9m5w/2VgNNNF5BwAJ
+[Github GioBonvi]: https://github.com/GioBonvi
 [GitHub rowanthorpe]: https://github.com/rowanthorpe
 [Github lboullo0]: https://github.com/lboullo0
 [Github muzavan]: https://github.com/muzavan
