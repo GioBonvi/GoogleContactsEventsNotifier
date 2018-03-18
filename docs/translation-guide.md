@@ -1,9 +1,8 @@
 # Translation
 
 Google Contacts Events Notifier can easily be configured so as to use another
-language instead of the English (which is the default) for the email
-notifications.  
-This guides presents the main points of the translation process.
+language instead of English (which is the default) for the email notifications.  
+This guide presents the main points of the translation process.
 
 <!-- TOC -->
 
@@ -67,13 +66,14 @@ To add a new language:
   },
   ```
 - These are some things you have to keep in mind to do this correctly:
-  1. Remember to put a comma at each line except after the open curly bracket.
+  1. Remember to put a comma at the end of each line except after the open curly
+     bracket.
   2. Do not change the leftmost string.
   3. Make sure that the strings are enclosed in a pair of single quotes (`'`).
   4. If you need to enter a single quote in the string itself put a backslash
      (`\`) before it.  
      You can find an example above: the string `Puoi trovare l'ultima qui` must
-     becomes `'Puoi trovare l\'ultima qui'` when enclosing it between the two
+     become `'Puoi trovare l\'ultima qui'` when enclosing it between the two
      single quotes.
   5. Try to keep the translation as faithful to the original as possible (obviously
      keeping context and language rules in mind).  
@@ -84,7 +84,7 @@ To add a new language:
 
 Google Contacts Events Notifier is used by various users from around the world; if
 you want you can make your translation available to everyone by sharing it with us:
-we will be extremely happy to include it into the script in the next release.
+we will be extremely happy to include it in the script in the next release.
 
 ### How to submit a new translation
 
@@ -112,7 +112,7 @@ Follow this guide only if you are quite familiar with how git and GitHub work.
 4. Push the commit(s) to your forked repository and open a new Pull Request for the
    changes to be merged into the original repository.  
    Note: PRs should **not** be opened against the `master` branch, but against `development`
-   or any other topic branch.
+   (or another feature branch if appropriate).
 
 You might want to read the complete [guide to contributing][CONTRIBUTING.md]: most
 of it is not needed if you just want to contribute with a translation, but you
@@ -151,7 +151,7 @@ and we will analyze and merge them into the actual code of the script.
    correctly. (You might have to select the branch again). Then click on the
    "New pull request" button next to the branch selection dropdown.  
    ![New pull request][New PR image]
-6. Se the "base fork" dropdown to your own fork and the "head fork" to
+6. Set the "base fork" dropdown to your own fork and the "head fork" to
    "GioBonvi/GoogleContactsEventsNotifier". Set both the "base" and "compare"
    dropdowns to the branch you have edited, then click "Create pull request".  
    ![Create pull request][Create PR image]

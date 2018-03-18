@@ -61,8 +61,9 @@ developers of a project: they, however, are only useful as long as they are used
 correctly.  
 This project has a few rules regarding issues:
 
-- Help requests in the issues are accepted as long as you first read everything
-  else and nothing you have tried works;
+- Help requests in the issues are accepted as long as you first read the [setup
+  and installation guide][Setup and installation guide] and nothing you have
+  tried works;
 - When reporting an issue please follow the [template provided][Issue template
   file];
 - Unresponsive help request issues are closed following [this
@@ -74,8 +75,8 @@ Code consistency is what makes a project maintainable and accessible to
 everyone. To maintain consistency please make sure that your code submitted via
 Pull Requests complies with these rules:
 
-- PRs should be based against the `development` branch (or any other feature
-  branch), but not against the `master` branch;
+- PRs should be based against the `development` branch (or another feature
+  branch if appropriate), but not against the `master` branch;
 - If contributing translation strings you just need to ensure they are correctly
   formatted (see the first point below under [Testing](#testing)), and you can
   ignore all the other guidelines/testing instructions;
@@ -122,9 +123,9 @@ Before submitting a PR:
       that either create a new script-file for `tests.gs` within the same
       project in the Google script-editor, or append the content of
       `tests.gs` to that of the `code.gs` script-file, then `run->unitTests()`.
-    - It is good to also `run->test()` with `settings.debug.testDate` set to a date
-      with some contact-anniversaries on it (or create some fake ones on that date)
-      to provide real-world testing too.
+    - It is good to also `run->test()` from `code.gs` with `settings.debug.testDate`
+      set to a date with some contact-anniversaries on it (or create some fake ones
+      on that date) to provide real-world testing too.
     - For exhaustive real-world testing there is also `testSelectedPeriod()`. Beware
       that this test *might* hit an execution timeout limit.
     - If there are any other new global functions in the [tests file][Tests file]
@@ -150,7 +151,7 @@ Before submitting a PR:
       apt-get install "python-markdown" "lynx" # if not yet installed
       for x in `find . -name "*.md"`; do markdown_py "${x}" | lynx -stdin; done
       ```
-      or to just generate `.html` files next to the `.md` ones:
+      or to just generate temporary `.html` files next to the `.md` ones:
       ```sh
       for x in `find . -name "*.md"`; do markdown_py "${x}" >"${x%.md}.html"; done
       ```
@@ -257,3 +258,4 @@ which you can find [here][Git guide].
 [Markdown linter]: https://github.com/DavidAnson/markdownlint
 [JSDoc processor]: https://github.com/jsdoc3/jsdoc
 [Git guide]: ../docs/git-guide.md
+[Setup and installation guide]: ../docs/install-and-setup.md

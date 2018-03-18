@@ -2,12 +2,9 @@
 
 Follow these instructions to install and setup the script correctly.
 
-## TOC
-
 <!-- TOC -->
 
-- [Setup](#setup)
-  - [TOC](#toc)
+- [Setup](#installation-and-setup)
   - [Enable the calendar](#enable-the-calendar)
   - [Create the script](#create-the-script)
   - [Customize the script](#customize-the-script)
@@ -23,7 +20,7 @@ Follow these instructions to install and setup the script correctly.
 ## Enable the calendar
 
 First of all you need to enable your contacts birthday and events calendar in
-you Google Calendar (read [this Google help page][Google setup birthday
+your Google Calendar (read [this Google help page][Google setup birthday
 calendar] to know how to do it).
 
 ## Create the script
@@ -40,7 +37,7 @@ values as explained by the instructions.
 
 Once you're done editing the variables click `File->Save` in the menu and enter a
 name for the script (it doesn't really matter, just name it so that you'll
-recognize it if you find it in the future).
+recognize it in the future).
 
 The customization variables can be categorized in three groups.
 
@@ -55,9 +52,8 @@ These are the names of the variables:
 
 ### Optional customization
 
-This second groups of settings contains some variables than you could leave as
-they are, but you are warmly encouraged to edit them, so as to fit your exact
-needs.  
+This second group of settings contains some variables that you could leave as
+they are, but you are warmly encouraged to edit them to fit your exact needs.  
 These are the names of the variables:
 
 - `settings.user.eventSource`
@@ -126,4 +122,4 @@ contacts' birthday (You should have set how many days before at the beginning).
 [Main code file]: https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/code.gs
 [Google Scripts website]: https://script.google.com
 [Google setup birthday calendar]: https://support.google.com/calendar/answer/6084659?hl=en
-[Permissions list]: ./README.md#permissions-required
+[Permissions list]: ../README.md#permissions-required

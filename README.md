@@ -76,15 +76,15 @@ it with us so that it can be used by other users...) please read the
 ### Bug and error reporting, help requests
 
 First of all _before submitting a new error, bug or help request_, please,
-__verify that you followed [the setup instructions][Project documentation] to the
-letter.__
+__verify that you followed [the setup instructions][Setup and installation guide]
+to the letter.__
 
 To report a bug or an error or to request help with this script please use [this
 project GitHub issue page][Project issue page]: the collaborators will be notified
 immediately and will provide help as soon as possible.
 
-Please follow the [template provided][Issue template file] when opening a new issue
-and include:
+Please follow the template provided (which you can also [preview here][Issue
+template file]) when opening a new issue and include:
 
 - A __meaningful description of the problem__. What did you do? What happened?
   What did you expect to happen instead?
@@ -148,7 +148,7 @@ This is an exhaustive description of the reason the script needs each of the per
   Plus. The script will only get information about people who appear in your birthday
   calendar. If you prefer to not access Google Plus at all set
   `settings.user.accessGooglePlus = false` before running any functions and do not
-  enable the Google+ API.
+  enable the Google+ API (then you won't be prompted for this permission).
 - **Manage your Google Contacts**  
   This lets the script access information about your contacts (names, email
   addresses, birthdays). The script will not modify any of your contacts.
