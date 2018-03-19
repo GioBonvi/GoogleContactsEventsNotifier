@@ -1,7 +1,8 @@
 # Translation
 
 Google Contacts Events Notifier can easily be configured so as to use another
-language instead of English (which is the default) for the email notifications.  
+language instead of English (which is the default) for the email
+notifications.  
 This guide presents the main points of the translation process.
 
 <!-- TOC -->

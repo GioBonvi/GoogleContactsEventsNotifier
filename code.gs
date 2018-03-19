@@ -60,7 +60,7 @@ var settings = {
      *
      * To translate the notifications messages into your language enter the two-letter language
      * code here.
-     * Available languages are: en, el, es, it, de, id, pl, fr, nl.
+     * Available languages are: en, el, es, it, de, id, pl, fr, nl, pt.
      * If you want to add your own language find the variable called i18n below and follow the
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
@@ -1517,6 +1517,37 @@ var i18n = {
     'Other email': 'Ander e-mailadres',
     'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
     'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
+  },
+  'pt': {
+    'Age': 'Idade',
+    'Years': 'Anos',
+    'Events': 'Eventos',
+    'Birthdays today': 'Aniversários hoje',
+    'Birthdays tomorrow': 'Aniversários amanhã',
+    'Birthdays in {0} days': 'Aniversários em {0} dias',
+    'Anniversaries today': 'Aniversários hoje',
+    'Anniversaries tomorrow': 'Aniversários amanhã',
+    'Anniversaries in {0} days': 'Aniversários em {0} dias',
+    'Custom events today': 'Eventos personalizados hoje',
+    'Custom events tomorrow': 'Eventos personalizados amanhã',
+    'Custom events in {0} days': 'Eventos personalizados em {0} dias',
+    'Hey! Don\'t forget these events': 'Hey! Não te esqueças destes eventos',
+    'version': 'versão',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Número de telemóvel',
+    'Work phone': 'Número de trabalho',
+    'Home phone': 'Número de casa',
+    'Main phone': 'Número principal',
+    'Other phone': 'Outro número',
+    'Home fax': 'Fax de casa',
+    'Work fax': 'Fax de trabalho',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'Email de casa',
+    'Work email': 'Email de trabalho',
+    'Other email': 'Outro email',
+    'It looks like you are using an outdated version of this script': 'Parece que tens uma versão desatualizada deste script',
+    'You can find the latest one here': 'Podes encontrar a última versão aqui',
   },
   /* To add a language:
   '[lang-code]': {

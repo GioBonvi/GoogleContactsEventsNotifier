@@ -197,6 +197,7 @@ file].
     Rodziewicz)][Github baatochan] - Polish;
   - [JayForce][GitHub JayForce] - French;
   - [88scythe][GitHub 88scythe] - Dutch;
+  - [miguel-r (Miguel Ribeiro)][Github miguel-r] - Portuguese;
 - all the other contributors who are listed [here][Project contributors page];
 
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
@@ -221,3 +222,4 @@ file].
 [Github baatochan]: https://github.com/baatochan
 [Github JayForce]: https://github.com/JayForce
 [Github 88scythe]: https://github.com/88scythe
+[Github miguel-r]: https://github.com/miguel-r
