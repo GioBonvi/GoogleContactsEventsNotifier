@@ -1947,7 +1947,7 @@ function main (forceDate) {
 
 /**
  * Generate the content of an email to the user containing a list of the events
- * of his/her contacts scheduled on agiven date.
+ * of his/her contacts scheduled on a given date.
  *
  * @param {?Date} forceDate - If this value is not null it's used as 'now'.
  * @returns {Object.<string,any>} - The content of the email.
