@@ -286,11 +286,11 @@ LocalCache.prototype.retrieve = function (url, retry) {
 /**
  * Initialize an empty contact.
  *
- * A Contact object holds the data about a contact collected from multiple sources.
+ * A MergedContact object holds the data about a contact collected from multiple sources.
  *
  * @class
  */
-function Contact () {
+function MergedContact () {
   /** @type {?string} */
   this.contactId = null;
   /** @type {?string} */
@@ -310,12 +310,12 @@ function Contact () {
 }
 
 /**
- * Extract all the available data from the raw event object and store them in the `Contact`.
+ * Extract all the available data from the raw event object and store them in the `MergedContact`.
  *
  * @param {Object} rawEvent - The object containing all the data about the event, obtained
  *                            from the Google Calendar API.
  */
-Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
+MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   var eventData, eventDate, eventLabel;
 
   log.add('Extracting info from raw event object...', Priority.INFO);
@@ -366,7 +366,7 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
 };
 
 /**
- * Update the `Contact` with info collect from a Google Contact.
+ * Update the `MergedContact` with info collect from a Google Contact.
  *
  * Some raw events will contain a Google Contact ID which gives access
  * to a bunch of new data about the contact.
@@ -375,7 +375,7 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
  *
  * @param {!string} contactId - The id from which to collect the data.
  */
-Contact.prototype.getInfoFromContact = function (contactId) {
+MergedContact.prototype.getInfoFromContact = function (contactId) {
   var self, googleContact;
 
   self = this;
@@ -429,7 +429,7 @@ Contact.prototype.getInfoFromContact = function (contactId) {
 };
 
 /**
- * Update the `Contact` with info collected from a Google+ Profile.
+ * Update the `MergedContact` with info collected from a Google+ Profile.
  *
  * Some raw events will contain a Google Plus Profile ID which
  * gives access to a bunch of new data about the contact.
@@ -438,7 +438,7 @@ Contact.prototype.getInfoFromContact = function (contactId) {
  *
  * @param {string} gPlusProfileId - The id from which to collect the data.
  */
-Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
+MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
   var gPlusProfile, birthdayDate;
 
   if (!settings.user.accessGooglePlus) {
@@ -495,7 +495,7 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
  * @param {!string} field - The name of the field in which to insert the object.
  * @param {DataCollector} incData - The object to insert.
  */
-Contact.prototype.addToField = function (field, incData) {
+MergedContact.prototype.addToField = function (field, incData) {
   var merged;
 
   // incData must have at least one non-empty property.
@@ -531,7 +531,7 @@ Contact.prototype.addToField = function (field, incData) {
  * @param {!NotificationType} format - The format of the text line.
  * @returns {string[]} - A list of the plain text descriptions of the events.
  */
-Contact.prototype.getLines = function (type, date, format) {
+MergedContact.prototype.getLines = function (type, date, format) {
   var self;
 
   self = this;
@@ -1981,7 +1981,7 @@ function generateEmailNotification (forceDate) {
     if (i === contactList.length) {
       // NOT FOUND!
       // Add a new contact to the contact list and store all the info in that contact.
-      contactList.push(new Contact());
+      contactList.push(new MergedContact());
       contactList[i].getInfoFromRawEvent(rawEvent);
     }
   });
