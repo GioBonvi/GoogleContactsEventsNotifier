@@ -1913,39 +1913,6 @@ function getEventsOnDate (eventDate, calendarId) {
 }
 
 /**
- * <div style="clear:both"></div>
- * Send an email notification to the user containing a list of the events
- * of his/her contacts scheduled for the next days.
- *
- * @param {?Date} forceDate - If this value is not null it's used as 'now'.
- */
-function main (forceDate) {
-  log.add('main() running.', Priority.INFO);
-
-  validateSettings();
-
-  var emailData = generateEmailNotification(forceDate);
-
-  // If generateEmailNotification returned mail content send it.
-  if (emailData !== null) {
-    log.add('Sending email...', Priority.INFO);
-    MailApp.sendEmail({
-      to: settings.user.notificationEmail,
-      subject: emailData.subject,
-      body: emailData.body,
-      htmlBody: emailData.htmlBody,
-      inlineImages: emailData.inlineImages,
-      name: settings.user.emailSenderName
-    });
-
-    log.add('Email sent.', Priority.INFO);
-  }
-
-  // Send the log if the debug options say so.
-  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
-}
-
-/**
  * Generate the content of an email to the user containing a list of the events
  * of his/her contacts scheduled on a given date.
  *
@@ -2135,6 +2102,39 @@ function generateEmailNotification (forceDate) {
       'inlineImages': inlineImages
     };
   }
+}
+
+/**
+ * <div style="clear:both"></div>
+ * Send an email notification to the user containing a list of the events
+ * of his/her contacts scheduled for the next days.
+ *
+ * @param {?Date} forceDate - If this value is not null it's used as 'now'.
+ */
+function main (forceDate) {
+  log.add('main() running.', Priority.INFO);
+
+  validateSettings();
+
+  var emailData = generateEmailNotification(forceDate);
+
+  // If generateEmailNotification returned mail content send it.
+  if (emailData !== null) {
+    log.add('Sending email...', Priority.INFO);
+    MailApp.sendEmail({
+      to: settings.user.notificationEmail,
+      subject: emailData.subject,
+      body: emailData.body,
+      htmlBody: emailData.htmlBody,
+      inlineImages: emailData.inlineImages,
+      name: settings.user.emailSenderName
+    });
+
+    log.add('Email sent.', Priority.INFO);
+  }
+
+  // Send the log if the debug options say so.
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }
 
 /**
