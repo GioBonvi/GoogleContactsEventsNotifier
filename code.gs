@@ -2022,45 +2022,44 @@ function generateEmailNotification (forceDate) {
       date = new Date(now.getTime() + daysInterval * 24 * 60 * 60 * 1000);
       formattedDate = Utilities.formatDate(date, calendarTimeZone, _('dd-MM-yyyy'));
 
-      eventTypes.forEach(
-        function (eventType) {
-          var plaintextLines, htmlLines, whenIsIt;
+      eventTypes.forEach(function (eventType) {
+        var plaintextLines, htmlLines, whenIsIt;
 
-          // Get all the matching 'eventType' events.
-          log.add('Checking ' + eventTypeNamePlural[eventType] + ' on ' + formattedDate, Priority.INFO);
+        // Get all the matching 'eventType' events.
+        log.add('Checking ' + eventTypeNamePlural[eventType] + ' on ' + formattedDate, Priority.INFO);
 
-          plaintextLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
-            .filter(function (lines) { return lines.length > 0; });
-          htmlLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
-            .filter(function (lines) { return lines.length > 0; });
-          if (plaintextLines.length === 0 || htmlLines.length === 0) {
-            log.add('No events found on this date.', Priority.INFO);
-            return;
-          }
-          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural[eventType], Priority.INFO);
-          // Build the headers of 'eventType' event grouping by date.
-          bodyBuilder.push('\n * ');
-          htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
-          whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
-          switch (daysInterval) {
-            case 0:
-              whenIsIt += ' today';
-              break;
-            case 1:
-              whenIsIt += ' tomorrow';
-              break;
-            default:
-              whenIsIt += ' in {0} days';
-          }
-          whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
-          bodyBuilder.push(whenIsIt, ':\n');
-          plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
-          htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
-          htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
-          htmlBodyBuilder.push('</dd></ul>');
-        });
+        plaintextLines = contactList
+          .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
+          .filter(function (lines) { return lines.length > 0; });
+        htmlLines = contactList
+          .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
+          .filter(function (lines) { return lines.length > 0; });
+        if (plaintextLines.length === 0 || htmlLines.length === 0) {
+          log.add('No events found on this date.', Priority.INFO);
+          return;
+        }
+        log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural[eventType], Priority.INFO);
+        // Build the headers of 'eventType' event grouping by date.
+        bodyBuilder.push('\n * ');
+        htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
+        whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
+        switch (daysInterval) {
+          case 0:
+            whenIsIt += ' today';
+            break;
+          case 1:
+            whenIsIt += ' tomorrow';
+            break;
+          default:
+            whenIsIt += ' in {0} days';
+        }
+        whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
+        bodyBuilder.push(whenIsIt, ':\n');
+        plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
+        htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
+        htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
+        htmlBodyBuilder.push('</dd></ul>');
+      });
     });
 
   if (bodyBuilder.length === 0) {
