@@ -187,7 +187,7 @@ var settings = {
      * TEST DATE
      *
      * When using the test() function this date will be used as "now". The date must be in the
-     * YYYY/MM/DD HH:MM:SS format.
+     * yyyy/MM/dd HH:mm:ss format.
      * Choose a date you know should trigger an event notification.
      */
     testDate: new Date('2017/08/01 06:00:00')
@@ -1043,7 +1043,7 @@ function LogEvent (time, message, priority) {
  * @returns {string} - The textual description of the event.
  */
 LogEvent.prototype.toString = function () {
-  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
+  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
 };
 
 /**
