@@ -342,7 +342,7 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
     if (eventLabel === 'SELF') {
       // Your own birthday is marked as 'SELF'.
       eventLabel = 'BIRTHDAY';
-    } else if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+    } else if (eventLabel === 'CUSTOM' && !isIn(eventData['goo.contactsCustomEventType'], [undefined, null])) {
       // Custom events have an additional field containing the custom name of the event.
       eventLabel = eventData['goo.contactsCustomEventType'];
     }
@@ -644,7 +644,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
 
         label = email.getProp('label');
         emailAddr = email.getProp('address');
-        if (typeof collected[label] !== 'undefined') {
+        if (!isIn(collected[label], [undefined, null])) {
           // Store the value if the label group is already defined.
           collected[label].push(emailAddr);
         } else if (!settings.notifications.compactGrouping && label) {
@@ -662,7 +662,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
 
         label = phone.getProp('label');
         phoneNum = phone.getProp('number');
-        if (typeof collected[label] !== 'undefined') {
+        if (!isIn(collected[label], [undefined, null])) {
           // Store the value if the label group is already defined.
           collected[label].push(phoneNum);
         } else if (!settings.notifications.compactGrouping && label) {
@@ -766,7 +766,7 @@ DataCollector.prototype.getProp = function (key) {
  * @param {?string} value - The value of the property.
  */
 DataCollector.prototype.setProp = function (key, value) {
-  this.prop[key] = (typeof value !== 'undefined' && value !== '' ? value : null);
+  this.prop[key] = value || null;
 };
 
 /**
@@ -1121,8 +1121,8 @@ function SimplifiedSemanticVersion (versionNumber) {
     self.numbers[0] = parseInt(matches[1]);
     self.numbers[1] = parseInt(matches[2]);
     self.numbers[2] = parseInt(matches[3]);
-    self.preRelease = typeof matches[4] === 'undefined' ? '' : matches[4];
-    self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
+    self.preRelease = isIn(matches[4], [undefined, null]) ? '' : matches[4];
+    self.metadata = isIn(matches[5], [undefined, null]) ? '' : matches[5];
   } else {
     throw new Error('The version number "' + versionNumber + '" is not valid!');
   }
@@ -1171,7 +1171,7 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
 
 // EXTENDED NATIVE PROTOTYPES
 
-if (typeof Array.prototype.extend === 'undefined') {
+if (isIn(Array.prototype.extend, [undefined, null])) {
   /**
    * Merge an array at the end of an existing array.
    *
@@ -1193,7 +1193,7 @@ if (typeof Array.prototype.extend === 'undefined') {
   };
 }
 
-if (typeof String.prototype.format === 'undefined') {
+if (isIn(String.prototype.format, [undefined, null])) {
   /**
    * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
    *
@@ -1209,15 +1209,15 @@ if (typeof String.prototype.format === 'undefined') {
 
     args = arguments;
     return this.replace(/\{(\d+)\}/g, function (match, number) {
-      return typeof args[number] !== 'undefined'
-        ? args[number]
-        : match
+      return isIn(args[number], [undefined, null])
+        ? match
+        : args[number]
       ;
     });
   };
 }
 
-if (typeof String.prototype.replaceAll === 'undefined') {
+if (isIn(String.prototype.replaceAll, [undefined, null])) {
   /**
    * Replace all occurrences of a substring (not a regex).
    *
@@ -1230,7 +1230,7 @@ if (typeof String.prototype.replaceAll === 'undefined') {
   };
 }
 
-if (typeof Number.isInteger === 'undefined') {
+if (isIn(Number.isInteger, [undefined, null])) {
   /**
    * Determine if a number is an integer.
    *
@@ -1586,6 +1586,23 @@ function _ (str) {
 }
 
 /**
+ * Return whether an item exists as a value in an object.
+ *
+ * @param {!any} item - The item to search the values for.
+ * @param {!object} arr - The object to search in.
+ * @returns {boolean} - Whether the item exists as a value in the object.
+ */
+function isIn (item, arr) {
+  /*
+   * Must use "indexOf" with values rather than "in" with keys, because e.g.
+   * "null" and "undefined" can't be keys. No need for "typeof undefined"
+   * syntax for comparing "undefined" as we are not targeting browsers, let
+   * alone old ones.
+   */
+  return arr.indexOf(item) !== -1;
+}
+
+/**
  * Replace a `Field.Label` object with its "beautified" text representation.
  *
  * @param {?string} label - The internal label to transform to readable form.
@@ -1747,7 +1764,7 @@ function validateSettings () {
       // Get the calendar ID from Google Calendar.
       calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
         // All the valid calendar IDs contain this string.
-        return cal.getId().indexOf('#contacts@group.v.calendar.google.com') !== -1;
+        return isIn('#contacts@group.v.calendar.google.com', cal.getId());
       }).map(function (cal) { return cal.getId(); });
 
       if (calendarId.length > 0) {
