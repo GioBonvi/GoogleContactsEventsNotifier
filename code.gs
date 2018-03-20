@@ -1047,6 +1047,18 @@ LogEvent.prototype.toString = function () {
 };
 
 /**
+ * An enum of plurals for eventTypes.
+ *
+ * @readonly
+ * @enum {string}
+ */
+var eventTypeNamePlural = {
+  BIRTHDAY: 'birthdays',
+  ANNIVERSARY: 'anniversaries',
+  CUSTOM: 'custom events'
+};
+
+/**
  * A priority enum.
  *
  * @readonly
@@ -2012,21 +2024,10 @@ function generateEmailNotification (forceDate) {
 
       eventTypes.forEach(
         function (eventType) {
-          var eventTypeNamePlural, plaintextLines, htmlLines, whenIsIt;
-
-          switch (eventType) {
-            case 'BIRTHDAY':
-              eventTypeNamePlural = 'birthdays';
-              break;
-            case 'ANNIVERSARY':
-              eventTypeNamePlural = 'anniversaries';
-              break;
-            case 'CUSTOM':
-              eventTypeNamePlural = 'custom events';
-          }
+          var plaintextLines, htmlLines, whenIsIt;
 
           // Get all the matching 'eventType' events.
-          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, Priority.INFO);
+          log.add('Checking ' + eventTypeNamePlural[eventType] + ' on ' + formattedDate, Priority.INFO);
 
           plaintextLines = contactList
             .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
@@ -2038,11 +2039,11 @@ function generateEmailNotification (forceDate) {
             log.add('No events found on this date.', Priority.INFO);
             return;
           }
-          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, Priority.INFO);
+          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural[eventType], Priority.INFO);
           // Build the headers of 'eventType' event grouping by date.
           bodyBuilder.push('\n * ');
           htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
-          whenIsIt = eventTypeNamePlural.charAt(0).toUpperCase() + eventTypeNamePlural.slice(1);
+          whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
           switch (daysInterval) {
             case 0:
               whenIsIt += ' today';
