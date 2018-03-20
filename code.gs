@@ -496,7 +496,7 @@ MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
  * @param {DataCollector} incData - The object to insert.
  */
 MergedContact.prototype.addToField = function (field, incData) {
-  var merged;
+  var merged, i, data;
 
   // incData must have at least one non-empty property.
   if (
@@ -510,12 +510,15 @@ MergedContact.prototype.addToField = function (field, incData) {
 
   // Try to find a non-conflicting object to merge with in the given field.
   merged = false;
-  this[field].forEach(function (data) {
-    if (!merged && !data.isConflicting(incData)) {
+  // Use 'for' instead of 'forEach', so we can short-circuit with 'break'
+  for (i = 0; i < this[field].length; i++) {
+    data = this[field][i];
+    if (!data.isConflicting(incData)) {
       data.merge(incData);
       merged = true;
+      break;
     }
-  });
+  }
   // If incData could not be merged simply append it to the field.
   if (!merged) {
     this[field].push(incData);
