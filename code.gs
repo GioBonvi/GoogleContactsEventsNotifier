@@ -1969,7 +1969,7 @@ function generateEmailNotification (forceDate) {
    * **Note:** multiple events can refer to the same contact.
    */
   events.forEach(function (rawEvent) {
-    var eventData, i;
+    var eventData, contactIter;
 
     if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
       log.add(rawEvent, Priority.INFO);
@@ -1978,28 +1978,28 @@ function generateEmailNotification (forceDate) {
     eventData = rawEvent.gadget.preferences;
 
     // Look if the contact of this event is already in the contact list.
-    for (i = 0; i < contactList.length; i++) {
+    for (contactIter = 0; contactIter < contactList.length; contactIter++) {
       if (
         (
           eventData['goo.contactsContactId'] !== null &&
-          eventData['goo.contactsContactId'] === contactList[i].contactId
+          eventData['goo.contactsContactId'] === contactList[contactIter].contactId
         ) ||
         (
           eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[i].gPlusId
+          eventData['goo.contactsProfileId'] === contactList[contactIter].gPlusId
         )
       ) {
         // FOUND!
         // Integrate this event information into the contact.
-        contactList[i].getInfoFromRawEvent(rawEvent);
+        contactList[contactIter].getInfoFromRawEvent(rawEvent);
         break;
       }
     }
-    if (i === contactList.length) {
+    if (contactIter === contactList.length) {
       // NOT FOUND!
       // Add a new contact to the contact list and store all the info in that contact.
       contactList.push(new MergedContact());
-      contactList[i].getInfoFromRawEvent(rawEvent);
+      contactList[contactIter].getInfoFromRawEvent(rawEvent);
     }
   });
 
