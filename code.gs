@@ -1708,19 +1708,6 @@ function monthToInt (month) {
   return -1;
 }
 
-/**
- * Return an array of strings with duplicate strings removed.
- *
- * @param {!string[]} arr - The array containing the duplicates.
- * @returns {string[]} - The array without duplicates.
- */
-function uniqueStrings (arr) {
-  var seen = {};
-  return arr.filter(function (str) {
-    return seen.hasOwnProperty(str) ? false : (seen[str] = true);
-  });
-}
-
 // MAIN FUNCTIONS
 
 /**
@@ -2002,7 +1989,7 @@ function generateEmailNotification (forceDate) {
 
   // Start building the email notification text.
   subjectPrefix = _('Events') + ': ';
-  subjectBuilder = [];
+  subjectBuilder = contactList.map(function (contact) { return contact.data.getProp('fullName'); });
   bodyPrefix = _('Hey! Don\'t forget these events') + ':';
   bodySuffixes = [
     _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
@@ -2041,7 +2028,6 @@ function generateEmailNotification (forceDate) {
           // Get all the matching 'eventType' events.
           log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, Priority.INFO);
 
-          subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
           plaintextLines = contactList
             .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
             .filter(function (lines) { return lines.length > 0; });
@@ -2082,7 +2068,7 @@ function generateEmailNotification (forceDate) {
   } else {
     // If there is an email to send build the content...
     log.add('Building the email notification.', Priority.INFO);
-    subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
+    subject = subjectPrefix + subjectBuilder.join(' - ');
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
       .concat(['\n\n ', bodySuffixes[0], '\n '])
