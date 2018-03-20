@@ -320,10 +320,8 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
 
   log.add('Extracting info from raw event object...', Priority.INFO);
 
-  if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-    log.add(rawEvent, Priority.INFO);
-    log.add('The structure of this event cannot be parsed.', Priority.ERROR);
-  }
+  // We already know .gadget.preferences exists, we checked before getting contactId, before
+  // calling this method - to know whether to "merge to existing" or "create new" contact.
   eventData = rawEvent.gadget.preferences;
 
   // The raw event can contain the full name and profile photo of the contact (no nickname).
