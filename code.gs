@@ -1996,8 +1996,8 @@ function generateEmailNotification (forceDate) {
     contact.data.merge(new ContactDataDC(
       null,                                             // Full name.
       null,                                             // Nickname.
-      defaultProfileImageURL)                           // Profile photo URL.
-    );
+      defaultProfileImageURL                            // Profile photo URL.
+    ));
   });
 
   // Start building the email notification text.
