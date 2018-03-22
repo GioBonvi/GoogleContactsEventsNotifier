@@ -364,7 +364,7 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
 };
 
 /**
- * Update the `MergedContact` with info collect from a Google Contact.
+ * Update the `MergedContact` with info collected from a Google Contact.
  *
  * Some raw events will contain a Google Contact ID which gives access
  * to a bunch of new data about the contact.
@@ -377,15 +377,14 @@ MergedContact.prototype.getInfoFromContact = function (contactId) {
   var self, googleContact;
 
   self = this;
-
   log.add('Extracting info from Google Contact...', Priority.INFO);
 
+  // Contact ID.
   googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
   if (googleContact === null) {
     log.add('Invalid Google Contact ID: ' + contactId, Priority.INFO);
     return;
   }
-
   self.contactId = contactId;
 
   // Contact identification data.
@@ -443,8 +442,9 @@ MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
     log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
     return;
   }
-
   log.add('Extracting info from Google Plus Profile...', Priority.INFO);
+
+  // Profile ID.
   try {
     gPlusProfile = Plus.People.get(gPlusProfileId);
     if (gPlusProfile === null) {
@@ -454,15 +454,16 @@ MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
     log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, Priority.INFO);
     return;
   }
-
   this.gPlusId = gPlusProfileId;
 
+  // Profile identification data.
   this.data.merge(new ContactDataDC(
     gPlusProfile.name.formatted,  // Name.
     gPlusProfile.nickname,        // Nickname.
     gPlusProfile.image.url        // Profile image URL.
   ));
 
+  // Events.
   /* A Google Plus Profile can have a birthday field in the form of "YYYY-MM-DD",
    * but part of the date can be missing, replaced by a bunch of zeroes
    * (most frequently the year).
