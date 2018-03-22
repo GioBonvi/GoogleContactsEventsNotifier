@@ -1992,7 +1992,6 @@ function generateEmailNotification (forceDate) {
       ) {
         // FOUND!
         // Integrate this event information into the contact.
-        contactList[contactIter].getInfoFromRawEvent(rawEvent);
         break;
       }
     }
@@ -2000,8 +1999,8 @@ function generateEmailNotification (forceDate) {
       // NOT FOUND!
       // Add a new contact to the contact list and store all the info in that contact.
       contactList.push(new MergedContact());
-      contactList[contactIter].getInfoFromRawEvent(rawEvent);
     }
+    contactList[contactIter].getInfoFromRawEvent(rawEvent);
   });
 
   if (contactList.length === 0) {
