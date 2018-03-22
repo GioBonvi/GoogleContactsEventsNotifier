@@ -295,6 +295,8 @@ function MergedContact () {
   this.contactId = null;
   /** @type {?string} */
   this.gPlusId = null;
+  /** @type {?Object} */
+  this.blacklist = null;
   /** @type {ContactDataDC} */
   this.data = new ContactDataDC(
     null, // Name.
@@ -316,7 +318,7 @@ function MergedContact () {
  *                            from the Google Calendar API.
  */
 MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
-  var eventData, eventDate, eventLabel;
+  var self, eventData, eventDate, eventMonth, eventDay, eventLabel;
 
   log.add('Extracting info from raw event object...', Priority.INFO);
 
@@ -337,29 +339,40 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   ));
   // The raw event contains the type, day and month of the event, but not the year.
   eventDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(rawEvent.start.date);
+  eventMonth = null;
+  eventDay = null;
   if (eventDate) {
     eventLabel = eventData['goo.contactsEventType'];
     if (eventLabel === 'SELF') {
       // Your own birthday is marked as 'SELF'.
       eventLabel = 'BIRTHDAY';
-    } else if (eventLabel === 'CUSTOM' && !isIn(eventData['goo.contactsCustomEventType'], [undefined, null])) {
+    } else if (eventLabel === 'CUSTOM') {
       // Custom events have an additional field containing the custom name of the event.
-      eventLabel = eventData['goo.contactsCustomEventType'];
+      eventLabel += ':' + (eventData['goo.contactsCustomEventType'] || '');
     }
+    eventMonth = (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null);
+    eventDay = (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null);
     this.addToField('events', new EventDC(
       eventLabel,                                                   // Label.
       null,                                                         // Year.
-      (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null),  // Month.
-      (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null)   // Day.
+      eventMonth,                                                   // Month.
+      eventDay                                                      // Day.
     ));
   }
   // Collect info from the contactId if not already collected and if contactsContactId exists.
   if (this.contactId === null && eventData['goo.contactsContactId']) {
-    this.getInfoFromContact(eventData['goo.contactsContactId']);
+    this.getInfoFromContact(eventData['goo.contactsContactId'], eventMonth, eventDay);
   }
   // Collect info from the gPlusId if not already collected and if contactsProfileId exists.
   if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
     this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
+  }
+  // delete any events marked as blacklisted (but already added e.g. from raw event data)
+  if (this.blacklist) {
+    self = this;
+    self.blacklist.forEach(function (label) {
+      self.deleteFromField('events', label, false);
+    });
   }
 };
 
@@ -371,10 +384,12 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
  *
  * This data is used to update the information collected until now.
  *
- * @param {!string} contactId - The id from which to collect the data.
+ * @param {!string} contactId  - The id from which to collect the data.
+ * @param {?string} eventMonth - The month to match events.
+ * @param {?string} eventDay   - The day to match events.
  */
-MergedContact.prototype.getInfoFromContact = function (contactId) {
-  var self, googleContact;
+MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, eventDay) {
+  var self, googleContact, blacklist;
 
   self = this;
   log.add('Extracting info from Google Contact...', Priority.INFO);
@@ -400,14 +415,38 @@ MergedContact.prototype.getInfoFromContact = function (contactId) {
     null                          // Profile image URL.
   ));
 
+  // Events blacklist.
+  blacklist = googleContact.getCustomFields('notificationBlacklist');
+  if (blacklist && blacklist[0]) {
+    self.blacklist = uniqueStrings(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
+      x = x.toLocaleLowerCase();
+      return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
+    }));
+  }
+
   // Events.
   googleContact.getDates().forEach(function (dateField) {
-    self.addToField('events', new EventDC(
-      String(dateField.getLabel()),
-      dateField.getYear(),
-      monthToInt(dateField.getMonth()) + 1,
-      dateField.getDay()
-    ));
+    var thisEventLabel, thisEventMonth, thisEventDay, lowerCaseEventLabel, dateMatches, blacklistMatches;
+
+    thisEventLabel = dateField.getLabel();
+    if (typeof thisEventLabel === 'string') {
+      thisEventLabel = 'CUSTOM:' + thisEventLabel;
+    } else {
+      thisEventLabel = String(thisEventLabel);
+    }
+    lowerCaseEventLabel = eventLabelToLowerCase(thisEventLabel);
+    thisEventMonth = monthToInt(dateField.getMonth()) + 1;
+    thisEventDay = dateField.getDay();
+    dateMatches = ((!eventDay && !eventMonth) || (thisEventMonth === eventMonth && thisEventDay === eventDay));
+    blacklistMatches = self.blacklist && self.blacklist.length && isIn(lowerCaseEventLabel, self.blacklist);
+    if (dateMatches && !blacklistMatches) {
+      self.addToField('events', new EventDC(
+        thisEventLabel,
+        dateField.getYear(),
+        thisEventMonth,
+        thisEventDay
+      ));
+    }
   });
 
   // Email addresses.
@@ -529,6 +568,35 @@ MergedContact.prototype.addToField = function (field, incData) {
   // If incData could not be merged simply append it to the field.
   if (!merged) {
     this[field].push(incData);
+  }
+};
+
+/**
+ * This method is used to delete a DataCollector from an array of
+ * DataCollectors based on label.
+ *
+ * @param {!string} field - The name of the field from which to delete the object.
+ * @param {!string} label - The label to match to signify deletion.
+ * @param {?boolean} caseSensitive - Whether to match labels case-sensitively or not.
+ */
+MergedContact.prototype.deleteFromField = function (field, label, caseSensitive) {
+  var data, eachLabel, fieldIter;
+
+  if (!caseSensitive) {
+    label = eventLabelToLowerCase(label);
+  }
+  // Iterate by reverse index to allow safe splicing from within the loop
+  fieldIter = this[field].length;
+  while (fieldIter--) {
+    data = this[field][fieldIter];
+    eachLabel = data.getProp('label');
+    if (!caseSensitive) {
+      eachLabel = eventLabelToLowerCase(eachLabel);
+    }
+    if (eachLabel === label) {
+      this[field].splice(fieldIter, 1);
+      break;
+    }
   }
 };
 
@@ -1612,6 +1680,21 @@ function isIn (item, arr) {
 }
 
 /**
+ * Replace an event label string with its lowercased version, without
+ * changing the prefix 'CUSTOM:' if it is present.
+ *
+ * @param {!string} label - The label to be lowercased.
+ * @returns {string}
+ */
+function eventLabelToLowerCase (label) {
+  if (label.slice(0, 7) === 'CUSTOM:') {
+    return label.slice(0, 7) + label.slice(7).toLocaleLowerCase();
+  } else {
+    return label.toLocaleLowerCase();
+  }
+}
+
+/**
  * Replace a `Field.Label` object with its "beautified" text representation.
  *
  * @param {?string} label - The internal label to transform to readable form.
@@ -1643,7 +1726,15 @@ function beautifyLabel (label) {
      * Event labels:
      */
     case 'OTHER':
-      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
+    case 'BIRTHDAY':
+    case 'ANNIVERSARY':
+      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLocaleLowerCase());
+    /*
+     * Custom labels:
+     */
+    case 'CUSTOM:' + label.slice('CUSTOM:'.length):
+      // Don't interfere with the upper/lower-casing for this one though
+      return label.slice('CUSTOM:'.length);
     default:
       return String(label);
   }
@@ -1745,6 +1836,19 @@ function monthToInt (month) {
     }
   }
   return -1;
+}
+
+/**
+ * Return an array of strings with duplicate strings removed.
+ *
+ * @param {!string[]} arr - The array containing the duplicates.
+ * @returns {string[]} - The array without duplicates.
+ */
+function uniqueStrings (arr) {
+  var seen = {};
+  return arr.filter(function (str) {
+    return seen.hasOwnProperty(str) ? false : (seen[str] = true);
+  });
 }
 
 // MAIN FUNCTIONS
@@ -1947,7 +2051,8 @@ function getEventsOnDate (eventDate, calendarId) {
  */
 function generateEmailNotification (forceDate) {
   var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
-    bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
+    bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
+    contactIter;
 
   log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
@@ -1978,7 +2083,7 @@ function generateEmailNotification (forceDate) {
    * **Note:** multiple events can refer to the same contact.
    */
   events.forEach(function (rawEvent) {
-    var eventData, contactIter;
+    var eventData;
 
     if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
       log.add(rawEvent, Priority.INFO);
@@ -2011,10 +2116,18 @@ function generateEmailNotification (forceDate) {
     contactList[contactIter].getInfoFromRawEvent(rawEvent);
   });
 
-  if (contactList.length === 0) {
-    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', Priority.FATAL_ERROR);
+  // Iterate by reverse index to allow safe splicing from within the loop
+  contactIter = contactList.length;
+  while (contactIter--) {
+    if (!contactList[contactIter].events || !contactList[contactIter].events.length) {
+      contactList.splice(contactIter, 1);
+    }
   }
-  log.add('Built ' + contactList.length + ' contacts.', Priority.INFO);
+  if (contactList.length === 0) {
+    log.add('No contacts with valid events found. Exiting now.', Priority.INFO);
+    return null;
+  }
+  log.add('Found ' + contactList.length + ' contacts with matching events.', Priority.INFO);
 
   // Give a default profile image to the contacts without one.
   contactList.forEach(function (contact) {
