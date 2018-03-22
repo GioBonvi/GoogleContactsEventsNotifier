@@ -380,9 +380,15 @@ MergedContact.prototype.getInfoFromContact = function (contactId) {
   log.add('Extracting info from Google Contact...', Priority.INFO);
 
   // Contact ID.
-  googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
-  if (googleContact === null) {
-    log.add('Invalid Google Contact ID: ' + contactId, Priority.INFO);
+  // Using try-catch here because failure to fetch data for the ID is as much of a
+  // problem as an invalid ID.
+  try {
+    googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
+    if (googleContact === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.INFO);
     return;
   }
   self.contactId = contactId;
@@ -445,13 +451,15 @@ MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
   log.add('Extracting info from Google Plus Profile...', Priority.INFO);
 
   // Profile ID.
+  // Using try-catch here because failure to fetch data for the ID is as much of a
+  // problem as an invalid ID.
   try {
     gPlusProfile = Plus.People.get(gPlusProfileId);
     if (gPlusProfile === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, Priority.INFO);
+    log.add('Invalid GPlus Profile ID or error retrieving data for ID: ' + gPlusProfileId, Priority.INFO);
     return;
   }
   this.gPlusId = gPlusProfileId;
