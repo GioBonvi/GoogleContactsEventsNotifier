@@ -295,8 +295,12 @@ function MergedContact () {
   this.contactId = null;
   /** @type {?string} */
   this.gPlusId = null;
-  /** @type {?Object} */
-  this.blacklist = null;
+  // Consider all the event types excluded by settings.notifications.eventTypes
+  // as blacklisted for all contacts.
+  /** @type {string[]} */
+  this.blacklist = Object.keys(settings.notifications.eventTypes)
+    .filter(function (label) { return settings.notifications.eventTypes[label] === false; })
+    .map(eventLabelToLowerCase);
   /** @type {ContactDataDC} */
   this.data = new ContactDataDC(
     null, // Name.
@@ -418,10 +422,10 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   // Events blacklist.
   blacklist = googleContact.getCustomFields('notificationBlacklist');
   if (blacklist && blacklist[0]) {
-    self.blacklist = uniqueStrings(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
+    self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
       x = x.toLocaleLowerCase();
       return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
-    }));
+    })));
   }
 
   // Events.
@@ -593,7 +597,9 @@ MergedContact.prototype.deleteFromField = function (field, label, caseSensitive)
     if (!caseSensitive) {
       eachLabel = eventLabelToLowerCase(eachLabel);
     }
-    if (eachLabel === label) {
+    // Delete those events whose label exactly matches the one given or,
+    // if the given label is 'Custom', all the custom events.
+    if (label === eachLabel || (label === 'custom' && eachLabel.indexOf('CUSTOM:') === 0)) {
       this[field].splice(fieldIter, 1);
       break;
     }
