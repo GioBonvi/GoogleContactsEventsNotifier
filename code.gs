@@ -1693,7 +1693,7 @@ function isIn (item, arr) {
  * @returns {string}
  */
 function eventLabelToLowerCase (label) {
-  if (label.slice(0, 7) === 'CUSTOM:') {
+  if (label.indexOf('CUSTOM:') === 0) {
     return label.slice(0, 7) + label.slice(7).toLocaleLowerCase();
   } else {
     return label.toLocaleLowerCase();
