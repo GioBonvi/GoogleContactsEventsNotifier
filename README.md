@@ -63,6 +63,34 @@ steps:
    If you want to be extra sure you can wait some days to confirm that no email is
    sent to you anymore and only then delete the script file: this is up to you.
 
+### Blacklisting specific events for specific contacts
+
+There are three event-types for which notifications can be statically
+enabled/disabled for by editing the `settings.notifications.eventTypes`
+configuration variable at the top of the script:
+
+1. `Birthday`
+2. `Anniversary`
+3. `Custom`
+
+but you can also achieve more fine-grained control per-contact by adding a
+custom-field when editing a contact (click `Add->Custom...`), setting the label of
+that field to `notificationBlacklist`, and setting its content to a
+comma-separated list of field-names. In the following example, the script would
+notify about Fred's birthday but not his anniversary or his SpecialSecretDay due
+to the blacklist:
+
+* `Name`                  -> `Fred`
+* `Birthday`              -> `1 January 1970`
+* `Anniversary`           -> `31 December 1995`
+* `SpecialSecretDay`      -> `15 June 2001`
+* `notificationBlacklist` -> `Anniversary,SpecialSecretDay`
+
+To minimize confusion the blacklist matches case-insensitively, so for example
+`ANNIVERSARY`, `Anniversary`, `anniversary`, or `AnNiVeRsArY` being in the
+blacklist will all succeed in preventing anniversary notifications for the
+contact.
+
 ### Translation
 
 The text of the email notification can be translated into any language if a
