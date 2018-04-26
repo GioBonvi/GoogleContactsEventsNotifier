@@ -80,11 +80,11 @@ comma-separated list of field-names. In the following example, the script would
 notify about Fred's birthday but not his anniversary or his SpecialSecretDay due
 to the blacklist:
 
-* `Name`                  -> `Fred`
-* `Birthday`              -> `1 January 1970`
-* `Anniversary`           -> `31 December 1995`
-* `SpecialSecretDay`      -> `15 June 2001`
-* `notificationBlacklist` -> `Anniversary,SpecialSecretDay`
+- `Name`                  -> `Fred`
+- `Birthday`              -> `1 January 1970`
+- `Anniversary`           -> `31 December 1995`
+- `SpecialSecretDay`      -> `15 June 2001`
+- `notificationBlacklist` -> `Anniversary,SpecialSecretDay`
 
 To minimize confusion the blacklist matches case-insensitively, so for example
 `ANNIVERSARY`, `Anniversary`, `anniversary`, or `AnNiVeRsArY` being in the
