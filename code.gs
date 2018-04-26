@@ -455,22 +455,18 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
 
   // Email addresses.
   googleContact.getEmails().forEach(function (emailField, i) {
-    if (settings.notifications.maxEmailsCount === -1 || i < settings.notifications.maxEmailsCount) {
-      self.addToField('emails', new EmailAddressDC(
-        String(emailField.getLabel()),
-        emailField.getAddress()
-      ));
-    }
+    self.addToField('emails', new EmailAddressDC(
+      String(emailField.getLabel()),
+      emailField.getAddress()
+    ));
   });
 
   // Phone numbers.
   googleContact.getPhones().forEach(function (phoneField, i) {
-    if (settings.notifications.maxPhonesCount === -1 || i < settings.notifications.maxPhonesCount) {
-      self.addToField('phones', new PhoneNumberDC(
-        String(phoneField.getLabel()),
-        phoneField.getPhoneNumber()
-      ));
-    }
+    self.addToField('phones', new PhoneNumberDC(
+      String(phoneField.getLabel()),
+      phoneField.getPhoneNumber()
+    ));
   });
 };
 
@@ -707,24 +703,24 @@ MergedContact.prototype.getLines = function (type, date, format) {
       line.push(Math.round(date.getYear() - event.getProp('year')));
     }
     // Email addresses and phone numbers.
-    if (self.emails.length + self.phones.length) {
-      var collected;
+    var collected;
 
-      // Emails and phones are grouped by label: these are the default main label groups.
-      collected = {
-        HOME_EMAIL: [],
-        WORK_EMAIL: [],
-        OTHER_EMAIL: [],
-        MAIN_PHONE: [],
-        HOME_PHONE: [],
-        WORK_PHONE: [],
-        MOBILE_PHONE: [],
-        OTHER_PHONE: []
-      };
-      // Collect and group the email addresses.
-      self.emails.forEach(function (email) {
-        var label, emailAddr;
+    // Emails and phones are grouped by label: these are the default main label groups.
+    collected = {
+      HOME_EMAIL: [],
+      WORK_EMAIL: [],
+      OTHER_EMAIL: [],
+      MAIN_PHONE: [],
+      HOME_PHONE: [],
+      WORK_PHONE: [],
+      MOBILE_PHONE: [],
+      OTHER_PHONE: []
+    };
+    // Collect and group the email addresses.
+    self.emails.forEach(function (email, i) {
+      var label, emailAddr;
 
+      if (settings.notifications.maxEmailsCount < 0 || i < settings.notifications.maxEmailsCount) {
         label = email.getProp('label');
         emailAddr = email.getProp('address');
         if (!isIn(collected[label], [undefined, null])) {
@@ -738,11 +734,13 @@ MergedContact.prototype.getLines = function (type, date, format) {
           // Store any other label in the OTHER_EMAIL label group.
           collected['OTHER_EMAIL'].push(emailAddr);
         }
-      });
-      // Collect and group the phone numbers.
-      self.phones.forEach(function (phone) {
-        var label, phoneNum;
+      }
+    });
+    // Collect and group the phone numbers.
+    self.phones.forEach(function (phone, i) {
+      var label, phoneNum;
 
+      if (settings.notifications.maxPhonesCount < 0 || i < settings.notifications.maxPhonesCount) {
         label = phone.getProp('label');
         phoneNum = phone.getProp('number');
         if (!isIn(collected[label], [undefined, null])) {
@@ -756,8 +754,11 @@ MergedContact.prototype.getLines = function (type, date, format) {
           // Store any other label in the OTHER_PHONE label group.
           collected['OTHER_PHONE'].push(phoneNum);
         }
-      });
-      // Generate the text from the grouped emails and phone numbers..
+      }
+    });
+    // If there is at least an email address/phone number to be added to the email...
+    if (Object.keys(collected).reduce(function (acc, label) { return acc + collected[label].length; }, 0) >= 1) {
+      // ...generate the text from the grouped emails and phone numbers.
       line.push(' (');
       line.push(
         Object.keys(collected).map(function (label) {
