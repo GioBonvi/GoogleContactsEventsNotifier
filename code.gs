@@ -2009,12 +2009,14 @@ function validateSettings () {
  * Returns an array with the events happening in the calendar with
  * ID `calendarId` on date `eventDate`.
  *
- * @param {!Date} eventDate - The date the events must fall on.
+ * @param {!Number} year - The full year of the date of the event.
+ * @param {!Number} month - The number representing the month of the date of the event, starting from 0.
+ * @param {!Number} day - The number of the day of the date of the event.
  * @param {!string} calendarId - The id of the calendar from which events are collected.
  * @returns {Object[]} - A list of rawEvent Objects.
  */
-function getEventsOnDate (eventDate, calendarId) {
-  var eventCalendar, startDate, endDate, events;
+function getEventsOnDate (year, month, day, calendarId) {
+  var eventCalendar, eventDate, startDate, endDate, events;
 
   // Verify the existence of the events calendar.
   try {
@@ -2026,10 +2028,13 @@ function getEventsOnDate (eventDate, calendarId) {
     log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', Priority.FATAL_ERROR);
   }
 
+  eventDate = dateWithTimezone(year, month, day, 0, 0, 0, eventCalendar.timeZone);
+
   // Query the events calendar for events on the specified date.
   try {
-    startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
+    // Look for events from 00:00:00 to 01:00:00 of the specified day.
+    startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
+    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
     log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
     log.add(err.message, Priority.FATAL_ERROR);
@@ -2056,7 +2061,7 @@ function getEventsOnDate (eventDate, calendarId) {
  * @returns {Object.<string,any>} - The content of the email.
  */
 function generateEmailNotification (forceDate) {
-  var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
+  var now, events, contactList, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
     contactIter, runningOutdatedVersion;
 
@@ -2069,7 +2074,9 @@ function generateEmailNotification (forceDate) {
     settings.notifications.anticipateDays
       .map(function (days) {
         return getEventsOnDate(
-          new Date(now.getTime() + days * 24 * 60 * 60 * 1000),
+          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'yyyy')),
+          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'MM')) - 1,
+          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'dd')),
           settings.user.calendarId
         );
       })
@@ -2159,13 +2166,12 @@ function generateEmailNotification (forceDate) {
   bodyBuilder = [];
   htmlBodyBuilder = [];
 
-  calendarTimeZone = Calendar.Calendars.get(settings.user.calendarId).getTimeZone();
   settings.notifications.anticipateDays
     .forEach(function (daysInterval) {
       var date, formattedDate;
 
       date = new Date(now.getTime() + daysInterval * 24 * 60 * 60 * 1000);
-      formattedDate = Utilities.formatDate(date, calendarTimeZone, _('dd-MM-yyyy'));
+      formattedDate = Utilities.formatDate(date, settings.notifications.timeZone, _('dd-MM-yyyy'));
 
       eventTypes.forEach(function (eventType) {
         var plaintextLines, htmlLines, whenIsIt;
@@ -2332,4 +2338,31 @@ function notifStatus () { // eslint-disable-line no-unused-vars
   toLog += 'running.';
   log.add(toLog);
   log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
+}
+
+/**
+ * Generate a date with a given timezone id.
+ *
+ * @param {!Number} year - Full year of the date.
+ * @param {!Number} month - Month of the date, starting from 0.
+ * @param {!Number} day - Day of the date, starting from 1.
+ * @param {!Number} hour - Hour of the date.
+ * @param {!Number} minute - Minute of the date.
+ * @param {!Number} second - Second of the date,
+ * @param {String} timezoneId - A valid IANA timezone identifier.
+ *
+ * @returns {Date} - The date corresponding to the input.
+ */
+function dateWithTimezone (year, month, day, hour, minute, second, timezoneId) {
+  var date, offset;
+
+  // Generate the date as in the UTC0 timezone.
+  date = new Date(Date.UTC(year, month, day, hour, minute, second));
+  // Calculate the offset for the given timezone.
+  offset = Utilities.formatDate(date, timezoneId, 'Z');
+  // Evaluate the offset (in minutes).
+  offset = (offset[0] === '-' ? '-1' : '+1') * (parseInt(offset[1] + offset[2]) * 60 + parseInt(offset[3] + offset[4]));
+  // Apply the offse to the UTC date to get the correct date.
+  date = new Date(date.getTime() - offset * 60 * 1000);
+  return date;
 }
