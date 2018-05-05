@@ -226,17 +226,17 @@ function LocalCache () {
  * Fetch an URL, optionally making more than one try.
  *
  * @param {!string} url - The URL which has to be fetched.
- * @param {?number} [retry=1] - Number of times to try the fetch operation before failing.
+ * @param {?number} [tries=1] - Number of times to try the fetch operation before failing.
  * @returns {?Object} - The fetch response or null if the fetch failed.
  */
-LocalCache.prototype.fetch = function (url, retry) {
+LocalCache.prototype.fetch = function (url, tries) {
   var response, i;
 
-  retry = retry || 1;
+  tries = tries || 1;
 
   response = null;
   // Try fetching the data.
-  for (i = 0; i < retry; i++) {
+  for (i = 0; i < tries; i++) {
     try {
       response = UrlFetchApp.fetch(url);
       if (response.getResponseCode() !== 200) {
@@ -270,14 +270,14 @@ LocalCache.prototype.isCached = function (url) {
  * The object is loaded from the cache if present, otherwise it is fetched.
  *
  * @param {!string} url - The URL to retrieve.
- * @param {?number} retry - Number of times to retry in case of error.
+ * @param {?number} tries - Number of times to try the fetch operation before failing (passed to `this.fetch()`).
  * @returns {Object} - The response object.
  */
-LocalCache.prototype.retrieve = function (url, retry) {
+LocalCache.prototype.retrieve = function (url, tries) {
   if (this.isCached(url)) {
     return this.cache[url];
   } else {
-    return this.fetch(url, retry);
+    return this.fetch(url, tries);
   }
 };
 
