@@ -1773,16 +1773,17 @@ function htmlEscape (str) {
  * @returns {boolean} - True if the script version is lower than the latest released one, false otherwise.
  */
 function isRunningOutdatedVersion () {
-  var response, latestVersion;
+  var response, latestVersion, fetchTries;
 
   // Retrieve the last version info.
+  fetchTries = 2;
   try {
-    response = cache.retrieve(baseGitHubApiURL + 'releases/latest');
+    response = cache.retrieve(baseGitHubApiURL + 'releases/latest', fetchTries);
     if (response === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number', Priority.WARNING);
+    log.add('Unable to get the latest version number after ' + fetchTries + ' tries', Priority.WARNING);
     return false;
   }
   // Parse the info for the version number.
