@@ -230,12 +230,11 @@ function LocalCache () {
  * @returns {?Object} - The fetch response or null if the fetch failed.
  */
 LocalCache.prototype.fetch = function (url, retry) {
-  var response, i, errors;
+  var response, i;
 
   retry = retry || 1;
 
   response = null;
-  errors = [];
   // Try fetching the data.
   for (i = 0; i < retry; i++) {
     try {
@@ -246,7 +245,6 @@ LocalCache.prototype.fetch = function (url, retry) {
       // Break the loop if the fetch was successful.
       break;
     } catch (error) {
-      errors.push(error);
       response = null;
       Utilities.sleep(1000);
     }
