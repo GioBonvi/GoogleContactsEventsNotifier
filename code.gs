@@ -2058,7 +2058,7 @@ function getEventsOnDate (eventDate, calendarId) {
 function generateEmailNotification (forceDate) {
   var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
-    contactIter;
+    contactIter, runningOutdatedVersion;
 
   log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
@@ -2213,16 +2213,17 @@ function generateEmailNotification (forceDate) {
   } else {
     // If there is an email to send build the content...
     log.add('Building the email notification.', Priority.INFO);
+    runningOutdatedVersion = isRunningOutdatedVersion();
     subject = subjectPrefix + subjectBuilder.join(' - ');
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
       .concat(['\n\n ', bodySuffixes[0], '\n '])
-      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+      .concat('\n', runningOutdatedVersion ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
       .join('');
     htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
       .concat(htmlBodyBuilder)
       .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
-      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
+      .concat(runningOutdatedVersion ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
       .join('');
 
     // ...and return it.
