@@ -252,7 +252,7 @@ re-opened.
 If you want to test the script, but during these days none of your contacts have
 a birthday you can use the `test()` function.
 
-To do so, open the script and edit the `fakeTestDate` variable in the debugging
+To do so, open the script and edit the `testDate` variable in the debugging
 configuration section. You just need to replace the example date with the date
 you want to test, then click `Run->test` in the menu at the top of the page.
 If everything went right you should receive a birthday notification exactly like
