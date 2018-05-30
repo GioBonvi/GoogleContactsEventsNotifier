@@ -2073,10 +2073,13 @@ function generateEmailNotification (forceDate) {
     [],
     settings.notifications.anticipateDays
       .map(function (days) {
+        // 24 * 60 * 60 * 1000 = 86400000
+        var thisNow = new Date(now.getTime() + days * 86400000);
+
         return getEventsOnDate(
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'yyyy')),
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'MM')) - 1,
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'dd')),
+          parseInt(Utilities.formatDate(thisNow, settings.notifications.timeZone, 'yyyy')),
+          parseInt(Utilities.formatDate(thisNow, settings.notifications.timeZone, 'MM')) - 1,
+          parseInt(Utilities.formatDate(thisNow, settings.notifications.timeZone, 'dd')),
           settings.user.calendarId
         );
       })
