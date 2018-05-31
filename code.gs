@@ -1324,6 +1324,21 @@ if (isIn(Number.isInteger, [undefined, null])) {
   };
 }
 
+if (isIn(Date.prototype.addDays, [undefined, null])) {
+  /**
+   * Generate a new date adding a number of days to a given date.
+   *
+   * @param {number} days Number of days to be added to the date.
+   * @author AnthonyWJones
+   * @see {@link https://stackoverflow.com/a/563442|Stackoverflow}
+   */
+  Date.prototype.addDays = function (days) { // eslint-disable-line no-extend-native
+    var dat = new Date(this.valueOf());
+    dat.setDate(dat.getDate() + days);
+    return dat;
+  };
+}
+
 // GLOBAL VARIABLES
 
 /**
@@ -2032,9 +2047,9 @@ function getEventsOnDate (year, month, day, calendarId) {
 
   // Query the events calendar for events on the specified date.
   try {
-    // Look for events from 00:00:00 to 01:00:00 of the specified day.
+    // Look for events from 00:00:00 to 00:01:00 of the specified day.
     startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
-    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
+    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
     log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
     log.add(err.message, Priority.FATAL_ERROR);
@@ -2073,10 +2088,11 @@ function generateEmailNotification (forceDate) {
     [],
     settings.notifications.anticipateDays
       .map(function (days) {
+        var date = now.addDays(days);
         return getEventsOnDate(
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'yyyy')),
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'MM')) - 1,
-          parseInt(Utilities.formatDate(now, settings.notifications.timeZone, 'dd')),
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'yyyy')),
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'MM')) - 1,
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'dd')),
           settings.user.calendarId
         );
       })
@@ -2170,7 +2186,7 @@ function generateEmailNotification (forceDate) {
     .forEach(function (daysInterval) {
       var date, formattedDate;
 
-      date = new Date(now.getTime() + daysInterval * 24 * 60 * 60 * 1000);
+      date = now.addDays(daysInterval);
       formattedDate = Utilities.formatDate(date, settings.notifications.timeZone, _('dd-MM-yyyy'));
 
       eventTypes.forEach(function (eventType) {
