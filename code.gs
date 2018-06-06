@@ -1200,9 +1200,9 @@ function SimplifiedSemanticVersion (versionNumber) {
   // Extract the pieces of information from the given string.
   matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
   if (matches) {
-    self.numbers[0] = parseInt(matches[1]);
-    self.numbers[1] = parseInt(matches[2]);
-    self.numbers[2] = parseInt(matches[3]);
+    self.numbers[0] = parseInt(matches[1], 10);
+    self.numbers[1] = parseInt(matches[2], 10);
+    self.numbers[2] = parseInt(matches[3], 10);
     self.preRelease = isIn(matches[4], [undefined, null]) ? '' : matches[4];
     self.metadata = isIn(matches[5], [undefined, null]) ? '' : matches[5];
   } else {
@@ -2049,7 +2049,7 @@ function getEventsOnDate (year, month, day, calendarId) {
   try {
     // Look for events from 00:00:00 to 00:01:00 of the specified day.
     startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
-    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
+    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 60000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
     log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
     log.add(err.message, Priority.FATAL_ERROR);
@@ -2090,9 +2090,9 @@ function generateEmailNotification (forceDate) {
       .map(function (days) {
         var date = now.addDays(days);
         return getEventsOnDate(
-          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'yyyy')),
-          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'MM')) - 1,
-          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'dd')),
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'yyyy'), 10),
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'MM'), 10) - 1,
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'dd'), 10),
           settings.user.calendarId
         );
       })
@@ -2377,8 +2377,8 @@ function dateWithTimezone (year, month, day, hour, minute, second, timezoneId) {
   // Calculate the offset for the given timezone.
   offset = Utilities.formatDate(date, timezoneId, 'Z');
   // Evaluate the offset (in minutes).
-  offset = (offset[0] === '-' ? '-1' : '+1') * (parseInt(offset[1] + offset[2]) * 60 + parseInt(offset[3] + offset[4]));
+  offset = (offset[0] === '-' ? -1 : +1) * (parseInt(offset[1] + offset[2], 10) * 60 + parseInt(offset[3] + offset[4], 10));
   // Apply the offse to the UTC date to get the correct date.
-  date = new Date(date.getTime() - offset * 60 * 1000);
+  date = new Date(date.getTime() - offset * 60000);
   return date;
 }
