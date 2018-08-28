@@ -1,4 +1,6 @@
-/* global Logger Plus ScriptApp ContactsApp Utilities Calendar UrlFetchApp MailApp Session */
+/* global Logger Plus ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
+/* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
+/* eslint comma-dangle: ["error", "only-multiline"] */
 
 /*
  * Thanks to this script you are going to receive an email before events of each of your contacts.
@@ -25,15 +27,26 @@ var settings = {
      */
     notificationEmail: 'YOUREMEAILHERE@example.com',
     /*
-     * ID OF THE CONTACTS EVENTS CALENDAR
+     * SOURCE OF THE EVENTS
      *
-     * Open https://calendar.google.com, in the menu on the left click on the arrow next to the
-     * the contacts events calendar (which should have a name like 'Birthdays and events'), choose
-     * 'Calendar settings' and finally look for the "Calendar ID field" (it could be something
-     * similar to the default value of '#contacts@group.v.calendar.google.com', but also really
-     * different from it): copy and paste it between the quotes in the next line.
+     * In your birthday calendar settings you have chosen whether to track the birthdays
+     * of just your Google Contacts or those of your Google Contacts and of your Google
+     * Plus contacts as well.
+     * You can check which setting you chose by opening https://calendar.google.com, clicking
+     * on the arrow next to the the contacts events calendar (which should have a name like
+     * 'Birthdays and events') in the menu on the left and opening 'Calendar settings'.
+     *
+     * You can set this variable to:
+     *  'DEFAULT'              This will make the script follow your Google Calendar setting.
+     *  'CONTACTS_ONLY'        This will force the script to track just the birthdays of your
+     *                         Google Contacts, ignoring your Google Calendar setting.
+     *  'CONTACTS_AND_GPLUS'   This will force the script to track the birthdays of both
+     *                         your Google Contacts and Google Plus contacts, ignoring your
+     *                         Google Calendar setting.
+     *   Anything else will be interpreted as a a hard-coded Google Calendar ID from which
+     *   to extract the events.
      */
-    calendarId: '#contacts@group.v.calendar.google.com',
+    eventSource: 'DEFAULT',
     /*
      * EMAIL SENDER NAME
      *
@@ -174,18 +187,18 @@ var settings = {
      * TEST DATE
      *
      * When using the test() function this date will be used as "now". The date must be in the
-     * YYYY/MM/DD HH:MM:SS format.
+     * yyyy/MM/dd HH:mm:ss format.
      * Choose a date you know should trigger an event notification.
      */
-    testDate: new Date('2017/10/19 06:00:00')
+    testDate: new Date('2017/08/01 06:00:00')
   },
   developer: {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '4.0.0',
+    version: '4.1.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'master'
+    gitHubBranch: 'development'
   }
 };
 
@@ -213,18 +226,17 @@ function LocalCache () {
  * Fetch an URL, optionally making more than one try.
  *
  * @param {!string} url - The URL which has to be fetched.
- * @param {?number} [retry=1] - Number of times to try the fetch operation before failing.
+ * @param {?number} [tries=1] - Number of times to try the fetch operation before failing.
  * @returns {?Object} - The fetch response or null if the fetch failed.
  */
-LocalCache.prototype.fetch = function (url, retry) {
-  var response, i, errors;
+LocalCache.prototype.fetch = function (url, tries) {
+  var response, i;
 
-  retry = retry || 1;
+  tries = tries || 1;
 
   response = null;
-  errors = [];
   // Try fetching the data.
-  for (i = 0; i < retry; i++) {
+  for (i = 0; i < tries; i++) {
     try {
       response = UrlFetchApp.fetch(url);
       if (response.getResponseCode() !== 200) {
@@ -233,7 +245,6 @@ LocalCache.prototype.fetch = function (url, retry) {
       // Break the loop if the fetch was successful.
       break;
     } catch (error) {
-      errors.push(error);
       response = null;
       Utilities.sleep(1000);
     }
@@ -259,29 +270,35 @@ LocalCache.prototype.isCached = function (url) {
  * The object is loaded from the cache if present, otherwise it is fetched.
  *
  * @param {!string} url - The URL to retrieve.
- * @param {?number} retry - Number of times to retry in case of error.
+ * @param {?number} tries - Number of times to try the fetch operation before failing (passed to `this.fetch()`).
  * @returns {Object} - The response object.
  */
-LocalCache.prototype.retrieve = function (url, retry) {
+LocalCache.prototype.retrieve = function (url, tries) {
   if (this.isCached(url)) {
     return this.cache[url];
   } else {
-    return this.fetch(url, retry);
+    return this.fetch(url, tries);
   }
 };
 
 /**
  * Initialize an empty contact.
  *
- * A Contact object holds the data about a contact collected from multiple sources.
+ * A MergedContact object holds the data about a contact collected from multiple sources.
  *
  * @class
  */
-function Contact () {
+function MergedContact () {
   /** @type {?string} */
   this.contactId = null;
   /** @type {?string} */
   this.gPlusId = null;
+  // Consider all the event types excluded by settings.notifications.eventTypes
+  // as blacklisted for all contacts.
+  /** @type {string[]} */
+  this.blacklist = Object.keys(settings.notifications.eventTypes)
+    .filter(function (label) { return settings.notifications.eventTypes[label] === false; })
+    .map(eventLabelToLowerCase);
   /** @type {ContactDataDC} */
   this.data = new ContactDataDC(
     null, // Name.
@@ -297,20 +314,18 @@ function Contact () {
 }
 
 /**
- * Extract all the available data from the raw event object and store them in the `Contact`.
+ * Extract all the available data from the raw event object and store them in the `MergedContact`.
  *
  * @param {Object} rawEvent - The object containing all the data about the event, obtained
  *                            from the Google Calendar API.
  */
-Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
-  var eventData, eventDate, eventLabel;
+MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
+  var self, eventData, eventDate, eventMonth, eventDay, eventLabel;
 
   log.add('Extracting info from raw event object...', Priority.INFO);
 
-  if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-    log.add(rawEvent, Priority.INFO);
-    log.add('The structure of this event cannot be parsed.', Priority.ERROR);
-  }
+  // We already know .gadget.preferences exists, we checked before getting contactId, before
+  // calling this method - to know whether to "merge to existing" or "create new" contact.
   eventData = rawEvent.gadget.preferences;
 
   // The raw event can contain the full name and profile photo of the contact (no nickname).
@@ -326,55 +341,73 @@ Contact.prototype.getInfoFromRawEvent = function (rawEvent) {
   ));
   // The raw event contains the type, day and month of the event, but not the year.
   eventDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(rawEvent.start.date);
+  eventMonth = null;
+  eventDay = null;
   if (eventDate) {
     eventLabel = eventData['goo.contactsEventType'];
     if (eventLabel === 'SELF') {
       // Your own birthday is marked as 'SELF'.
       eventLabel = 'BIRTHDAY';
-    } else if (eventLabel === 'CUSTOM' && typeof eventData['goo.contactsCustomEventType']) {
+    } else if (eventLabel === 'CUSTOM') {
       // Custom events have an additional field containing the custom name of the event.
-      eventLabel = eventData['goo.contactsCustomEventType'];
+      eventLabel += ':' + (eventData['goo.contactsCustomEventType'] || '');
     }
+    eventMonth = (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null);
+    eventDay = (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null);
     this.addToField('events', new EventDC(
       eventLabel,                                                   // Label.
       null,                                                         // Year.
-      (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null),  // Month.
-      (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null)   // Day.
+      eventMonth,                                                   // Month.
+      eventDay                                                      // Day.
     ));
   }
   // Collect info from the contactId if not already collected and if contactsContactId exists.
   if (this.contactId === null && eventData['goo.contactsContactId']) {
-    this.getInfoFromContact(eventData['goo.contactsContactId']);
+    this.getInfoFromContact(eventData['goo.contactsContactId'], eventMonth, eventDay);
   }
   // Collect info from the gPlusId if not already collected and if contactsProfileId exists.
   if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
     this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
   }
+  // delete any events marked as blacklisted (but already added e.g. from raw event data)
+  if (this.blacklist) {
+    self = this;
+    self.blacklist.forEach(function (label) {
+      self.deleteFromField('events', label, false);
+    });
+  }
 };
 
 /**
- * Update the `Contact` with info collect from a Google Contact.
+ * Update the `MergedContact` with info collected from a Google Contact.
  *
  * Some raw events will contain a Google Contact ID which gives access
  * to a bunch of new data about the contact.
  *
  * This data is used to update the information collected until now.
  *
- * @param {!string} contactId - The id from which to collect the data.
+ * @param {!string} contactId  - The id from which to collect the data.
+ * @param {?string} eventMonth - The month to match events.
+ * @param {?string} eventDay   - The day to match events.
  */
-Contact.prototype.getInfoFromContact = function (contactId) {
-  var self, googleContact;
+MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, eventDay) {
+  var self, googleContact, blacklist;
 
   self = this;
-
   log.add('Extracting info from Google Contact...', Priority.INFO);
 
-  googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
-  if (googleContact === null) {
-    log.add('Invalid Google Contact ID: ' + contactId, Priority.INFO);
+  // Contact ID.
+  // Using try-catch here because failure to fetch data for the ID is as much of a
+  // problem as an invalid ID.
+  try {
+    googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
+    if (googleContact === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.INFO);
     return;
   }
-
   self.contactId = contactId;
 
   // Contact identification data.
@@ -384,39 +417,59 @@ Contact.prototype.getInfoFromContact = function (contactId) {
     null                          // Profile image URL.
   ));
 
+  // Events blacklist.
+  blacklist = googleContact.getCustomFields('notificationBlacklist');
+  if (blacklist && blacklist[0]) {
+    self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
+      x = x.toLocaleLowerCase();
+      return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
+    })));
+  }
+
   // Events.
   googleContact.getDates().forEach(function (dateField) {
-    self.addToField('events', new EventDC(
-      String(dateField.getLabel()),
-      dateField.getYear(),
-      monthToInt(dateField.getMonth()) + 1,
-      dateField.getDay()
-    ));
+    var thisEventLabel, thisEventMonth, thisEventDay, lowerCaseEventLabel, dateMatches, blacklistMatches;
+
+    thisEventLabel = dateField.getLabel();
+    if (typeof thisEventLabel === 'string') {
+      thisEventLabel = 'CUSTOM:' + thisEventLabel;
+    } else {
+      thisEventLabel = String(thisEventLabel);
+    }
+    lowerCaseEventLabel = eventLabelToLowerCase(thisEventLabel);
+    thisEventMonth = monthToInt(dateField.getMonth()) + 1;
+    thisEventDay = dateField.getDay();
+    dateMatches = ((!eventDay && !eventMonth) || (thisEventMonth === eventMonth && thisEventDay === eventDay));
+    blacklistMatches = self.blacklist && self.blacklist.length && isIn(lowerCaseEventLabel, self.blacklist);
+    if (dateMatches && !blacklistMatches) {
+      self.addToField('events', new EventDC(
+        thisEventLabel,
+        dateField.getYear(),
+        thisEventMonth,
+        thisEventDay
+      ));
+    }
   });
 
   // Email addresses.
   googleContact.getEmails().forEach(function (emailField, i) {
-    if (settings.notifications.maxEmailsCount === -1 || i < settings.notifications.maxEmailsCount) {
-      self.addToField('emails', new EmailAddressDC(
-        String(emailField.getLabel()),
-        emailField.getAddress()
-      ));
-    }
+    self.addToField('emails', new EmailAddressDC(
+      String(emailField.getLabel()),
+      emailField.getAddress()
+    ));
   });
 
   // Phone numbers.
   googleContact.getPhones().forEach(function (phoneField, i) {
-    if (settings.notifications.maxPhonesCount === -1 || i < settings.notifications.maxPhonesCount) {
-      self.addToField('phones', new PhoneNumberDC(
-        String(phoneField.getLabel()),
-        phoneField.getPhoneNumber()
-      ));
-    }
+    self.addToField('phones', new PhoneNumberDC(
+      String(phoneField.getLabel()),
+      phoneField.getPhoneNumber()
+    ));
   });
 };
 
 /**
- * Update the `Contact` with info collected from a Google+ Profile.
+ * Update the `MergedContact` with info collected from a Google+ Profile.
  *
  * Some raw events will contain a Google Plus Profile ID which
  * gives access to a bunch of new data about the contact.
@@ -425,33 +478,37 @@ Contact.prototype.getInfoFromContact = function (contactId) {
  *
  * @param {string} gPlusProfileId - The id from which to collect the data.
  */
-Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
+MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
   var gPlusProfile, birthdayDate;
 
   if (!settings.user.accessGooglePlus) {
     log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
     return;
   }
-
   log.add('Extracting info from Google Plus Profile...', Priority.INFO);
+
+  // Profile ID.
+  // Using try-catch here because failure to fetch data for the ID is as much of a
+  // problem as an invalid ID.
   try {
     gPlusProfile = Plus.People.get(gPlusProfileId);
     if (gPlusProfile === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Invalid GPlus Profile ID: ' + gPlusProfileId, Priority.INFO);
+    log.add('Invalid GPlus Profile ID or error retrieving data for ID: ' + gPlusProfileId, Priority.INFO);
     return;
   }
-
   this.gPlusId = gPlusProfileId;
 
+  // Profile identification data.
   this.data.merge(new ContactDataDC(
     gPlusProfile.name.formatted,  // Name.
     gPlusProfile.nickname,        // Nickname.
     gPlusProfile.image.url        // Profile image URL.
   ));
 
+  // Events.
   /* A Google Plus Profile can have a birthday field in the form of "YYYY-MM-DD",
    * but part of the date can be missing, replaced by a bunch of zeroes
    * (most frequently the year).
@@ -482,30 +539,64 @@ Contact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
  * @param {!string} field - The name of the field in which to insert the object.
  * @param {DataCollector} incData - The object to insert.
  */
-Contact.prototype.addToField = function (field, incData) {
-  var merged;
+MergedContact.prototype.addToField = function (field, incData) {
+  var merged, i, data;
 
   // incData must have at least one non-empty property.
   if (
     Object.keys(incData.prop).length === 0 ||
     Object.keys(incData.prop)
-    .filter(function (key) { return !incData.isPropEmpty(key); })
-    .length === 0
+      .filter(function (key) { return !incData.isPropEmpty(key); })
+      .length === 0
   ) {
     return;
   }
 
   // Try to find a non-conflicting object to merge with in the given field.
   merged = false;
-  this[field].forEach(function (data) {
-    if (!merged && !data.isConflicting(incData)) {
+  // Use 'for' instead of 'forEach', so we can short-circuit with 'break'
+  for (i = 0; i < this[field].length; i++) {
+    data = this[field][i];
+    if (!data.isConflicting(incData)) {
       data.merge(incData);
       merged = true;
+      break;
     }
-  });
+  }
   // If incData could not be merged simply append it to the field.
   if (!merged) {
     this[field].push(incData);
+  }
+};
+
+/**
+ * This method is used to delete a DataCollector from an array of
+ * DataCollectors based on label.
+ *
+ * @param {!string} field - The name of the field from which to delete the object.
+ * @param {!string} label - The label to match to signify deletion.
+ * @param {?boolean} caseSensitive - Whether to match labels case-sensitively or not.
+ */
+MergedContact.prototype.deleteFromField = function (field, label, caseSensitive) {
+  var data, eachLabel, fieldIter;
+
+  if (!caseSensitive) {
+    label = eventLabelToLowerCase(label);
+  }
+  // Iterate by reverse index to allow safe splicing from within the loop
+  fieldIter = this[field].length;
+  while (fieldIter--) {
+    data = this[field][fieldIter];
+    eachLabel = data.getProp('label');
+    if (!caseSensitive) {
+      eachLabel = eventLabelToLowerCase(eachLabel);
+    }
+    // Delete those events whose label exactly matches the one given or,
+    // if the given label is 'Custom', all the custom events.
+    if (label === eachLabel || (label === 'custom' && eachLabel.indexOf('CUSTOM:') === 0)) {
+      this[field].splice(fieldIter, 1);
+      break;
+    }
   }
 };
 
@@ -518,7 +609,7 @@ Contact.prototype.addToField = function (field, incData) {
  * @param {!NotificationType} format - The format of the text line.
  * @returns {string[]} - A list of the plain text descriptions of the events.
  */
-Contact.prototype.getLines = function (type, date, format) {
+MergedContact.prototype.getLines = function (type, date, format) {
   var self;
 
   self = this;
@@ -610,27 +701,27 @@ Contact.prototype.getLines = function (type, date, format) {
       line.push(Math.round(date.getYear() - event.getProp('year')));
     }
     // Email addresses and phone numbers.
-    if (self.emails.length + self.phones.length) {
-      var collected;
+    var collected;
 
-      // Emails and phones are grouped by label: these are the default main label groups.
-      collected = {
-        HOME_EMAIL: [],
-        WORK_EMAIL: [],
-        OTHER_EMAIL: [],
-        MAIN_PHONE: [],
-        HOME_PHONE: [],
-        WORK_PHONE: [],
-        MOBILE_PHONE: [],
-        OTHER_PHONE: []
-      };
-      // Collect and group the email addresses.
-      self.emails.forEach(function (email) {
-        var label, emailAddr;
+    // Emails and phones are grouped by label: these are the default main label groups.
+    collected = {
+      HOME_EMAIL: [],
+      WORK_EMAIL: [],
+      OTHER_EMAIL: [],
+      MAIN_PHONE: [],
+      HOME_PHONE: [],
+      WORK_PHONE: [],
+      MOBILE_PHONE: [],
+      OTHER_PHONE: []
+    };
+    // Collect and group the email addresses.
+    self.emails.forEach(function (email, i) {
+      var label, emailAddr;
 
+      if (settings.notifications.maxEmailsCount < 0 || i < settings.notifications.maxEmailsCount) {
         label = email.getProp('label');
         emailAddr = email.getProp('address');
-        if (typeof collected[label] !== 'undefined') {
+        if (!isIn(collected[label], [undefined, null])) {
           // Store the value if the label group is already defined.
           collected[label].push(emailAddr);
         } else if (!settings.notifications.compactGrouping && label) {
@@ -641,14 +732,16 @@ Contact.prototype.getLines = function (type, date, format) {
           // Store any other label in the OTHER_EMAIL label group.
           collected['OTHER_EMAIL'].push(emailAddr);
         }
-      });
-      // Collect and group the phone numbers.
-      self.phones.forEach(function (phone) {
-        var label, phoneNum;
+      }
+    });
+    // Collect and group the phone numbers.
+    self.phones.forEach(function (phone, i) {
+      var label, phoneNum;
 
+      if (settings.notifications.maxPhonesCount < 0 || i < settings.notifications.maxPhonesCount) {
         label = phone.getProp('label');
         phoneNum = phone.getProp('number');
-        if (typeof collected[label] !== 'undefined') {
+        if (!isIn(collected[label], [undefined, null])) {
           // Store the value if the label group is already defined.
           collected[label].push(phoneNum);
         } else if (!settings.notifications.compactGrouping && label) {
@@ -659,8 +752,11 @@ Contact.prototype.getLines = function (type, date, format) {
           // Store any other label in the OTHER_PHONE label group.
           collected['OTHER_PHONE'].push(phoneNum);
         }
-      });
-      // Generate the text from the grouped emails and phone numbers..
+      }
+    });
+    // If there is at least an email address/phone number to be added to the email...
+    if (Object.keys(collected).reduce(function (acc, label) { return acc + collected[label].length; }, 0) >= 1) {
+      // ...generate the text from the grouped emails and phone numbers.
       line.push(' (');
       line.push(
         Object.keys(collected).map(function (label) {
@@ -752,7 +848,7 @@ DataCollector.prototype.getProp = function (key) {
  * @param {?string} value - The value of the property.
  */
 DataCollector.prototype.setProp = function (key, value) {
-  this.prop[key] = (typeof value !== 'undefined' && value !== '' ? value : null);
+  this.prop[key] = value || null;
 };
 
 /**
@@ -1030,7 +1126,19 @@ function LogEvent (time, message, priority) {
  * @returns {string} - The textual description of the event.
  */
 LogEvent.prototype.toString = function () {
-  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy hh:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
+  return '[' + Utilities.formatDate(this.time, Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss') + ' ' + Session.getScriptTimeZone() + '] ' + this.priority.name[0] + ': ' + this.message;
+};
+
+/**
+ * An enum of plurals for eventTypes.
+ *
+ * @readonly
+ * @enum {string}
+ */
+var eventTypeNamePlural = {
+  BIRTHDAY: 'birthdays',
+  ANNIVERSARY: 'anniversaries',
+  CUSTOM: 'custom events'
 };
 
 /**
@@ -1092,11 +1200,11 @@ function SimplifiedSemanticVersion (versionNumber) {
   // Extract the pieces of information from the given string.
   matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
   if (matches) {
-    self.numbers[0] = parseInt(matches[1]);
-    self.numbers[1] = parseInt(matches[2]);
-    self.numbers[2] = parseInt(matches[3]);
-    self.preRelease = typeof matches[4] === 'undefined' ? '' : matches[4];
-    self.metadata = typeof matches[5] === 'undefined' ? '' : matches[5];
+    self.numbers[0] = parseInt(matches[1], 10);
+    self.numbers[1] = parseInt(matches[2], 10);
+    self.numbers[2] = parseInt(matches[3], 10);
+    self.preRelease = isIn(matches[4], [undefined, null]) ? '' : matches[4];
+    self.metadata = isIn(matches[5], [undefined, null]) ? '' : matches[5];
   } else {
     throw new Error('The version number "' + versionNumber + '" is not valid!');
   }
@@ -1145,7 +1253,7 @@ SimplifiedSemanticVersion.prototype.compare = function (comparedVersion) {
 
 // EXTENDED NATIVE PROTOTYPES
 
-if (typeof Array.prototype.extend === 'undefined') {
+if (isIn(Array.prototype.extend, [undefined, null])) {
   /**
    * Merge an array at the end of an existing array.
    *
@@ -1167,7 +1275,7 @@ if (typeof Array.prototype.extend === 'undefined') {
   };
 }
 
-if (typeof String.prototype.format === 'undefined') {
+if (isIn(String.prototype.format, [undefined, null])) {
   /**
    * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
    *
@@ -1183,15 +1291,15 @@ if (typeof String.prototype.format === 'undefined') {
 
     args = arguments;
     return this.replace(/\{(\d+)\}/g, function (match, number) {
-      return typeof args[number] !== 'undefined'
-        ? args[number]
-        : match
+      return isIn(args[number], [undefined, null])
+        ? match
+        : args[number]
       ;
     });
   };
 }
 
-if (typeof String.prototype.replaceAll === 'undefined') {
+if (isIn(String.prototype.replaceAll, [undefined, null])) {
   /**
    * Replace all occurrences of a substring (not a regex).
    *
@@ -1204,7 +1312,7 @@ if (typeof String.prototype.replaceAll === 'undefined') {
   };
 }
 
-if (typeof Number.isInteger === 'undefined') {
+if (isIn(Number.isInteger, [undefined, null])) {
   /**
    * Determine if a number is an integer.
    *
@@ -1213,6 +1321,21 @@ if (typeof Number.isInteger === 'undefined') {
    */
   Number.isInteger = function (n) {
     return typeof n === 'number' && (n % 1) === 0;
+  };
+}
+
+if (isIn(Date.prototype.addDays, [undefined, null])) {
+  /**
+   * Generate a new date adding a number of days to a given date.
+   *
+   * @param {number} days Number of days to be added to the date.
+   * @author AnthonyWJones
+   * @see {@link https://stackoverflow.com/a/563442|Stackoverflow}
+   */
+  Date.prototype.addDays = function (days) { // eslint-disable-line no-extend-native
+    var dat = new Date(this.valueOf());
+    dat.setDate(dat.getDate() + days);
+    return dat;
   };
 }
 
@@ -1560,6 +1683,38 @@ function _ (str) {
 }
 
 /**
+ * Return whether an item exists as a value in an object.
+ *
+ * @param {!any} item - The item to search the values for.
+ * @param {!object} arr - The object to search in.
+ * @returns {boolean} - Whether the item exists as a value in the object.
+ */
+function isIn (item, arr) {
+  /*
+   * Must use "indexOf" with values rather than "in" with keys, because e.g.
+   * "null" and "undefined" can't be keys. No need for "typeof undefined"
+   * syntax for comparing "undefined" as we are not targeting browsers, let
+   * alone old ones.
+   */
+  return arr.indexOf(item) !== -1;
+}
+
+/**
+ * Replace an event label string with its lowercased version, without
+ * changing the prefix 'CUSTOM:' if it is present.
+ *
+ * @param {!string} label - The label to be lowercased.
+ * @returns {string}
+ */
+function eventLabelToLowerCase (label) {
+  if (label.indexOf('CUSTOM:') === 0) {
+    return label.slice(0, 7) + label.slice(7).toLocaleLowerCase();
+  } else {
+    return label.toLocaleLowerCase();
+  }
+}
+
+/**
  * Replace a `Field.Label` object with its "beautified" text representation.
  *
  * @param {?string} label - The internal label to transform to readable form.
@@ -1591,7 +1746,15 @@ function beautifyLabel (label) {
      * Event labels:
      */
     case 'OTHER':
-      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLowerCase());
+    case 'BIRTHDAY':
+    case 'ANNIVERSARY':
+      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLocaleLowerCase());
+    /*
+     * Custom labels:
+     */
+    case 'CUSTOM:' + label.slice('CUSTOM:'.length):
+      // Don't interfere with the upper/lower-casing for this one though
+      return label.slice('CUSTOM:'.length);
     default:
       return String(label);
   }
@@ -1606,12 +1769,12 @@ function beautifyLabel (label) {
 function htmlEscape (str) {
   str = str || '';
   return str
-         .replace(/&/g, '&amp;')
-         .replace(/"/g, '&quot;')
-         .replace(/'/g, '&#39;')
-         .replace(/</g, '&lt;')
-         .replace(/>/g, '&gt;')
-         .replace(/\//g, '&#x2F;');
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\//g, '&#x2F;');
 }
 
 /**
@@ -1625,16 +1788,17 @@ function htmlEscape (str) {
  * @returns {boolean} - True if the script version is lower than the latest released one, false otherwise.
  */
 function isRunningOutdatedVersion () {
-  var response, latestVersion;
+  var response, latestVersion, fetchTries;
 
   // Retrieve the last version info.
+  fetchTries = 2;
   try {
-    response = cache.retrieve(baseGitHubApiURL + 'releases/latest');
+    response = cache.retrieve(baseGitHubApiURL + 'releases/latest', fetchTries);
     if (response === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Unable to get the latest version number', Priority.WARNING);
+    log.add('Unable to get the latest version number after ' + fetchTries + ' tries', Priority.WARNING);
     return false;
   }
   // Parse the info for the version number.
@@ -1715,7 +1879,7 @@ function uniqueStrings (arr) {
  * execution if a FATAL_ERROR is thrown.
  */
 function validateSettings () {
-  var setting;
+  var setting, calendarId;
 
   log.add('validateSettings() running.');
 
@@ -1729,12 +1893,36 @@ function validateSettings () {
     log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
   }
 
+  switch (settings.user.eventSource) {
+    case 'DEFAULT':
+      // Get the calendar ID from Google Calendar.
+      calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
+        // All the valid calendar IDs contain this string.
+        return isIn('#contacts@group.v.calendar.google.com', cal.getId());
+      }).map(function (cal) { return cal.getId(); });
+
+      if (calendarId.length > 0) {
+        settings.user.calendarId = calendarId[0];
+      } else {
+        log.add('Could not find the birthday calendar! Please check that you have enabled it and that your user.eventSource setting is correct!', Priority.FATAL_ERROR);
+      }
+      break;
+    case 'CONTACTS_ONLY':
+      settings.user.calendarId = 'addressbook#contacts@group.v.calendar.google.com';
+      break;
+    case 'CONTACTS_AND_GPLUS':
+      settings.user.calendarId = '#contacts@group.v.calendar.google.com';
+      break;
+    default:
+      settings.user.calendarId = settings.user.eventSource;
+  }
+
   try {
     if (Calendar.Calendars.get(settings.user.calendarId) === null) {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Your user.calendarId setting is invalid!', Priority.FATAL_ERROR);
+    log.add('Your user.eventSource setting is invalid!', Priority.FATAL_ERROR);
   }
 
   // emailSenderName has no restrictions.
@@ -1836,12 +2024,14 @@ function validateSettings () {
  * Returns an array with the events happening in the calendar with
  * ID `calendarId` on date `eventDate`.
  *
- * @param {!Date} eventDate - The date the events must fall on.
+ * @param {!Number} year - The full year of the date of the event.
+ * @param {!Number} month - The number representing the month of the date of the event, starting from 0.
+ * @param {!Number} day - The number of the day of the date of the event.
  * @param {!string} calendarId - The id of the calendar from which events are collected.
  * @returns {Object[]} - A list of rawEvent Objects.
  */
-function getEventsOnDate (eventDate, calendarId) {
-  var eventCalendar, startDate, endDate, events;
+function getEventsOnDate (year, month, day, calendarId) {
+  var eventCalendar, eventDate, startDate, endDate, events;
 
   // Verify the existence of the events calendar.
   try {
@@ -1853,10 +2043,13 @@ function getEventsOnDate (eventDate, calendarId) {
     log.add('The calendar with ID "' + calendarId + '" is not accessible: check your calendarId value!', Priority.FATAL_ERROR);
   }
 
+  eventDate = dateWithTimezone(year, month, day, 0, 0, 0, eventCalendar.timeZone);
+
   // Query the events calendar for events on the specified date.
   try {
-    startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 1 * 60 * 60 * 1000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
+    // Look for events from 00:00:00 to 00:01:00 of the specified day.
+    startDate = Utilities.formatDate(eventDate, eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
+    endDate = Utilities.formatDate(new Date(eventDate.getTime() + 60000), eventCalendar.timeZone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX');
     log.add('Looking for contacts events on ' + eventDate + ' (' + startDate + ' / ' + endDate + ')', Priority.INFO);
   } catch (err) {
     log.add(err.message, Priority.FATAL_ERROR);
@@ -1873,6 +2066,196 @@ function getEventsOnDate (eventDate, calendarId) {
   log.add('Found: ' + events.length);
 
   return events;
+}
+
+/**
+ * Generate the content of an email to the user containing a list of the events
+ * of his/her contacts scheduled on a given date.
+ *
+ * @param {?Date} forceDate - If this value is not null it's used as 'now'.
+ * @returns {Object.<string,any>} - The content of the email.
+ */
+function generateEmailNotification (forceDate) {
+  var now, events, contactList, subjectPrefix, subjectBuilder, subject,
+    bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
+    contactIter, runningOutdatedVersion;
+
+  log.add('generateEmailNotification() running.', Priority.INFO);
+  now = forceDate || new Date();
+  log.add('Date used: ' + now, Priority.INFO);
+
+  events = [].concat.apply(
+    [],
+    settings.notifications.anticipateDays
+      .map(function (days) {
+        var date = now.addDays(days);
+        return getEventsOnDate(
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'yyyy'), 10),
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'MM'), 10) - 1,
+          parseInt(Utilities.formatDate(date, settings.notifications.timeZone, 'dd'), 10),
+          settings.user.calendarId
+        );
+      })
+  );
+
+  if (events.length === 0) {
+    log.add('No events found. Exiting now.', Priority.INFO);
+    return null;
+  }
+  log.add('Found ' + events.length + ' events.', Priority.INFO);
+
+  contactList = [];
+
+  /*
+   * Build a list of contacts (with complete information) from the event list.
+   *
+   * **Note:** multiple events can refer to the same contact.
+   */
+  events.forEach(function (rawEvent) {
+    var eventData;
+
+    if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
+      log.add(rawEvent, Priority.INFO);
+      log.add('The structure of this event cannot be parsed.', Priority.FATAL_ERROR);
+    }
+    eventData = rawEvent.gadget.preferences;
+
+    // Look if the contact of this event is already in the contact list.
+    for (contactIter = 0; contactIter < contactList.length; contactIter++) {
+      if (
+        (
+          eventData['goo.contactsContactId'] !== null &&
+          eventData['goo.contactsContactId'] === contactList[contactIter].contactId
+        ) ||
+        (
+          eventData['goo.contactsProfileId'] !== null &&
+          eventData['goo.contactsProfileId'] === contactList[contactIter].gPlusId
+        )
+      ) {
+        // FOUND!
+        // Integrate this event information into the contact.
+        break;
+      }
+    }
+    if (contactIter === contactList.length) {
+      // NOT FOUND!
+      // Add a new contact to the contact list and store all the info in that contact.
+      contactList.push(new MergedContact());
+    }
+    contactList[contactIter].getInfoFromRawEvent(rawEvent);
+  });
+
+  // Iterate by reverse index to allow safe splicing from within the loop
+  contactIter = contactList.length;
+  while (contactIter--) {
+    if (!contactList[contactIter].events || !contactList[contactIter].events.length) {
+      contactList.splice(contactIter, 1);
+    }
+  }
+  if (contactList.length === 0) {
+    log.add('No contacts with valid events found. Exiting now.', Priority.INFO);
+    return null;
+  }
+  log.add('Found ' + contactList.length + ' contacts with matching events.', Priority.INFO);
+
+  // Give a default profile image to the contacts without one.
+  contactList.forEach(function (contact) {
+    contact.data.merge(new ContactDataDC(
+      null,                                             // Full name.
+      null,                                             // Nickname.
+      defaultProfileImageURL                            // Profile photo URL.
+    ));
+  });
+
+  // Start building the email notification text.
+  subjectPrefix = _('Events') + ': ';
+  subjectBuilder = contactList.map(function (contact) { return contact.data.getProp('fullName'); });
+  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
+  bodySuffixes = [
+    _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
+    _('It looks like you are using an outdated version of this script') + '.',
+    _('You can find the latest one here')
+  ];
+  inlineImages = {};
+
+  // The email is built both with plain text and HTML text.
+  bodyBuilder = [];
+  htmlBodyBuilder = [];
+
+  settings.notifications.anticipateDays
+    .forEach(function (daysInterval) {
+      var date, formattedDate;
+
+      date = now.addDays(daysInterval);
+      formattedDate = Utilities.formatDate(date, settings.notifications.timeZone, _('dd-MM-yyyy'));
+
+      eventTypes.forEach(function (eventType) {
+        var plaintextLines, htmlLines, whenIsIt;
+
+        // Get all the matching 'eventType' events.
+        log.add('Checking ' + eventTypeNamePlural[eventType] + ' on ' + formattedDate, Priority.INFO);
+
+        plaintextLines = contactList
+          .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
+          .filter(function (lines) { return lines.length > 0; });
+        htmlLines = contactList
+          .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
+          .filter(function (lines) { return lines.length > 0; });
+        if (plaintextLines.length === 0 || htmlLines.length === 0) {
+          log.add('No events found on this date.', Priority.INFO);
+          return;
+        }
+        log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural[eventType], Priority.INFO);
+        // Build the headers of 'eventType' event grouping by date.
+        bodyBuilder.push('\n * ');
+        htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
+        whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
+        switch (daysInterval) {
+          case 0:
+            whenIsIt += ' today';
+            break;
+          case 1:
+            whenIsIt += ' tomorrow';
+            break;
+          default:
+            whenIsIt += ' in {0} days';
+        }
+        whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
+        bodyBuilder.push(whenIsIt, ':\n');
+        plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
+        htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
+        htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
+        htmlBodyBuilder.push('</dd></ul>');
+      });
+    });
+
+  if (bodyBuilder.length === 0) {
+    // If there is no email to send
+    return null;
+  } else {
+    // If there is an email to send build the content...
+    log.add('Building the email notification.', Priority.INFO);
+    runningOutdatedVersion = isRunningOutdatedVersion();
+    subject = subjectPrefix + subjectBuilder.join(' - ');
+    body = [bodyPrefix, '\n']
+      .concat(bodyBuilder)
+      .concat(['\n\n ', bodySuffixes[0], '\n '])
+      .concat('\n', runningOutdatedVersion ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
+      .join('');
+    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
+      .concat(htmlBodyBuilder)
+      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
+      .concat(runningOutdatedVersion ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
+      .join('');
+
+    // ...and return it.
+    return {
+      'subject': subject,
+      'body': body,
+      'htmlBody': htmlBody,
+      'inlineImages': inlineImages
+    };
+  }
 }
 
 /**
@@ -1909,198 +2292,6 @@ function main (forceDate) {
 }
 
 /**
- * Generate the content of an email to the user containing a list of the events
- * of his/her contacts scheduled on agiven date.
- *
- * @param {?Date} forceDate - If this value is not null it's used as 'now'.
- * @returns {Object.<string,any>} - The content of the email.
- */
-function generateEmailNotification (forceDate) {
-  var now, events, contactList, calendarTimeZone, subjectPrefix, subjectBuilder, subject,
-    bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder;
-
-  log.add('generateEmailNotification() running.', Priority.INFO);
-  now = forceDate || new Date();
-  log.add('Date used: ' + now, Priority.INFO);
-
-  events = [].concat.apply(
-    [],
-    settings.notifications.anticipateDays
-      .map(function (days) {
-        return getEventsOnDate(
-          new Date(now.getTime() + days * 24 * 60 * 60 * 1000),
-          settings.user.calendarId
-        );
-      })
-  );
-
-  if (events.length === 0) {
-    log.add('No events found. Exiting now.', Priority.INFO);
-    return null;
-  }
-  log.add('Found ' + events.length + ' events.', Priority.INFO);
-
-  contactList = [];
-
-  /*
-   * Build a list of contacts (with complete information) from the event list.
-   *
-   * **Note:** multiple events can refer to the same contact.
-   */
-  events.forEach(function (rawEvent) {
-    var eventData, i;
-
-    if (!rawEvent.gadget || !rawEvent.gadget.preferences) {
-      log.add(rawEvent, Priority.INFO);
-      log.add('The structure of this event cannot be parsed.', Priority.FATAL_ERROR);
-    }
-    eventData = rawEvent.gadget.preferences;
-
-    // Look if the contact of this event is already in the contact list.
-    for (i = 0; i < contactList.length; i++) {
-      if (
-        (
-          eventData['goo.contactsContactId'] !== null &&
-          eventData['goo.contactsContactId'] === contactList[i].contactId
-        ) ||
-        (
-          eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[i].gPlusId
-        )
-      ) {
-        // FOUND!
-        // Integrate this event information into the contact.
-        contactList[i].getInfoFromRawEvent(rawEvent);
-        break;
-      }
-    }
-    if (i === contactList.length) {
-      // NOT FOUND!
-      // Add a new contact to the contact list and store all the info in that contact.
-      contactList.push(new Contact());
-      contactList[i].getInfoFromRawEvent(rawEvent);
-    }
-  });
-
-  if (contactList.length === 0) {
-    log.add('Something went wrong: from ' + events.length + ' events no Contact was built...', Priority.FATAL_ERROR);
-  }
-  log.add('Built ' + contactList.length + ' contacts.', Priority.INFO);
-
-  // Give a default profile image to the contacts without one.
-  contactList.forEach(function (contact) {
-    contact.data.merge(new ContactDataDC(
-      null,                                             // Full name.
-      null,                                             // Nickname.
-      defaultProfileImageURL)                           // Profile photo URL.
-    );
-  });
-
-  // Start building the email notification text.
-  subjectPrefix = _('Events') + ': ';
-  subjectBuilder = [];
-  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
-  bodySuffixes = [
-    _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
-    _('It looks like you are using an outdated version of this script') + '.',
-    _('You can find the latest one here')
-  ];
-  inlineImages = {};
-
-  // The email is built both with plain text and HTML text.
-  bodyBuilder = [];
-  htmlBodyBuilder = [];
-
-  calendarTimeZone = Calendar.Calendars.get(settings.user.calendarId).getTimeZone();
-  settings.notifications.anticipateDays
-    .forEach(function (daysInterval) {
-      var date, formattedDate;
-
-      date = new Date(now.getTime() + daysInterval * 24 * 60 * 60 * 1000);
-      formattedDate = Utilities.formatDate(date, calendarTimeZone, _('dd-MM-yyyy'));
-
-      eventTypes.forEach(
-        function (eventType) {
-          var eventTypeNamePlural, plaintextLines, htmlLines, whenIsIt;
-
-          switch (eventType) {
-            case 'BIRTHDAY':
-              eventTypeNamePlural = 'birthdays';
-              break;
-            case 'ANNIVERSARY':
-              eventTypeNamePlural = 'anniversaries';
-              break;
-            case 'CUSTOM':
-              eventTypeNamePlural = 'custom events';
-          }
-
-          // Get all the matching 'eventType' events.
-          log.add('Checking ' + eventTypeNamePlural + ' on ' + formattedDate, Priority.INFO);
-
-          subjectBuilder.extend(contactList.map(function (contact) { return contact.data.getProp('fullName'); }));
-          plaintextLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.PLAIN_TEXT); })
-            .filter(function (lines) { return lines.length > 0; });
-          htmlLines = contactList
-            .map(function (contact) { return contact.getLines(eventType, date, NotificationType.HTML); })
-            .filter(function (lines) { return lines.length > 0; });
-          if (plaintextLines.length === 0 || htmlLines.length === 0) {
-            log.add('No events found on this date.', Priority.INFO);
-            return;
-          }
-          log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural, Priority.INFO);
-          // Build the headers of 'eventType' event grouping by date.
-          bodyBuilder.push('\n * ');
-          htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
-          whenIsIt = eventTypeNamePlural.charAt(0).toUpperCase() + eventTypeNamePlural.slice(1);
-          switch (daysInterval) {
-            case 0:
-              whenIsIt += ' today';
-              break;
-            case 1:
-              whenIsIt += ' tomorrow';
-              break;
-            default:
-              whenIsIt += ' in {0} days';
-          }
-          whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
-          bodyBuilder.push(whenIsIt, ':\n');
-          plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
-          htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
-          htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
-          htmlBodyBuilder.push('</dd></ul>');
-        });
-    });
-
-  if (bodyBuilder.length === 0) {
-    // If there is no email to send
-    return null;
-  } else {
-    // If there is an email to send build the content...
-    log.add('Building the email notification.', Priority.INFO);
-    subject = subjectPrefix + uniqueStrings(subjectBuilder).join(' - ');
-    body = [bodyPrefix, '\n']
-      .concat(bodyBuilder)
-      .concat(['\n\n ', bodySuffixes[0], '\n '])
-      .concat('\n', isRunningOutdatedVersion() ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
-      .join('');
-    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
-      .concat(htmlBodyBuilder)
-      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
-      .concat(isRunningOutdatedVersion() ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
-      .join('');
-
-    // ...and return it.
-    return {
-      'subject': subject,
-      'body': body,
-      'htmlBody': htmlBody,
-      'inlineImages': inlineImages
-    };
-  }
-}
-
-/**
  * Execute the `main()` function without forcing any date as "now".
  */
 function normal () { // eslint-disable-line no-unused-vars
@@ -2128,11 +2319,11 @@ function notifStart () { // eslint-disable-line no-unused-vars
   // Add a new trigger.
   try {
     ScriptApp.newTrigger('normal')
-    .timeBased()
-    .atHour(settings.notifications.hour)
-    .everyDays(1)
-    .inTimezone(settings.notifications.timeZone)
-    .create();
+      .timeBased()
+      .atHour(settings.notifications.hour)
+      .everyDays(1)
+      .inTimezone(settings.notifications.timeZone)
+      .create();
   } catch (err) {
     log.add('Failed to start the notification service: make sure that settings.notifications.timeZone is a valid value.', Priority.FATAL_ERROR);
   }
@@ -2163,4 +2354,31 @@ function notifStatus () { // eslint-disable-line no-unused-vars
   toLog += 'running.';
   log.add(toLog);
   log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
+}
+
+/**
+ * Generate a date with a given timezone id.
+ *
+ * @param {!Number} year - Full year of the date.
+ * @param {!Number} month - Month of the date, starting from 0.
+ * @param {!Number} day - Day of the date, starting from 1.
+ * @param {!Number} hour - Hour of the date.
+ * @param {!Number} minute - Minute of the date.
+ * @param {!Number} second - Second of the date,
+ * @param {String} timezoneId - A valid IANA timezone identifier.
+ *
+ * @returns {Date} - The date corresponding to the input.
+ */
+function dateWithTimezone (year, month, day, hour, minute, second, timezoneId) {
+  var date, offset;
+
+  // Generate the date as in the UTC0 timezone.
+  date = new Date(Date.UTC(year, month, day, hour, minute, second));
+  // Calculate the offset for the given timezone.
+  offset = Utilities.formatDate(date, timezoneId, 'Z');
+  // Evaluate the offset (in minutes).
+  offset = (offset[0] === '-' ? -1 : +1) * (parseInt(offset[1] + offset[2], 10) * 60 + parseInt(offset[3] + offset[4], 10));
+  // Apply the offse to the UTC date to get the correct date.
+  date = new Date(date.getTime() - offset * 60000);
+  return date;
 }

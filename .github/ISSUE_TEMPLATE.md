@@ -3,9 +3,10 @@ Before reporting a new issue please double check that:
 
 - you followed the instructions at https://giobonvi.github.io/GoogleContactsEventsNotifier correctly in every step;
 - there is no open issue discussing your problem (check here: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues);
-- there is no closed issue which has solved or declared unsolvable your problem (check here: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue+is%3Aclosed);
+- there is no closed issue which has solved or declared your problem unsolvable (check here: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues?q=is%3Aissue+is%3Aclosed);
 
-If this issue is not about a bug or a problem you can delete all of this and write whatever you want.
+If this issue is not about a bug or a problem you can delete this whole template
+and write whatever you want.
 
 ****************************************************************************
  DELETE THIS AND THE TEXT ABOVE AND INSERT THE CONTENT BELOW
@@ -40,7 +41,7 @@ What happens instead?
 
 ### Extended description
 
-Try to describe the problem in the most complete way you can add images,
+Try to describe the problem in the most complete way. You can add images,
 error messages, hypothesis and observations regarding the problem here.
 
 ### Possible solution

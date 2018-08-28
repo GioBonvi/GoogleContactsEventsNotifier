@@ -1,4 +1,4 @@
-/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification */
+/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification dateWithTimezone Utilities */
 
 /**
  * This function throws an error when the condition provided is false.
@@ -20,7 +20,8 @@ function unitTests () { // eslint-disable-line no-unused-vars
   Logger.log('Log tests passed!');
   testSemVer();
   Logger.log('SimplifiedSemanticVersioning tests passed!');
-
+  testDSTCorrectness();
+  Logger.log('DST correctness tests passed!');
   Logger.log('All tests passed!');
 }
 
@@ -101,6 +102,59 @@ function testSemVer () {
 }
 
 /**
+ * Test whether dateWithTimezone() handles daylight saving time (DST) as expected.
+ */
+function testDSTCorrectness () {
+  var timezone, date, expectedDate, dateDSTon, dateDSToff, now;
+
+  now = new Date();
+  timezone = 'Europe/Athens';
+
+  /*
+   * Month and day must be strings with two digits.
+   * Both months and days are 1 indexed (JAN = '01' and 1 = '01').
+   */
+  dateDSTon = {
+    year: now.getFullYear(),
+    month: '05',
+    day: '01'
+  };
+  dateDSToff = {
+    year: now.getFullYear(),
+    month: '11',
+    day: '01'
+  };
+
+  // DST ON.
+  date = dateWithTimezone(
+    parseInt(dateDSTon.year),
+    parseInt(dateDSTon.month) - 1,
+    parseInt(dateDSTon.day),
+    0, 0, 0,
+    timezone
+  );
+  expectedDate = dateDSTon.year + '-' + dateDSTon.month + '-' + dateDSTon.day + 'T00:00:00+03:00';
+  assert(
+    Utilities.formatDate(date, timezone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX') === expectedDate,
+    'DST ON check FAILED. This could be caused by a change in Google\'s date implementation which broke dateWithTimezone() or by a change in DST policy for \'Europe/Athens\'.'
+  );
+
+  // DST OFF.
+  date = dateWithTimezone(
+    parseInt(dateDSToff.year),
+    parseInt(dateDSToff.month) - 1,
+    parseInt(dateDSToff.day),
+    0, 0, 0,
+    timezone
+  );
+  expectedDate = dateDSToff.year + '-' + dateDSToff.month + '-' + dateDSToff.day + 'T00:00:00+02:00';
+  assert(
+    Utilities.formatDate(date, timezone, 'yyyy-MM-dd\'T\'HH:mm:ssXXX') === expectedDate,
+    'DST OFF check FAILED. This could be caused by a change in Google\'s date implementation which broke dateWithTimezone() or by a change in DST policy for \'Europe/Athens\'.'
+  );
+}
+
+/**
  * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into the log.
  *
  * **NB:** Execution of this function very often exceeds maximum time (5min - 300s).
@@ -126,7 +180,7 @@ function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) { // eslin
       }
     }
 
-    testDate = new Date(testDate.getTime() + 24 * 60 * 60 * 1000);
+    testDate = testDate.addDays(1);
   }
 
   log.add('Test finished.');

@@ -18,22 +18,12 @@ missing notifications on Google Calendar Birthday Calendar.
 <!-- TOC -->
 
 - [Google Contacts Events Notifier](#google-contacts-events-notifier)
-  - [How to setup](#how-to-setup)
-    - [Enable the calendar](#enable-the-calendar)
-    - [Create the script](#create-the-script)
-    - [Customize the script](#customize-the-script)
-      - [Mandatory customization](#mandatory-customization)
-      - [Optional customization](#optional-customization)
-      - [Debugging options](#debugging-options)
-      - [Developer options](#developer-options)
-    - [Activate API for the script](#activate-api-for-the-script)
-    - [Grant rights to the script](#grant-rights-to-the-script)
+  - [Installation and setup](#installation-and-setup)
   - [Additional information](#additional-information)
+    - [Stopping/uninstalling/deleting the script](#stoppinguninstallingdeleting-the-script)
     - [Translation](#translation)
-    - [Stop the notifications](#stop-the-notifications)
     - [Bug and error reporting, help requests](#bug-and-error-reporting-help-requests)
       - [Unresponsive help requests](#unresponsive-help-requests)
-    - [Testing the script](#testing-the-script)
     - [Updating the script](#updating-the-script)
     - [Permissions required](#permissions-required)
   - [Contributing](#contributing)
@@ -42,185 +32,87 @@ missing notifications on Google Calendar Birthday Calendar.
 
 <!-- /TOC -->
 
-## How to setup
+## Installation and setup
 
-### Enable the calendar
-
-First of all you need to enable your contacts birthday and events calendar in
-you Google Calendar (read [this Google help page][Google setup birthday
-calendar] to know how to do it).
-
-### Create the script
-
-Copy the whole content of [this file][Main code file].  
-Open [Google Script][Google scripts website] and login if requested, then paste
-the code into the page.
-
-### Customize the script
-
-Now read carefully the code you've pasted. At the top of the file you will find
-some lines you need to modify along with many lines of instructions. Edit the
-values as explained by the instructions.  
-
-Once you're done editing the variables click `File->Save` in the menu and enter a
-name for the script (it doesn't really matter, just name it so that you'll
-recognize it if you find it in the future).
-
-The customization variables can be categorized in three groups.
-
-#### Mandatory customization
-
-These are the first settings you will find: these are variables that you
-**must** initialize correctly, otherwise the script will not work at all.  
-These are the names of the variables:
-
-- `settings.user.googleEmail`
-- `settings.user.notificationEmail`
-- `settings.user.calendarId`
-
-#### Optional customization
-
-This second groups of settings contains some variables than you could leave as
-they are, but you are warmly encouraged to edit them, so as to fit your exact
-needs.  
-These are the names of the variables:
-
-- `settings.user.emailSenderName`
-- `settings.user.lang`
-- `settings.user.accessGooglePlus`
-- `settings.notifications.hour`
-- `settings.notifications.timeZone`
-- `settings.notifications.anticipateDays`
-- `settings.notifications.eventTypes`
-- `settings.notifications.maxEmailsCount`
-- `settings.notifications.maxPhonesCount`
-- `settings.notifications.indentSize`
-- `settings.notifications.compactGrouping`
-
-#### Debugging options
-
-Variables in this group are used to debug and troubleshoot the
-script when it does not work as intended. Generally you should not need to
-edit these values, but you may be asked to do so if you submit a help
-request.  
-These are the names of the variables:
-
-- `settings.debug.log.filterLevel`
-- `settings.debug.log.sendTrigger`
-- `settings.debug.testDate`
-
-#### Developer options
-
-This list just provides a convenient place for the developers and/or
-maintainers to update variables without searching through the code. For normal
-use you should never need or want to edit these.
-
-- `settings.developer.version`
-- `settings.developer.repoName`
-- `settings.developer.gitHubBranch`
-
-### Activate API for the script
-
-Now that the script is saved in your Google Drive folder we need to activate it.
-To do so click the menu `Resources->Advanced Google services`.  
-In the popup which will open set "Google Calendar API" to `enabled` (click the
-switch on its row on the right).  
-Once you have done this click on the link which says "Google API Console": you
-will be taken to another page. In this page search for "Google Calendar API" and
-open it. Now click `Enable` at the top of the window and close this page.  
-Unless you have set the `accessGooglePlus` setting to `false`, then repeat these
-steps for "Google+ API". Set it to `enabled` in the list, click on the "Google
-API Console" link, search for "Google+ API" and activate it.
-That's it for this step.
-
-**Important note**: please double check that you have performed **all** steps
-correctly as this seems to be the cause of many reported errors.
-
-### Grant rights to the script
-
-We have given the script access to the resource it needs to work: now the last
-step is granting it the rights to access those resources. To do so click on the
-menu `Run->notifStart`. You will be prompted to "Review authorizations": do it
-and click `Allow` (You can read the full list of the permissions and why they
-are required [here][Permissions list]).
-From this moment on you will always receive an email before any of your
-contacts' birthday (You should have set how many days before at the beginning).
+Follow [this guide][Setup and installation guide] to install and setup the script
+correctly.
 
 ## Additional information
 
+### Stopping/uninstalling/deleting the script
+
+If you just want to stop receiving the notifications, but want to keep the script
+for future use just open your script and click `Run->notifStop` in the menu at
+the top.
+
+If you want to stop using the script and want to delete it completely follow these
+steps:
+
+1. Locate the script in [Google Drive][Google Drive website]:
+   - It should be in the folder you put it into when you created it.
+   - If you deleted the file you can look in the [trash folder][Google Drive trash]
+     and recover it from there.
+2. Open the script and click `Run->notifStop` in the menu at the top.
+3. In the same menu click `Run->notifStatus`, then `View->Log` and confirm
+   that the notifications were stopped successfully.
+4. Close the script and open [this Google page][Google connected apps], find the
+   the script (it should have the name you gave it during installation) and click
+   on "Remove access"
+5. If everything went right it should be safe to delete the script file from Google
+   Drive.  
+   If you want to be extra sure you can wait some days to confirm that no email is
+   sent to you anymore and only then delete the script file: this is up to you.
+
+### Blacklisting specific events for specific contacts
+
+There are three event-types for which notifications can be statically
+enabled/disabled for by editing the `settings.notifications.eventTypes`
+configuration variable at the top of the script:
+
+1. `Birthday`
+2. `Anniversary`
+3. `Custom`
+
+but you can also achieve more fine-grained control per-contact by adding a
+custom-field when editing a contact (click `Add->Custom...`), setting the label of
+that field to `notificationBlacklist`, and setting its content to a
+comma-separated list of field-names. In the following example, the script would
+notify about Fred's birthday but not his anniversary or his SpecialSecretDay due
+to the blacklist:
+
+- `Name`                  -> `Fred`
+- `Birthday`              -> `1 January 1970`
+- `Anniversary`           -> `31 December 1995`
+- `SpecialSecretDay`      -> `15 June 2001`
+- `notificationBlacklist` -> `Anniversary,SpecialSecretDay`
+
+To minimize confusion the blacklist matches case-insensitively, so for example
+`ANNIVERSARY`, `Anniversary`, `anniversary`, or `AnNiVeRsArY` being in the
+blacklist will all succeed in preventing anniversary notifications for the
+contact.
+
 ### Translation
 
-If you want to add a new translation of the notifications, open your script,
-find the line `var i18n` and have a look at the structure of the translation
-object and at the instructions at the end.
+The text of the email notification can be translated into any language if a
+translation for that language is provided to the script. Some languages already
+have a translation, but you can easily add your own.
 
-To add a new language:
-
-- find the block of code which represents one existing translation and copy it,
-  for example:  
-
-  ```javascript
-  'it': {
-    'Age': 'Età',
-    ...
-    'Main phone': 'Telefono principale',
-  },
-  ```
-
-- paste it just below itself, like this:
-
-  ```javascript
-  'it': {
-    'Age': 'Età',
-    ...
-    'Main phone': 'Telefono principale',
-  },
-  'it': {
-    'Age': 'Età',
-    ...
-    'Main phone': 'Telefono principale',
-  },
-  ```
-
-- replace the language code of your translation with your language code and
-  proceed to translate every item in the list, leaving the string on the left of
-  the `:` unchanged and translating the one on the right, like this:
-
-  ```javascript
-  'it': {
-    'Age': 'Età',
-    ...
-    'Main phone': 'Telefono principale',
-  },
-  'de' : {
-    'Age': 'Alter',
-    ...
-    'Main phone': 'Hauptnummer',
-  },
-  ```
-
-If you want to share your translation with other users please open an issue or a
-pull request on [Github][Project main page]. I will be glad to add your
-translation to the script.
-
-### Stop the notifications
-
-To stop receiving these notifications simply open the script (which you'll find
-[in Google Drive][Google Drive website] if you haven't moved it) and click the
-menu `Run->notifStop`.
+To learn more about translations (how to create your own one, how to share
+it with us so that it can be used by other users...) please read the
+[translation guide][Translation guide].
 
 ### Bug and error reporting, help requests
 
 First of all _before submitting a new error, bug or help request_, please,
-__verify that you followed [the instructions][Project documentation] to the
-letter.__
+__verify that you followed [the setup instructions][Setup and installation guide]
+to the letter.__
 
 To report a bug or an error or to request help with this script please use [this
-project GitHub issue page][Project issue page]: I will be notified immediately
-and will provide help as soon as possible.
+project GitHub issue page][Project issue page]: the collaborators will be notified
+immediately and will provide help as soon as possible.
 
-In the text of the message please follow the [template provided][Issue template
-file] and include:
+Please follow the template provided (which you can also [preview here][Issue
+template file]) when opening a new issue and include:
 
 - A __meaningful description of the problem__. What did you do? What happened?
   What did you expect to happen instead?
@@ -229,7 +121,8 @@ file] and include:
   your email: obscure or remove them as all the issues and relative messages are
   publicly visible.
 
-I really need these information: without them I will not be able to help you.
+These pieces of information are really necessary: without them nobody will be able
+to help you.
 
 #### Unresponsive help requests
 
@@ -247,35 +140,27 @@ on it.
 Only the user which has originally opened the issue can ask for it to be
 re-opened.
 
-### Testing the script
-
-If you want to test the script, but during these days none of your contacts have
-a birthday you can use the `test()` function.
-
-To do so, open the script and edit the `fakeTestDate` variable in the debugging
-configuration section. You just need to replace the example date with the date
-you want to test, then click `Run->test` in the menu at the top of the page.
-If everything went right you should receive a birthday notification exactly like
-if today was the date you set.
-
 ### Updating the script
 
 This script is constantly updated to fix bugs and add new features: keeping it
 updated to the latest version is really easy:
 
-1. Whenever a new stable version is released you will see a lien of text at the
+1. Whenever a new stable version is released you will see a line of text at the
    end of your daily email notification telling you to click on a link to get the
    latest version;
 2. If you do so you will be taken to a page with a description of the new release;
 3. The description will contain a precise step by step guide on how to update the
    script to this version: follow it closely and you should not have any problem;
-4. After updating the code always click `Run->notifStop` and `Run->notifStart`
-   in the top menu to finish the update process.  
-   Note: you might be asked to grant some new permissions to the script. There is
-   nothing wrong with this: it just means that the new version requires some permissions
-   that the previous version did not.  
-   You can read the full list of the permissions and why they are required
-   [here][Permissions list]
+4. You might want to follow the setup procedure again, because some steps might
+   have been added in the new version since the previous one.
+5. After updating the code always click `Run->notifStop` and `Run->notifStart`
+   in the top menu to finish the update process.
+
+Note: you might be asked to grant some new permissions to the script. There is
+nothing wrong with this: it just means that the new version requires some permissions
+that the previous version did not.  
+You can read the full list of the permissions and why they are required
+[here][Permissions list]
 
 ### Permissions required
 
@@ -291,7 +176,7 @@ This is an exhaustive description of the reason the script needs each of the per
   Plus. The script will only get information about people who appear in your birthday
   calendar. If you prefer to not access Google Plus at all set
   `settings.user.accessGooglePlus = false` before running any functions and do not
-  enable the Google+ API.
+  enable the Google+ API (then you won't be prompted for this permission).
 - **Manage your Google Contacts**  
   This lets the script access information about your contacts (names, email
   addresses, birthdays). The script will not modify any of your contacts.
@@ -313,6 +198,9 @@ This is an exhaustive description of the reason the script needs each of the per
 Google Contacts Events Notifier is an open source project: if you want to
 know how to contribute please read the [CONTRIBUTING][Contributing file] file.
 
+If you just want to contribute with a translation then the
+[translation guide][Translation guide] might be a better place to start.
+
 ## License
 
 Google Contacts Events Notifier is licensed under the [MIT license][License
@@ -320,6 +208,8 @@ file].
 
 ## Credits
 
+- [GioBonvi (Giorgio Bonvicini)][Github GioBonvi] created the project and is
+  primary maintainer;
 - Google user `ajparag` for the [code][Original Google Help Forum
   post] that inspired this project;
 - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe], whose help was invaluable:
@@ -334,22 +224,24 @@ file].
   - [cezarylaksa][Github cezarylaksa] and [baatochan (Bartosz
     Rodziewicz)][Github baatochan] - Polish;
   - [JayForce][GitHub JayForce] - French;
+  - [88scythe][GitHub 88scythe] - Dutch;
   - [miguel-r (Miguel Ribeiro)][Github miguel-r] - Portuguese;
-- all of the contributors that you can find [here][Project contributors page];
+- all the other contributors who are listed [here][Project contributors page];
 
-[Project main page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
 [Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
 [Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
-[Main code file]: https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/code.gs
 [Permissions list]: #permissions-required
 [Issue template file]: .github/ISSUE_TEMPLATE.md
 [Contributing file]: .github/CONTRIBUTING.md
 [License file]: LICENSE
-[Google Scripts website]: https://script.google.com
+[Setup and installation guide]: docs/install-and-setup.md
+[Translation guide]: docs/translation-guide.md
 [Google Drive website]: https://drive.google.com/drive/
-[Google setup birthday calendar]: https://support.google.com/calendar/answer/6084659?hl=en
+[Google Drive trash]: https://drive.google.com/drive/trash
+[Google connected apps]: https://myaccount.google.com/permissions
 [Original Google Help Forum Post]: https://productforums.google.com/d/msg/calendar/OaaO2og9m5w/2VgNNNF5BwAJ
+[Github GioBonvi]: https://github.com/GioBonvi
 [GitHub rowanthorpe]: https://github.com/rowanthorpe
 [Github lboullo0]: https://github.com/lboullo0
 [Github muzavan]: https://github.com/muzavan
@@ -357,4 +249,5 @@ file].
 [Github cezarylaksa]: https://github.com/cezarylaksa
 [Github baatochan]: https://github.com/baatochan
 [Github JayForce]: https://github.com/JayForce
+[Github 88scythe]: https://github.com/88scythe
 [Github miguel-r]: https://github.com/miguel-r
