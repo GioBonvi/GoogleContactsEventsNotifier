@@ -2078,7 +2078,7 @@ function getEventsOnDate (year, month, day, calendarId) {
 function generateEmailNotification (forceDate) {
   var now, events, contactList, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
-    contactIter, runningOutdatedVersion;
+    contactIter, runningOutdatedVersion, maxSubjectLength, ellipsis;
 
   log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
@@ -2237,6 +2237,12 @@ function generateEmailNotification (forceDate) {
     log.add('Building the email notification.', Priority.INFO);
     runningOutdatedVersion = isRunningOutdatedVersion();
     subject = subjectPrefix + subjectBuilder.join(' - ');
+    // An error is thrown if the subject of the email is longer than 250 characters.
+    maxSubjectLength = 250;
+    ellipsis = '...';
+    if (subject.length > maxSubjectLength) {
+      subject = subject.substr(0, maxSubjectLength - ellipsis.length) + ellipsis;
+    }
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
       .concat(['\n\n ', bodySuffixes[0], '\n '])
