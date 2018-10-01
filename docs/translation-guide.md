@@ -37,7 +37,9 @@ To add a new language:
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
   ```
+
 - Paste it just below itself, like this:
+
   ```javascript
   'it': {
     'Age': 'Età',
@@ -50,6 +52,7 @@ To add a new language:
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
   ```
+
 - Replace the language code of your translation with your language code and
   proceed to translate every item in the list, leaving the string on the left of
   the `:` unchanged and translating the one on the right, like this:
@@ -66,6 +69,7 @@ To add a new language:
     'You can find the latest one here': 'Die aktuelle Version findest du hier',
   },
   ```
+
 - These are some things you have to keep in mind to do this correctly:
   1. Remember to put a comma at the end of each line except after the open curly
      bracket.
