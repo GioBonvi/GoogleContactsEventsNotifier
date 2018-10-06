@@ -1674,7 +1674,7 @@ var i18n = {
     'Custom events in {0} days': 'อีเวนท์ที่กำหนดเองในอีก {0} วัน',
     'Hey! Don\'t forget these events': 'เฮ้! อย่าลืมอีเวน์เหล่านี้ล่ะ',
     'version': 'เวอร์ชั่น',
-    'dd-MM-yyyy': 'dd-MM-yyy',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'เบอร์โทรศัพท์',
     'Work phone': 'เบอร์โทรศัพท์ที่ทำงาน',
     'Home phone': 'เบอร์โทรศัพท์บ้าน',
