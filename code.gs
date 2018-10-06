@@ -1705,7 +1705,7 @@ var i18n = {
     'Custom events in {0} days': '{0} gün içindeki özel etkinlikler',
     'Hey! Don\'t forget these events': 'Hey! Bu etkinlikleri unutma!',
     'version': 'sürüm',
-    'dd-MM-yyyy': 'gg-AA-yyyy',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Cep telefonu',
     'Work phone': 'İş telefonu',
     'Home phone': 'Ev telefonu',
