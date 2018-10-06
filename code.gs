@@ -1579,7 +1579,7 @@ var i18n = {
     'Custom events today': 'Autres événements aujourd\'hui',
     'Custom events tomorrow': 'Autres événements demain',
     'Custom events in {0} days': 'Autres événements dans {0} jours',
-    'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
+    'Hey! Don\'t forget these events': 'Hey ! N\'oubliez pas ces événements',
     'version': 'version',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Téléphone portable',
@@ -1594,7 +1594,7 @@ var i18n = {
     'Home email': 'Adresse mail personelle',
     'Work email': 'Adresse mail professionelle',
     'Other email': 'Autre adresse mail',
-    'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
+    'It looks like you are using an outdated version of this script': 'Il semblerait que vous utilisiez une ancienne version de ce script',
     'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
   'nl': {
