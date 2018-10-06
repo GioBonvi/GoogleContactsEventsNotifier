@@ -1726,6 +1726,11 @@ var i18n = {
     '[first phrase]': '[translation here]',
     '[second phrase]': '[translation here]',
     ...
+    // Note: 'dd-MM-yyyy' should NOT be translated (especially in a different alphabet). You just need to reorder
+    //       dd (day) MM (month) and yyyy (year) in the order your language usually represents dates.
+    //       Examples:
+    //         USA:   (month/day/year) should be 'MM-dd-yyyy'
+    //         Italy: (day/month/year) should be 'dd-MM-yyyy'
   }
   */
 };
