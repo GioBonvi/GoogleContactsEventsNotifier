@@ -1674,7 +1674,7 @@ var i18n = {
     'Custom events in {0} days': 'อีเวนท์ที่กำหนดเองในอีก {0} วัน',
     'Hey! Don\'t forget these events': 'เฮ้! อย่าลืมอีเวน์เหล่านี้ล่ะ',
     'version': 'เวอร์ชั่น',
-    'dd-MM-yyyy': 'วว-ดด-ปปปป',
+    'dd-MM-yyyy': 'dd-MM-yyy',
     'Mobile phone': 'เบอร์โทรศัพท์',
     'Work phone': 'เบอร์โทรศัพท์ที่ทำงาน',
     'Home phone': 'เบอร์โทรศัพท์บ้าน',
@@ -1690,7 +1690,6 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'ดูเหมือนว่าคุณกำลังใช้เวอร์ชั่นเก่าสำหรับสคริปท์นี้',
     'You can find the latest one here': 'คุณสามารถหาเวอร์ชั่นใหม่ได้ที่นี่',
   },
-  
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
