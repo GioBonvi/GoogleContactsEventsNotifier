@@ -1520,7 +1520,7 @@ var i18n = {
     'Hey! Don\'t forget these events': 'Hey! Vergiss diese Termine nicht',
     'version': 'Version',
     'dd-MM-yyyy': 'dd-MM-yyyy',
-    'Mobile phone': 'Handy',
+    'Mobile phone': 'Telefon (mobil)',
     'Work phone': 'Telefon (geschäftlich)',
     'Home phone': 'Telefon (privat)',
     'Main phone': 'Telefon (haupt)',
