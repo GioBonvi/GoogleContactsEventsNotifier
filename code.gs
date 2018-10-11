@@ -1533,7 +1533,7 @@ var i18n = {
     'Work email': 'E-Mail (geschäftlich)',
     'Other email': 'E-Mail (sonstige)',
     'It looks like you are using an outdated version of this script': 'Du scheinst eine veraltete Version dieses Skripts zu benutzen',
-    'You can find the latest one here': 'Die aktuelle Version findest du hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
+    'You can find the latest one here': 'Du findest die neuste Version hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
   'pl': {
     'Age': 'Wiek',
