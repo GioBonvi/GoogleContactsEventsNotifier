@@ -1393,7 +1393,7 @@ var i18n = {
     'Custom events today': 'Προσαρμοσμένα γεγονότα σήμερα',
     'Custom events tomorrow': 'Προσαρμοσμένα γεγονότα αύριο',
     'Custom events in {0} days': 'Προσαρμοσμένα γεγονότα σε {0} ημέρες',
-    'Hey! Don\'t forget these events': 'Hey! Μην ξεχάσεις αυτά τα γεγονότα',
+    'Hey! Don\'t forget these events': 'Και πού σαι! Μην ξεχάσεις αυτά τα γεγονότα',
     'version': 'εκδοχή',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Κινητό',
@@ -1408,7 +1408,7 @@ var i18n = {
     'Home email': 'Προσωπικό email',
     'Work email': 'Επαγγελματικό email',
     'Other email': 'Άλλο email',
-    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
+    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτόυ του script',
     'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
   'es': {
