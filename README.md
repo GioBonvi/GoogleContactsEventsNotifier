@@ -1,6 +1,6 @@
 # Google Contacts Events Notifier
 
-![Logo](images/Logo_alpha.png)
+<img align="right" height=200 src="images/logo.png">
 
 Receive customized email notifications to alert you about incoming birthdays or
 other events of your Google contacts.
