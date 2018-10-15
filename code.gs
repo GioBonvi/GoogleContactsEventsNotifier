@@ -1817,7 +1817,7 @@ var i18n = {
   'lt': {
     'Age': 'Amžius',
     'Years': 'Metai',
-    'Events': '',
+    'Events': 'Įvykiai',
     'Birthdays today': 'Šiandienos gimtadieniai',
     'Birthdays tomorrow': 'Rytojaus gimtadieniai',
     'Birthdays in {0} days': 'Gimtadieniai už {0} dienų',
