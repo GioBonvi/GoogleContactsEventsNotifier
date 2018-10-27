@@ -1891,7 +1891,7 @@ var i18n = {
     'Custom events in {0} days': 'Специальное событие через {0} дней',
     'Hey! Don\'t forget these events': 'Эй! Не забудь об этих мероприятиях',
     'version': 'версия',
-    'dd-MM-yyyy': 'ДД-ММ-ГГГГ',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Мобильный телефон',
     'Work phone': 'Рабочий телефон',
     'Home phone': 'Домашний телефон',
