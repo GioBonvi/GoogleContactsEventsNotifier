@@ -1689,7 +1689,7 @@ var i18n = {
     'Other email': 'ایمیل دیگر',
     'It looks like you are using an outdated version of this script': 'به نظر می رسد شما نسخه قدیمی این اسکریپت را استفاده می کنید',
     'You can find the latest one here': 'اینجا می توانید نسخه به روز را بیابید',
-},
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
