@@ -20,12 +20,12 @@ This guide presents the main points of the translation process.
 ## Add a translation
 
 If you want to add a new translation of the notifications, open your script,
-find the line reading `var i18n` and have a look at the structure of the translation
-object and at the instructions at the end.  
-The main idea is to build a little "dictionary" for each language to match the english
-string with its translation in the given language.
+find the line reading `var i18n` and have a look at the structure of the
+translation object and at the instructions at the end.  
+The main idea is to build a little "dictionary" for each language to match the
+English string with its translation in the given language.
 
-To add a new language:
+To add a new language (e.g. Spanish - language code 'es'):
 
 - Find the block of code which represents one existing translation and copy it,
   for example:  
@@ -38,35 +38,67 @@ To add a new language:
   },
   ```
 
-- Paste it just below itself, like this:
+- Paste it inside the list of translations respecting the alphabetical order for
+  the language codes (in this case the new language code will be 'es', so we
+  will put the new translation between 'de' and 'fr'):
 
   ```javascript
-  'it': {
-    'Age': 'Età',
+  'de': {
+    'Age': 'Alter',
     ...
-    'You can find the latest one here': 'Puoi trovare l\'ultima qui',
+    'You can find the latest one here': 'Du findest die neuste Version hier',
   },
   'it': {
     'Age': 'Età',
     ...
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
+  },
+  'fr': {
+    'Age': 'Age',
+    ...
+    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
   ```
 
-- Replace the language code of your translation with your language code and
-  proceed to translate every item in the list, leaving the string on the left of
+- Change the language code and remove all the copied translations on the right
+  hand side:
+
+  ```javascript
+  'de': {
+    'Age': 'Alter',
+    ...
+    'You can find the latest one here': 'Du findest die neuste Version hier',
+  },
+  'es': {
+    'Age': '',
+    ...
+    'You can find the latest one here': '',
+  },
+  'fr': {
+    'Age': 'Age',
+    ...
+    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
+  },
+  ```
+
+- Proceed to translate every item in the list, leaving the string on the left of
   the `:` unchanged and translating the one on the right, like this:
 
   ```javascript
-  'it': {
-    'Age': 'Età',
-    ...
-    'Main phone': 'Telefono principale',
-  },
-  'de' : {
+  'de': {
     'Age': 'Alter',
     ...
-    'You can find the latest one here': 'Die aktuelle Version findest du hier',
+    'You can find the latest one here': 'Du findest die neuste Version hier',
+  },
+  'es': {
+    'Age': 'Edad',
+    ...
+    'You can find the latest one here': 'Puedes encontrar la última aquí',
+  },
+  'fr': {
+    'Age': 'Age',
+    ...
+    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
   },
   ```
 
@@ -80,7 +112,11 @@ To add a new language:
      You can find an example above: the string `Puoi trovare l'ultima qui` must
      become `'Puoi trovare l\'ultima qui'` when enclosing it between the two
      single quotes.
-  5. Try to keep the translation as faithful to the original as possible (obviously
+  5. Strings such as `'dd-MM-yyyy'` must not be translated or changed into other
+     alphabets: instead they can be used to change date formats in the language
+     you are translating into (e.g. a 'en-US' translation would use
+     `'MM-dd-yyyy'` to display the date as month-day-year).
+  6. Try to keep the translation as faithful to the original as possible (obviously
      keeping context and language rules in mind).  
      If you have any doubt you can open an [issue][Project issue page] asking
      for help.
