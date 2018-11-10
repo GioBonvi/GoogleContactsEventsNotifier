@@ -226,12 +226,26 @@ file].
   - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe] - Greek;
   - [lboullo0 (Lucas)][Github lboullo0] - Spanish;
   - [muzavan (Muhammad Reza Irvanda)][Github muzavan] - Indonesian;
-  - [DrKrakower][Github DrKrakower] and Simone Sottopietra - German;
+  - [DrKrakower][Github DrKrakower], Simone Sottopietra, [shutdown27 (Peter
+    Berweiler)][Github shutdown27] and [SuperSandro2000 (Sandro Jäckel)][Github
+    SuperSandro2000] - German;
   - [cezarylaksa][Github cezarylaksa] and [baatochan (Bartosz
     Rodziewicz)][Github baatochan] - Polish;
-  - [JayForce][GitHub JayForce] - French;
+  - [JayForce][GitHub JayForce], [Vinetos (Valentin Chassignol)][GitHub Vinetos]
+    and [krial057][Github krial057] - French;
   - [88scythe][GitHub 88scythe] - Dutch;
   - [miguel-r (Miguel Ribeiro)][Github miguel-r] - Portuguese;
+  - [AnnaH][Github AnnaH] - Thai;
+  - [nadyafebi (Nadya Febiana Djojosantoso)][Github nadyafebi] and [jovanzers
+    (Jovan Ferryal E. F.)][Github jovanzers] - Indonesian;
+  - [cemysf (Cem Yusuf Aydogdu)][Github cemysf] - Turkish;
+  - [MatheusNtg][Github MatheusNtg] - Brazilian Portuguese;
+  - [goggenb (Geir-Ove Bøe)][Github goggenb] - Norwegian;
+  - [phg98][Github phg98] - Korean;
+  - [kallanar (Dainius Silvanavičius)][Github kallanar] - Lithuanian;
+  - [vladimir-kirillovskiy][Github vladimir-kirillovskiy] - Russian;
+  - [AlesJiranek (Aleš Jiránek)][Github AlesJiranek] - Czech;
+  - [alialamshahi (Ali Alamshahi)][Github alialamshahi] - Farsi;
 - all the other contributors who are listed [here][Project contributors page];
 
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
@@ -257,3 +271,18 @@ file].
 [Github JayForce]: https://github.com/JayForce
 [Github 88scythe]: https://github.com/88scythe
 [Github miguel-r]: https://github.com/miguel-r
+[Github Vinetos]: https://github.com/Vinetos
+[Github AnnaH]: https://github.com/AnnaH
+[Github shutdown27]: https://github.com/shutdown27
+[Github nadyafebi]: https://github.com/nadyafebi
+[Github cemysf]: https://github.com/cemysf
+[Github MatheusNtg]: https://github.com/MatheusNtg
+[Github goggenb]: https://github.com/goggenb
+[Github phg98]: https://github.com/phg98
+[Github SuperSandro2000]: https://github.com/SuperSandro2000
+[Github kallanar]: https://github.com/kallanar
+[Github krial057]: https://github.com/krial057
+[Github vladimir-kirillovskiy]: https://github.com/vladimir-kirillovskiy
+[Github AlesJiranek]: https://github.com/AlesJiranek
+[Github jovanzers]: https://github.com/jovanzers
+[Github alialamshahi]: https://github.com/alialamshahi
