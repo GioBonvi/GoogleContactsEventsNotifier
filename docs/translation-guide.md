@@ -123,9 +123,10 @@ To add a new language (e.g. Spanish - language code 'es'):
 
 ## Share your translation
 
-Google Contacts Events Notifier is used by various users from around the world; if
-you want you can make your translation available to everyone by sharing it with us:
-we will be extremely happy to include it in the script in the next release.
+Google Contacts Events Notifier is used by various users from around the world;
+if you want you can make your translation available to everyone by sharing it
+with us: we will be extremely happy to include it in the script in the next
+release.
 
 ### How to submit a new translation
 
@@ -133,15 +134,16 @@ we will be extremely happy to include it in the script in the next release.
 Then go to ["Translation via git"][Translation via git].
 
 *You don't know what we are talking about?*  
-Not a problem: you can follow the ["Translation via web"][Translation via web] guide.
+Not a problem: you can follow the ["Translation via web"][Translation via web]
+guide.
 
-*You really cannot make your way around this whole "edit, comment and submit" thing,
-but still would like to contribute in one way or another?*  
-We have the right solution for you: the ["Translation via issue"][Translation via
-issue].
+*You really cannot make your way around this whole "edit, comment and submit"
+thing, but still would like to contribute in one way or another?*  
+We have the right solution for you: the ["Translation via issue"][Translation
+via issue].
 
-If you don't know what git and GitHub are, but want to learn more about it you can
-read [this guide][git-guide.md] written by a collaborator of this project.
+If you don't know what git and GitHub are, but want to learn more about it you
+can read [this guide][git-guide.md] written by a collaborator of this project.
 
 #### Translation via git
 
@@ -150,14 +152,14 @@ Follow this guide only if you are quite familiar with how git and GitHub work.
 1. Fork this repository.
 2. Clone the forked repository on your computer.
 3. Edit the script to include your translation and commit the changes.
-4. Push the commit(s) to your forked repository and open a new Pull Request for the
-   changes to be merged into the original repository.  
-   Note: PRs should **not** be opened against the `master` branch, but against `development`
-   (or another feature branch if appropriate).
+4. Push the commit(s) to your forked repository and open a new Pull Request for
+   the changes to be merged into the original repository.  
+   Note: PRs should **not** be opened against the `master` branch, but against
+   `development` (or another feature branch if appropriate).
 
-You might want to read the complete [guide to contributing][CONTRIBUTING.md]: most
-of it is not needed if you just want to contribute with a translation, but you
-still might find some of the info quite useful for contributing further.
+You might want to read the complete [guide to contributing][CONTRIBUTING.md]:
+most of it is not needed if you just want to contribute with a translation, but
+you still might find some of the info quite useful for contributing further.
 
 #### Translation via web
 
@@ -173,20 +175,19 @@ and we will analyze and merge them into the actual code of the script.
    ![Create the fork][Create fork image]  
    From now on you can open your fork by visiting the following URL:
    `https://github.com/YOURUSERNAME/GoogleContactsEventsNotifier`.
-2. Open your fork and choose the branch you want to edit from the
-   dropdown menu.  
+2. Open your fork and choose the branch you want to edit from the dropdown menu.
    ![Choose a branch][Choose branch image]  
    Note: Almost always this should be `development` (unless it's clearly stated
    otherwise somewhere).
 3. Open the file you want to edit (clicking on its name) and click on the pencil
    button in the top right corner to edit it.  
    ![Edit the file][Edit file image]  
-   You can modify the file in the browser directly or you can copy the file content
-   in your editor of choice on your PC, edit it there, then copy the edited text
-   and paste it in back in the browser.
+   You can modify the file in the browser directly or you can copy the file
+   content in your editor of choice on your PC, edit it there, then copy the
+   edited text and paste it in back in the browser.
 4. Once you are done add a title and a description to your edit (Something along
-   the lines of "Added translation for XX" is fine) and click on
-   "Commit changes".  
+   the lines of "Added translation for XX" is fine) and click on "Commit
+   changes".  
    ![Commit the changes][Commit changes image]
 5. Get back to your fork home page and verify that the changes have been saved
    correctly. (You might have to select the branch again). Then click on the
