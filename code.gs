@@ -127,6 +127,23 @@ var settings = {
       CUSTOM: false
     },
     /*
+     * BLACKLISTED GROUPS
+     *
+     * You can list here any contact group you want to globally exclude from the notifications by
+     * specifying a comma separated list of group names between the square brackets.
+     * You can specify groups you already have in your contacts (e.g. 'Family', 'Work'...) or you can
+     * create a custom group (e.g the default 'GCEN-blacklist') and add all the contacts you want to
+     * blacklist to that group.
+     * If you want more granular control, like blacklisting only a certain event for a given contact
+     * have a look at the contact blacklist functionality explained in the documentation on the GitHub
+     * homepage of this project.
+     *
+     * Example:
+     *  blacklistedGroups: ['GCEN-blacklist', 'Family'],
+     *    You will not receive notifications for any contact in the GCEN-blacklist or in the Family group.
+     */
+    blacklistedGroups: [],
+    /*
      * MAXIMUM NUMBER OF EMAIL ADDRESSES
      *
      * You can limit the maximum number of email addresses displayed for each contact in the notification emails
@@ -300,6 +317,8 @@ function MergedContact () {
   this.blacklist = Object.keys(settings.notifications.eventTypes)
     .filter(function (label) { return settings.notifications.eventTypes[label] === false; })
     .map(eventLabelToLowerCase);
+  /** @type {boolean} */
+  this.isGroupBlacklisted = false;
   /** @type {ContactDataDC} */
   this.data = new ContactDataDC(
     null, // Name.
@@ -370,12 +389,18 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
     this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
   }
-  // delete any events marked as blacklisted (but already added e.g. from raw event data)
-  if (this.blacklist) {
+
+  if (this.isGroupBlacklisted) {
+    // If the contact was in a blacklisted group delete all the events of the contact.
+    this.events = [];
+    log.add('Contact was group-blacklisted: deleting all its events.', Priority.INFO);
+  } else if (this.blacklist) {
+    // Delete any events marked as blacklisted (but already added e.g. from raw event data).
     self = this;
     self.blacklist.forEach(function (label) {
       self.deleteFromField('events', label, false);
     });
+    log.add('Contact had blacklisted events.', Priority.INFO);
   }
 };
 
@@ -418,13 +443,20 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
     null                          // Profile image URL.
   ));
 
-  // Events blacklist.
-  blacklist = googleContact.getCustomFields('notificationBlacklist');
-  if (blacklist && blacklist[0]) {
-    self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
-      x = x.toLocaleLowerCase();
-      return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
-    })));
+  // Check that none of the contact's group are blacklisted.
+  self.isGroupBlacklisted = googleContact.getContactGroups()
+    .map(function (group) { return settings.notifications.blacklistedGroups.indexOf(group.getName()) !== -1; })
+    .reduce(function (acc, curr) { return acc || curr; }, false);
+
+  if (!self.isGroupBlacklisted) {
+    // Per-contact events blacklist.
+    blacklist = googleContact.getCustomFields('notificationBlacklist');
+    if (blacklist && blacklist[0]) {
+      self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
+        x = x.toLocaleLowerCase();
+        return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
+      })));
+    }
   }
 
   // Events.

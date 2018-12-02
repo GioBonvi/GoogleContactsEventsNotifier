@@ -21,7 +21,9 @@ missing notifications on Google Calendar Birthday Calendar.
   - [Installation and setup](#installation-and-setup)
   - [Additional information](#additional-information)
     - [Stopping/uninstalling/deleting the script](#stoppinguninstallingdeleting-the-script)
-    - [Blacklisting specific events for specific contacts](#blacklisting-specific-events-for-specific-contacts)
+    - [Blacklisting](#blacklisting)
+      - [Group blacklisting](#group-blacklisting)
+      - [Blacklisting specific events for specific contacts](#blacklisting-specific-events-for-specific-contacts)
     - [Translation](#translation)
     - [Bug and error reporting, help requests](#bug-and-error-reporting-help-requests)
       - [Unresponsive help requests](#unresponsive-help-requests)
@@ -65,7 +67,23 @@ these steps:
    is sent to you anymore and only then delete the script file: this is up to
    you.
 
-### Blacklisting specific events for specific contacts
+### Blacklisting
+
+#### Group blacklisting
+
+You can set the `settings.notifications.blacklistedGroups` variable to a list of
+contact groups you do not want to receive event notifications for.  
+This can be used in two ways:
+
+- if the contacts you do not want to receive the notifications for are already
+  in a group (e.g. you might have an 'Extended family' group containing the
+  contacts of far relatives whose birthdays you are not actually interested in)
+  you can add that group name to the `blacklistedGroups` list
+- if you have a certain number of contacts that you want to blacklist, but they
+  do not share a common group you can add them to a new group (e.g:
+  'GCEN-blacklist') and add that group name to the `blacklistedGroups` list
+
+#### Blacklisting specific events for specific contacts
 
 There are three event-types for which notifications can be statically
 enabled/disabled for by editing the `settings.notifications.eventTypes`
