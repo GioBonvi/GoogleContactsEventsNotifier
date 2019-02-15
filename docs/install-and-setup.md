@@ -97,9 +97,11 @@ To do so click the menu `Resources->Advanced Google services`.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
 on its row on the right) and press "Okay".  
 Once you have done this open `Resources->Advanced Google services` again and
-click on the link which says "Google API Console": you will be taken to another
-page. In this page search for "Google Calendar API" and open it. Now click
-`Enable` at the top of the window and close this page.  
+click on the link which says "Google Cloud Platform API Dashboard": you will be
+taken to another page. Click on "Library" in the menu on the left, search for
+"Google Calendar API" in the search box and open it. Now click `Enable` and
+close this page. There is no need to create any credentials as suggested on the
+page.  
 Unless you have set the `accessGooglePlus` setting to `false`, then repeat these
 steps for "Google+ API". Set it to `enabled` in the list, click on the "Google
 API Console" link, search for "Google+ API" and activate it. That's it for this
@@ -114,9 +116,13 @@ We have given the script access to the resource it needs to work: now the last
 step is granting it the rights to access those resources. To do so click on the
 menu `Run->notifStart`. You will be prompted to "Review authorizations": do it
 and click `Allow` (You can read the full list of the permissions and why they
-are required [here][Permissions list]). From this moment on you will always
-receive an email before any of your contacts' birthday (You should have set how
-many days before at the beginning).
+are required [here][Permissions list]).
+During this phase you might be prompted with a "This app isn't verified" error
+message: in this case you'll have to click on "Advanced" and click on the link
+that will appear to continue with the setup.
+
+From this moment on you will always receive an email before any of your
+contacts' birthday (You should have set how many days before at the beginning).
 
 [Main code file]: https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/code.gs
 [Google Scripts website]: https://script.google.com
