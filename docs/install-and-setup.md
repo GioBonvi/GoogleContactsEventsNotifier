@@ -56,10 +56,8 @@ This second group of settings contains some variables that you could leave as
 they are, but you are warmly encouraged to edit them to fit your exact needs.  
 These are the names of the variables:
 
-- `settings.user.eventSource`
 - `settings.user.emailSenderName`
 - `settings.user.lang`
-- `settings.user.accessGooglePlus`
 - `settings.notifications.hour`
 - `settings.notifications.timeZone`
 - `settings.notifications.anticipateDays`
@@ -102,10 +100,7 @@ taken to another page. Click on "Library" in the menu on the left, search for
 "Google Calendar API" in the search box and open it. Now click `Enable` and
 close this page. There is no need to create any credentials as suggested on the
 page.  
-Unless you have set the `accessGooglePlus` setting to `false`, then repeat these
-steps for "Google+ API". Set it to `enabled` in the list, click on the "Google
-API Console" link, search for "Google+ API" and activate it. That's it for this
-step.
+That's it for this step.
 
 **Important note**: please double check that you have performed **all** steps
 correctly as this seems to be the cause of many reported errors.

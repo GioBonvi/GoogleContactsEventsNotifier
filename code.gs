@@ -1,4 +1,4 @@
-/* global Logger Plus ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
+/* global Logger ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
 /* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
 /* eslint comma-dangle: ["error", "only-multiline"] */
 
@@ -27,27 +27,6 @@ var settings = {
      */
     notificationEmail: 'YOUREMEAILHERE@example.com',
     /*
-     * SOURCE OF THE EVENTS
-     *
-     * In your birthday calendar settings you have chosen whether to track the birthdays
-     * of just your Google Contacts or those of your Google Contacts and of your Google
-     * Plus contacts as well.
-     * You can check which setting you chose by opening https://calendar.google.com, clicking
-     * on the arrow next to the the contacts events calendar (which should have a name like
-     * 'Birthdays and events') in the menu on the left and opening 'Calendar settings'.
-     *
-     * You can set this variable to:
-     *  'DEFAULT'              This will make the script follow your Google Calendar setting.
-     *  'CONTACTS_ONLY'        This will force the script to track just the birthdays of your
-     *                         Google Contacts, ignoring your Google Calendar setting.
-     *  'CONTACTS_AND_GPLUS'   This will force the script to track the birthdays of both
-     *                         your Google Contacts and Google Plus contacts, ignoring your
-     *                         Google Calendar setting.
-     *   Anything else will be interpreted as a a hard-coded Google Calendar ID from which
-     *   to extract the events.
-     */
-    eventSource: 'DEFAULT',
-    /*
      * EMAIL SENDER NAME
      *
      * This is the name you will see as the sender of the email: if you leave it blank it will
@@ -66,18 +45,7 @@ var settings = {
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
      */
-    lang: 'en',
-    /*
-     * ACCESS GOOGLE+ FOR EXTRA CONTACT-INFORMATION
-     *
-     * This specifies that it is OK to attempt augmenting the contacts-information with
-     * information found via your Google+ connections. If in doubt just leave this set to 'true'
-     * because this script will silently ignore Google+ if it is not able to provide useful
-     * information anyway. This option is mainly for users who do not use Google+ at all, and
-     * don't want to allow this script access to an extra API for no reason (and it will make the
-     * script use fewer API-calls, which is faster).
-     */
-    accessGooglePlus: true
+    lang: 'en'
   },
   notifications: {
     /*
@@ -292,8 +260,6 @@ LocalCache.prototype.retrieve = function (url, tries) {
 function MergedContact () {
   /** @type {?string} */
   this.contactId = null;
-  /** @type {?string} */
-  this.gPlusId = null;
   // Consider all the event types excluded by settings.notifications.eventTypes
   // as blacklisted for all contacts.
   /** @type {string[]} */
@@ -365,10 +331,6 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   // Collect info from the contactId if not already collected and if contactsContactId exists.
   if (this.contactId === null && eventData['goo.contactsContactId']) {
     this.getInfoFromContact(eventData['goo.contactsContactId'], eventMonth, eventDay);
-  }
-  // Collect info from the gPlusId if not already collected and if contactsProfileId exists.
-  if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
-    this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
   }
   // delete any events marked as blacklisted (but already added e.g. from raw event data)
   if (this.blacklist) {
@@ -467,64 +429,6 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
       phoneField.getPhoneNumber()
     ));
   });
-};
-
-/**
- * Update the `MergedContact` with info collected from a Google+ Profile.
- *
- * Some raw events will contain a Google Plus Profile ID which
- * gives access to a bunch of new data about the contact.
- *
- * This data is used to update the information collected until now.
- *
- * @param {string} gPlusProfileId - The id from which to collect the data.
- */
-MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
-  var gPlusProfile, birthdayDate;
-
-  if (!settings.user.accessGooglePlus) {
-    log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
-    return;
-  }
-  log.add('Extracting info from Google Plus Profile...', Priority.INFO);
-
-  // Profile ID.
-  // Using try-catch here because failure to fetch data for the ID is as much of a
-  // problem as an invalid ID.
-  try {
-    gPlusProfile = Plus.People.get(gPlusProfileId);
-    if (gPlusProfile === null) {
-      throw new Error('');
-    }
-  } catch (err) {
-    log.add('Invalid GPlus Profile ID or error retrieving data for ID: ' + gPlusProfileId, Priority.INFO);
-    return;
-  }
-  this.gPlusId = gPlusProfileId;
-
-  // Profile identification data.
-  this.data.merge(new ContactDataDC(
-    gPlusProfile.name.formatted,  // Name.
-    gPlusProfile.nickname,        // Nickname.
-    gPlusProfile.image.url        // Profile image URL.
-  ));
-
-  // Events.
-  /* A Google Plus Profile can have a birthday field in the form of "YYYY-MM-DD",
-   * but part of the date can be missing, replaced by a bunch of zeroes
-   * (most frequently the year).
-   */
-  if (gPlusProfile.birthday && gPlusProfile.birthday !== '0000-00-00') {
-    birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gPlusProfile.birthday);
-    if (birthdayDate) {
-      this.addToField('events', new EventDC(
-        'BIRTHDAY',                                                           // Label.
-        (birthdayDate[1] !== '0000' ? parseInt(birthdayDate[1], 10) : null),  // Year.
-        (birthdayDate[2] !== '00' ? parseInt(birthdayDate[2], 10) : null),    // Month.
-        (birthdayDate[3] !== '00' ? parseInt(birthdayDate[3], 10) : null)     // Day.
-      ));
-    }
-  }
 };
 
 /**
@@ -2209,28 +2113,16 @@ function validateSettings () {
     log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
   }
 
-  switch (settings.user.eventSource) {
-    case 'DEFAULT':
-      // Get the calendar ID from Google Calendar.
-      calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
-        // All the valid calendar IDs contain this string.
-        return isIn('#contacts@group.v.calendar.google.com', cal.getId());
-      }).map(function (cal) { return cal.getId(); });
+  // Get the calendar ID from Google Calendar.
+  calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
+    // All the valid calendar IDs contain this string.
+    return isIn('#contacts@group.v.calendar.google.com', cal.getId());
+  }).map(function (cal) { return cal.getId(); });
 
-      if (calendarId.length > 0) {
-        settings.user.calendarId = calendarId[0];
-      } else {
-        log.add('Could not find the birthday calendar! Please check that you have enabled it and that your user.eventSource setting is correct!', Priority.FATAL_ERROR);
-      }
-      break;
-    case 'CONTACTS_ONLY':
-      settings.user.calendarId = 'addressbook#contacts@group.v.calendar.google.com';
-      break;
-    case 'CONTACTS_AND_GPLUS':
-      settings.user.calendarId = '#contacts@group.v.calendar.google.com';
-      break;
-    default:
-      settings.user.calendarId = settings.user.eventSource;
+  if (calendarId.length > 0) {
+    settings.user.calendarId = calendarId[0];
+  } else {
+    log.add('Could not find the birthday calendar! Please check that you have enabled it!', Priority.FATAL_ERROR);
   }
 
   try {
@@ -2238,18 +2130,12 @@ function validateSettings () {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Your user.eventSource setting is invalid!', Priority.FATAL_ERROR);
+    log.add('The birthday calendar failed to load!', Priority.FATAL_ERROR);
   }
 
   // emailSenderName has no restrictions.
 
   // lang has no restrictions.
-
-  if (typeof settings.user.accessGooglePlus !== 'boolean') {
-    log.add('Your user.accessGooglePlus setting is invalid!', Priority.ERROR);
-    // Default value.
-    settings.user.accessGooglePlus = true;
-  }
 
   setting = settings.notifications.hour;
   if (!Number.isInteger(setting) || setting < 0 || setting >= 24) {
@@ -2439,14 +2325,8 @@ function generateEmailNotification (forceDate) {
     // Look if the contact of this event is already in the contact list.
     for (contactIter = 0; contactIter < contactList.length; contactIter++) {
       if (
-        (
-          eventData['goo.contactsContactId'] !== null &&
-          eventData['goo.contactsContactId'] === contactList[contactIter].contactId
-        ) ||
-        (
-          eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[contactIter].gPlusId
-        )
+        eventData['goo.contactsContactId'] !== null &&
+        eventData['goo.contactsContactId'] === contactList[contactIter].contactId
       ) {
         // FOUND!
         // Integrate this event information into the contact.

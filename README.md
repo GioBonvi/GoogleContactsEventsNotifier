@@ -18,6 +18,7 @@ missing notifications on Google Calendar Birthday Calendar.
 <!-- TOC -->
 
 - [Google Contacts Events Notifier](#google-contacts-events-notifier)
+  - [Note regarding Google Plus integration](#note-regarding-google-plus-integration)
   - [Installation and setup](#installation-and-setup)
   - [Additional information](#additional-information)
     - [Stopping/uninstalling/deleting the script](#stoppinguninstallingdeleting-the-script)
@@ -32,6 +33,29 @@ missing notifications on Google Calendar Birthday Calendar.
   - [Credits](#credits)
 
 <!-- /TOC -->
+
+## Note regarding Google Plus integration
+
+This script used to include an option to extract additional info about your
+contacts from your Google Plus account. As Google Plus is scheduled to be killed
+between March and April 2019 (see [this blog post from Google][Google Plus
+closing] and [this follow up][Google Plus closing 2] for more details) this
+feature had to be removed.
+
+If you are using any version of this script up to and including v4.1.0 you might
+have received one or more emails from Google explaining this and asking you to
+address this issue in your projects.  
+If this is the case the only action you need to take regarding GCEN is to update
+your script to a more recent version (more recent than v4.1.0) and to remove the
+dependecy from the Google Plus API by:
+
+- Opening your script.
+- Clicking on `Resources->Advanced Google services` in the menu at the top.
+- Disabling the `Google+ API` in the list of available APIs.
+- Opening the Google Cloud platform API dashboard with the link provided at the
+  bottom.
+- Searching for `Google+ API` in the search bar at the top.
+- Disabling the API by clicking on the `Disable` button.
 
 ## Installation and setup
 
@@ -175,14 +199,6 @@ script needs your explicit permission to access your data.
 This is an exhaustive description of the reason the script needs each of the
 permissions:
 
-- **Know your age range and language + View your email addresses**  
-  This is needed to retrieve information about your Google Plus contacts,
-  especially those who you have not added in your Google Contacts, but just
-  followed on Google Plus. The script will only get information about people who
-  appear in your birthday calendar. If you prefer to not access Google Plus at
-  all set `settings.user.accessGooglePlus = false` before running any functions
-  and do not enable the Google+ API (then you won't be prompted for this
-  permission).
 - **Manage your Google Contacts**  
   This lets the script access information about your contacts (names, email
   addresses, birthdays). The script will not modify any of your contacts.
@@ -248,6 +264,8 @@ file].
   - [alialamshahi (Ali Alamshahi)][Github alialamshahi] - Farsi;
 - all the other contributors who are listed [here][Project contributors page];
 
+[Google Plus closing]: https://blog.google/technology/safety-security/project-strobe/
+[Google Plus closing 2]: https://www.blog.google/technology/safety-security/expediting-changes-google-plus/
 [Project documentation]: https://giobonvi.github.io/GoogleContactsEventsNotifier
 [Project issue page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues
 [Project contributors page]: https://github.com/GioBonvi/GoogleContactsEventsNotifier/graphs/contributors
