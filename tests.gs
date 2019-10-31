@@ -201,5 +201,6 @@ function testSelectedPeriod (testDate, numberOfDaysToTest) { // eslint-disable-l
     name: settings.user.emailSenderName
   });
 
-  log.add('Test finished. Sending logs via email.', Priority.FATAL_ERROR);
+  log.add('Test finished. Sending logs via email.', Priority.MAX);
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }
