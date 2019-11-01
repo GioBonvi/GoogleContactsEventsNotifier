@@ -239,7 +239,8 @@ file].
 - [baatochan (Bartosz Rodziewicz)][Github baatochan], for his various contributions
   both in solving issues and in adding new features;
 - those users who provided translations for the script:
-  - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe] - Greek;
+  - [rowanthorpe (Rowan Thorpe)][GitHub rowanthorpe] and [apo-mak][Github apo-mak
+    ] - Greek;
   - [lboullo0 (Lucas)][Github lboullo0] - Spanish;
   - [muzavan (Muhammad Reza Irvanda)][Github muzavan] - Indonesian;
   - [DrKrakower][Github DrKrakower], Simone Sottopietra, [shutdown27 (Peter
@@ -262,6 +263,7 @@ file].
   - [vladimir-kirillovskiy][Github vladimir-kirillovskiy] - Russian;
   - [AlesJiranek (Aleš Jiránek)][Github AlesJiranek] - Czech;
   - [alialamshahi (Ali Alamshahi)][Github alialamshahi] - Farsi;
+  - [GisliNielsen (Gisli Nielsen)][Github GisliNielsen] - Norwegian Bokmål
 - all the other contributors who are listed [here][Project contributors page];
 
 [Google Plus closing]: https://blog.google/technology/safety-security/project-strobe/
@@ -304,3 +306,5 @@ file].
 [Github AlesJiranek]: https://github.com/AlesJiranek
 [Github jovanzers]: https://github.com/jovanzers
 [Github alialamshahi]: https://github.com/alialamshahi
+[Github GisliNielsen]: https://github.com/GisliNielsen
+[Github apo-mak]: https://github.com/apo-mak
