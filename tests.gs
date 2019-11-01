@@ -1,4 +1,4 @@
-/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification dateWithTimezone Utilities */
+/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification dateWithTimezone Utilities MailApp settings validateSettings */
 
 /**
  * This function throws an error when the condition provided is false.
@@ -171,8 +171,8 @@ function testSelectedPeriod (testDate, numberOfDaysToTest) { // eslint-disable-l
   var emailData = {
     'subject': 'testSelectedPeriod run from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days',
     'body': '',
-    'htmlBody': '',
-  }
+    'htmlBody': ''
+  };
 
   validateSettings();
 
