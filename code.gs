@@ -1,4 +1,4 @@
-/* global Logger Plus ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
+/* global Logger ScriptApp ContactsApp Utilities Calendar CalendarApp UrlFetchApp MailApp Session */
 /* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
 /* eslint comma-dangle: ["error", "only-multiline"] */
 
@@ -27,27 +27,6 @@ var settings = {
      */
     notificationEmail: 'YOUREMEAILHERE@example.com',
     /*
-     * SOURCE OF THE EVENTS
-     *
-     * In your birthday calendar settings you have chosen whether to track the birthdays
-     * of just your Google Contacts or those of your Google Contacts and of your Google
-     * Plus contacts as well.
-     * You can check which setting you chose by opening https://calendar.google.com, clicking
-     * on the arrow next to the the contacts events calendar (which should have a name like
-     * 'Birthdays and events') in the menu on the left and opening 'Calendar settings'.
-     *
-     * You can set this variable to:
-     *  'DEFAULT'              This will make the script follow your Google Calendar setting.
-     *  'CONTACTS_ONLY'        This will force the script to track just the birthdays of your
-     *                         Google Contacts, ignoring your Google Calendar setting.
-     *  'CONTACTS_AND_GPLUS'   This will force the script to track the birthdays of both
-     *                         your Google Contacts and Google Plus contacts, ignoring your
-     *                         Google Calendar setting.
-     *   Anything else will be interpreted as a a hard-coded Google Calendar ID from which
-     *   to extract the events.
-     */
-    eventSource: 'DEFAULT',
-    /*
      * EMAIL SENDER NAME
      *
      * This is the name you will see as the sender of the email: if you leave it blank it will
@@ -60,23 +39,13 @@ var settings = {
      *
      * To translate the notifications messages into your language enter the two-letter language
      * code here.
-     * Available languages are: en, el, es, it, de, id, pl, fr, nl, pt.
+     * Available languages are:
+     *   en, cs, de, el, es, fa, fr, he, id, it, kr, lt, nl, no, nb, pl, pt, pt-BR, ru, th, tr.
      * If you want to add your own language find the variable called i18n below and follow the
      * instructions: it's quite simple as long as you can translate from one of the available
      * languages.
      */
-    lang: 'en',
-    /*
-     * ACCESS GOOGLE+ FOR EXTRA CONTACT-INFORMATION
-     *
-     * This specifies that it is OK to attempt augmenting the contacts-information with
-     * information found via your Google+ connections. If in doubt just leave this set to 'true'
-     * because this script will silently ignore Google+ if it is not able to provide useful
-     * information anyway. This option is mainly for users who do not use Google+ at all, and
-     * don't want to allow this script access to an extra API for no reason (and it will make the
-     * script use fewer API-calls, which is faster).
-     */
-    accessGooglePlus: true
+    lang: 'en'
   },
   notifications: {
     /*
@@ -196,7 +165,7 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '4.1.0',
+    version: '5.0.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
     gitHubBranch: 'development'
   }
@@ -291,8 +260,6 @@ LocalCache.prototype.retrieve = function (url, tries) {
 function MergedContact () {
   /** @type {?string} */
   this.contactId = null;
-  /** @type {?string} */
-  this.gPlusId = null;
   // Consider all the event types excluded by settings.notifications.eventTypes
   // as blacklisted for all contacts.
   /** @type {string[]} */
@@ -364,10 +331,6 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   // Collect info from the contactId if not already collected and if contactsContactId exists.
   if (this.contactId === null && eventData['goo.contactsContactId']) {
     this.getInfoFromContact(eventData['goo.contactsContactId'], eventMonth, eventDay);
-  }
-  // Collect info from the gPlusId if not already collected and if contactsProfileId exists.
-  if (this.gPlusId === null && eventData['goo.contactsProfileId']) {
-    this.getInfoFromGPlus(eventData['goo.contactsProfileId']);
   }
   // delete any events marked as blacklisted (but already added e.g. from raw event data)
   if (this.blacklist) {
@@ -466,64 +429,6 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
       phoneField.getPhoneNumber()
     ));
   });
-};
-
-/**
- * Update the `MergedContact` with info collected from a Google+ Profile.
- *
- * Some raw events will contain a Google Plus Profile ID which
- * gives access to a bunch of new data about the contact.
- *
- * This data is used to update the information collected until now.
- *
- * @param {string} gPlusProfileId - The id from which to collect the data.
- */
-MergedContact.prototype.getInfoFromGPlus = function (gPlusProfileId) {
-  var gPlusProfile, birthdayDate;
-
-  if (!settings.user.accessGooglePlus) {
-    log.add('Not extracting info from Google Plus Profile, as per configuration.', Priority.INFO);
-    return;
-  }
-  log.add('Extracting info from Google Plus Profile...', Priority.INFO);
-
-  // Profile ID.
-  // Using try-catch here because failure to fetch data for the ID is as much of a
-  // problem as an invalid ID.
-  try {
-    gPlusProfile = Plus.People.get(gPlusProfileId);
-    if (gPlusProfile === null) {
-      throw new Error('');
-    }
-  } catch (err) {
-    log.add('Invalid GPlus Profile ID or error retrieving data for ID: ' + gPlusProfileId, Priority.INFO);
-    return;
-  }
-  this.gPlusId = gPlusProfileId;
-
-  // Profile identification data.
-  this.data.merge(new ContactDataDC(
-    gPlusProfile.name.formatted,  // Name.
-    gPlusProfile.nickname,        // Nickname.
-    gPlusProfile.image.url        // Profile image URL.
-  ));
-
-  // Events.
-  /* A Google Plus Profile can have a birthday field in the form of "YYYY-MM-DD",
-   * but part of the date can be missing, replaced by a bunch of zeroes
-   * (most frequently the year).
-   */
-  if (gPlusProfile.birthday && gPlusProfile.birthday !== '0000-00-00') {
-    birthdayDate = /^(\d\d\d\d)-(\d\d)-(\d\d)$/.exec(gPlusProfile.birthday);
-    if (birthdayDate) {
-      this.addToField('events', new EventDC(
-        'BIRTHDAY',                                                           // Label.
-        (birthdayDate[1] !== '0000' ? parseInt(birthdayDate[1], 10) : null),  // Year.
-        (birthdayDate[2] !== '00' ? parseInt(birthdayDate[2], 10) : null),    // Month.
-        (birthdayDate[3] !== '00' ? parseInt(birthdayDate[3], 10) : null)     // Day.
-      ));
-    }
-  }
 };
 
 /**
@@ -1380,6 +1285,68 @@ var i18n = {
   // An entry for 'en' marks it as a valid lang config-option, but leave it empty
   // to just return unaltered phrases.
   'en': {},
+  'cs': {
+    'Age': 'Věk',
+    'Years': 'Let',
+    'Events': 'Události',
+    'Birthdays today': 'Narozeniny dnes',
+    'Birthdays tomorrow': 'Narozeniny zítra',
+    'Birthdays in {0} days': 'Narozeniny za {0} dní',
+    'Anniversaries today': 'Výročí dnes',
+    'Anniversaries tomorrow': 'Výročí zítra',
+    'Anniversaries in {0} days': 'Výročí za {0} dní',
+    'Custom events today': 'Jiné události dnes',
+    'Custom events tomorrow': 'Jiné události zítra',
+    'Custom events in {0} days': 'Jiné události za {0} dní',
+    'Hey! Don\'t forget these events': 'Hej! Nezapomeň na tyto události',
+    'version': 'verze',
+    'dd-MM-yyyy': 'dd.MM.yyyy',
+    'Mobile phone': 'Mobil',
+    'Work phone': 'Telefon (pracovní)',
+    'Home phone': 'Telefon (soukromý)',
+    'Main phone': 'Telefon (hlavní)',
+    'Other phone': 'Jiné telefonní číslo',
+    'Home fax': 'Fax (soukromý)',
+    'Work fax': 'Fax (pracovní)',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'E-mail (soukromý)',
+    'Work email': 'E-mail (pracovní)',
+    'Other email': 'Jiné e-mailové adresy',
+    'It looks like you are using an outdated version of this script': 'Vypadatá to, že používáte zastaralouv verzi skriptu',
+    'You can find the latest one here': 'Poslední verzi najdete zde',
+  },
+  'de': {
+    'Age': 'Alter',
+    'Years': 'Jahre',
+    'Events': 'Termine',
+    'Birthdays today': 'Geburtstage heute',
+    'Birthdays tomorrow': 'Geburtstage morgen',
+    'Birthdays in {0} days': 'Geburtstage in {0} Tagen',
+    'Anniversaries today': 'Jahrestage heute',
+    'Anniversaries tomorrow': 'Jahrestage morgen',
+    'Anniversaries in {0} days': 'Jahrestage in {0} Tagen',
+    'Custom events today': 'Benutzerdefinierte Termine heute',
+    'Custom events tomorrow': 'Benutzerdefinierte Termine morgen',
+    'Custom events in {0} days': 'Benutzerdefinierte Termine in {0} Tagen',
+    'Hey! Don\'t forget these events': 'Hey! Vergiss diese Termine nicht',
+    'version': 'Version',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Telefon (mobil)',
+    'Work phone': 'Telefon (geschäftlich)',
+    'Home phone': 'Telefon (privat)',
+    'Main phone': 'Telefon (haupt)',
+    'Other phone': 'Telefon (sonstige)',
+    'Home fax': 'Fax (privat)',
+    'Work fax': 'Fax (geschäftlich)',
+    'Google voice': 'Google Voice',
+    'Pager': 'Pager',
+    'Home email': 'E-Mail (privat)',
+    'Work email': 'E-Mail (geschäftlich)',
+    'Other email': 'E-Mail (sonstige)',
+    'It looks like you are using an outdated version of this script': 'Du scheinst eine veraltete Version dieses Skripts zu benutzen',
+    'You can find the latest one here': 'Du findest die neuste Version hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
+  },
   'el': {
     'Age': 'Ηλικία',
     'Years': 'Χρόνια',
@@ -1393,7 +1360,7 @@ var i18n = {
     'Custom events today': 'Προσαρμοσμένα γεγονότα σήμερα',
     'Custom events tomorrow': 'Προσαρμοσμένα γεγονότα αύριο',
     'Custom events in {0} days': 'Προσαρμοσμένα γεγονότα σε {0} ημέρες',
-    'Hey! Don\'t forget these events': 'Hey! Μην ξεχάσεις αυτά τα γεγονότα',
+    'Hey! Don\'t forget these events': 'Και πού σαι! Μην ξεχάσεις αυτά τα γεγονότα',
     'version': 'εκδοχή',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Κινητό',
@@ -1408,7 +1375,7 @@ var i18n = {
     'Home email': 'Προσωπικό email',
     'Work email': 'Επαγγελματικό email',
     'Other email': 'Άλλο email',
-    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτής της δέσμης ενεργειών',
+    'It looks like you are using an outdated version of this script': 'Φαίνεται οτι χρησιμοποιείς μια παλαιότερη εκδοχή αυτόυ του script',
     'You can find the latest one here': 'Μπορείς να βρείς την τελευταία εδώ',
   },
   'es': {
@@ -1442,6 +1409,130 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'Parece que estás usando una versión antigua de este script',
     'You can find the latest one here': 'Puedes encontrar la última aquí',
   },
+  'fa': {
+    'Age': 'سن',
+    'Years': 'سال',
+    'Events': 'رویدادها',
+    'Birthdays today': 'تولدهای امروز',
+    'Birthdays tomorrow': 'تولدهای فردا',
+    'Birthdays in {0} days': 'تولدهای {0} روز آینده',
+    'Anniversaries today': 'سالگردهای امروز',
+    'Anniversaries tomorrow': 'سالگردهای فردا',
+    'Anniversaries in {0} days': 'سالگردهای {0} روز آینده',
+    'Custom events today': 'رویدادهای شخصی امروز',
+    'Custom events tomorrow': 'رویدادهای شخصی فردا',
+    'Custom events in {0} days': 'رویدادهای شخصی {0} روز آینده',
+    'Hey! Don\'t forget these events': 'سلام! این رویدادها را فراموش نکن',
+    'version': 'نسخه',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'شماره موبایل',
+    'Work phone': 'شماره تلفن محل کار',
+    'Home phone': 'شماره تلفن خانه',
+    'Main phone': 'شماره تلفن اصلی',
+    'Other phone': 'شماره تلفن دیگر',
+    'Home fax': 'شماره فاکس خانه',
+    'Work fax': 'شماره فاکس محل کار',
+    'Google voice': 'وویس گوگل',
+    'Pager': 'پیجر',
+    'Home email': 'ایمیل خانه',
+    'Work email': 'ایمیل محل کار',
+    'Other email': 'ایمیل دیگر',
+    'It looks like you are using an outdated version of this script': 'به نظر می رسد شما نسخه قدیمی این اسکریپت را استفاده می کنید',
+    'You can find the latest one here': 'اینجا می توانید نسخه به روز را بیابید',
+  },
+  'fr': {
+    'Age': 'Age',
+    'Years': 'Années',
+    'Events': 'Evénements',
+    'Birthdays today': 'Anniversaires aujourd\'hui',
+    'Birthdays tomorrow': 'Anniversaires demain',
+    'Birthdays in {0} days': 'Anniversaires dans {0} jours',
+    'Anniversaries today': 'Anniversaires aujourd\'hui',
+    'Anniversaries tomorrow': 'Anniversaires demain',
+    'Anniversaries in {0} days': 'Anniversaires dans {0} jours',
+    'Custom events today': 'Autres événements aujourd\'hui',
+    'Custom events tomorrow': 'Autres événements demain',
+    'Custom events in {0} days': 'Autres événements dans {0} jours',
+    'Hey! Don\'t forget these events': 'Hey ! N\'oubliez pas ces événements',
+    'version': 'version',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Téléphone portable',
+    'Work phone': 'Téléphone travail',
+    'Home phone': 'Téléphone maison',
+    'Main phone': 'Téléphone principale',
+    'Other phone': 'Autre téléphone',
+    'Home fax': 'Fax maison',
+    'Work fax': 'Fax travail',
+    'Google voice': 'Google voice',
+    'Pager': 'Téléavertisseur',
+    'Home email': 'Adresse mail personelle',
+    'Work email': 'Adresse mail professionelle',
+    'Other email': 'Autre adresse mail',
+    'It looks like you are using an outdated version of this script': 'Il semblerait que vous utilisiez une ancienne version de ce script',
+    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
+  },
+  'he': {
+    'Age': 'גיל',
+    'Years': 'שנים',
+    'Events': 'אירועים',
+    'Birthdays today': 'ימי הולדת היום',
+    'Birthdays tomorrow': 'ימי הולדת מחר',
+    'Birthdays in {0} days': 'ימי הולדת בעוד {0} ימים',
+    'Anniversaries today': 'ימי נישואין היום',
+    'Anniversaries tomorrow': 'ימי נישואין מחר',
+    'Anniversaries in {0} days': 'ימי נישואין בעוד {0} ימים',
+    'Custom events today': 'אירועים מיוחדים היום',
+    'Custom events tomorrow': 'אירועים מיוחדים מחר',
+    'Custom events in {0} days': 'אירועים מיוחדים בעוד {0} ימים',
+    'Hey! Don\'t forget these events': 'היי, אל תשכח את האירועים האלה!',
+    'version': 'גרסה',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'טלפון נייד',
+    'Work phone': 'טלפון בעבודה',
+    'Home phone': 'טלפון בבית',
+    'Main phone': 'מספר טלפון ראשי',
+    'Other phone': 'טלפון אחר',
+    'Home fax': 'פקס בבית',
+    'Work fax': 'פקס בעבודה',
+    'Google voice': 'Google voice',
+    'Pager': 'זימונית',
+    'Home email': 'מייל אישי',
+    'Work email': 'מייל בעבודה',
+    'Other email': 'כתובת מייל אחרת',
+    'It looks like you are using an outdated version of this script': 'נראה שאתה משתמש בגרסה לא עדכנית של התוכנה',
+    'You can find the latest one here': 'אתה יכול להוריד את הגרסה העדכנית כאן',
+  },
+  'id': {
+    'Age': 'Usia',
+    'Years': 'Tahun',
+    'Events': 'Acara',
+    'Birthdays today': 'Ulang tahun hari ini',
+    'Birthdays tomorrow': 'Ulang tahun besok',
+    'Birthdays in {0} days': 'Ulang tahun dalam {0} hari mendatang',
+    'Anniversaries today': 'Hari jadi hari ini',
+    'Anniversaries tomorrow': 'Hari jadi besok',
+    'Anniversaries in {0} days': 'Hari jadi dalam {0} hari mendatang',
+    'Custom events today': 'Acara khusus hari ini',
+    'Custom events tomorrow': 'Acara khusus besok',
+    'Custom events in {0} days': 'Acara khusus dalam {0} hari mendatang',
+    'Hey! Don\'t forget these events': 'Hei! Jangan lupa acara ini',
+    'version': 'versi',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Telp. Selular',
+    'Work phone': 'Telp. Kantor',
+    'Home phone': 'Telp. Rumah',
+    'Main phone': 'Telp. Utama',
+    'Other phone': 'Telp. Lain',
+    'Home fax': 'Faks. Rumah',
+    'Work fax': 'Faks. Kantor',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'Email Rumah',
+    'Work email': 'Email Kantor',
+    'Other email': 'Email Lain',
+    'It looks like you are using an outdated version of this script': 'Sepertinya anda menggunakan versi lama dari skrip ini',
+    'You can find the latest one here': 'Anda bisa menemukan versi terbaru di sini',
+  },
   'it': {
     'Age': 'Età',
     'Years': 'Anni',
@@ -1473,129 +1564,98 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'Sembra che tu stia usando una vecchia versione di questo script',
     'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   },
-  'id': {
-    'Age': 'Usia',
-    'Years': 'Tahun-tahun',
-    'Events': 'Peristiwa-peristiwa',
-    'Birthdays today': 'Ulang tahun hari ini',
-    'Birthdays tomorrow': 'Ulang tahun besok',
-    'Birthdays in {0} days': 'Ulang tahun dalam {0} hari mendatang',
-    'Anniversaries today': 'Hari jadi hari ini',
-    'Anniversaries tomorrow': 'Hari jadi besok',
-    'Anniversaries in {0} days': 'Hari jadi dalam {0} hari mendatang',
-    'Custom events today': 'Peristiwa khusus hari ini',
-    'Custom events tomorrow': 'Peristiwa khusus besok',
-    'Custom events in {0} days': 'Peristiwa khusus dalam {0} hari mendatang',
-    'Hey! Don\'t forget these events': 'Hai! Jangan lupa peristiwa-peristiwa berikut',
-    'version': 'versi',
-    'dd-MM-yyyy': 'dd-MM-yyyy',
-    'Mobile phone': 'Telp. Selular',
-    'Work phone': 'Telp. Kantor',
-    'Home phone': 'Telp. Rumah',
-    'Main phone': 'Telp. Utama',
-    // TODO: 'Other phone': '',
-    // TODO: 'Home fax': '',
-    // TODO: 'Work fax': '',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    // TODO: 'Home email': '',
-    // TODO: 'Work email': '',
-    // TODO: 'Other email': '',
-    'It looks like you are using an outdated version of this script': 'Sepertinya anda menggunakan versi lama dari skrip ini',
-    'You can find the latest one here': 'Anda bisa menemukan versi terbaru di sini',
+  'kr': {
+    'Age': '나이',
+    'Years': '년도',
+    'Events': '행사',
+    'Birthdays today': '오늘 생일',
+    'Birthdays tomorrow': '내일 생일',
+    'Birthdays in {0} days': '{0}일 동안 생일',
+    'Anniversaries today': '오늘 기념일',
+    'Anniversaries tomorrow': '내일 기념일',
+    'Anniversaries in {0} days': '{0}일 동안 기념일',
+    'Custom events today': '오늘 지정된 행사',
+    'Custom events tomorrow': '내일 지정된 행사',
+    'Custom events in {0} days': '{0}일 동안 지정된 행사',
+    'Hey! Don\'t forget these events': '이 행사들을 잊지 마세요!',
+    'version': '버전',
+    'dd-MM-yyyy': 'yyyy-MM-dd',
+    'Mobile phone': '휴대폰',
+    'Work phone': '직장 전화',
+    'Home phone': '집 전화',
+    'Main phone': '대표 전화',
+    'Other phone': '기타 전화',
+    'Home fax': '집 팩스',
+    'Work fax': '직장 팩스',
+    'Google voice': '구글 보이스',
+    'Pager': '무선호출기',
+    'Home email': '집 이메일',
+    'Work email': '직장 이메일',
+    'Other email': '기타 이메일',
+    'It looks like you are using an outdated version of this script': '옛날 버전 스크립트를 사용중인것 같네요',
+    'You can find the latest one here': '여기에서 최신버전을 찾을 수 있습니다',
   },
-  'de': {
-    'Age': 'Alter',
-    'Years': 'Jahre',
-    'Events': 'Termine',
-    'Birthdays today': 'Geburtstage heute',
-    'Birthdays tomorrow': 'Geburtstage morgen',
-    'Birthdays in {0} days': 'Geburtstage in {0} Tagen',
-    'Anniversaries today': 'Jahrestage heute',
-    'Anniversaries tomorrow': 'Jahrestage morgen',
-    'Anniversaries in {0} days': 'Jahrestage in {0} Tagen',
-    'Custom events today': 'Benutzerdefinierte Termine heute',
-    'Custom events tomorrow': 'Benutzerdefinierte Termine morgen',
-    'Custom events in {0} days': 'Benutzerdefinierte Termine in {0} Tagen',
-    'Hey! Don\'t forget these events': 'Hey! Vergiss diese Termine nicht',
-    'version': 'Version',
+  'lt': {
+    'Age': 'Amžius',
+    'Years': 'Metai',
+    'Events': 'Įvykiai',
+    'Birthdays today': 'Šiandienos gimtadieniai',
+    'Birthdays tomorrow': 'Rytojaus gimtadieniai',
+    'Birthdays in {0} days': 'Gimtadieniai už {0} dienų',
+    'Anniversaries today': 'Šiandienos jubiliejai',
+    'Anniversaries tomorrow': 'Rytojaus jubiliejai',
+    'Anniversaries in {0} days': 'Jubiliejai už {0} dienų',
+    'Custom events today': 'Priskirti įvykiai šiandien',
+    'Custom events tomorrow': 'Priskirti įvykiai rytoj',
+    'Custom events in {0} days': 'Priskirti įvykiai už {0} dienų',
+    'Hey! Don\'t forget these events': 'Hey! Neužmiršk šių įvykių',
+    'version': 'versija',
+    'dd-MM-yyyy': 'yyyy-MM-dd',
+    'Mobile phone': 'Mobilus telefonas',
+    'Work phone': 'Darbo telefonas',
+    'Home phone': 'Namų telefonas',
+    'Main phone': 'Pagrindinis telefonas',
+    'Other phone': 'Kitas telefonas',
+    'Home fax': 'Namų faksas',
+    'Work fax': 'Darbo faksas',
+    'Google voice': 'Google voice',
+    'Pager': 'Peidžeris',
+    'Home email': 'Namų elektroninis paštas',
+    'Work email': 'Darbo elektroninis paštas',
+    'Other email': 'Kitas elektroninis paštas',
+    'It looks like you are using an outdated version of this script': 'Atrodo, kad jūs naudojate pasenusią šio skripto versiją',
+    'You can find the latest one here': 'Naujausią galite rasti čia',
+  },
+  'nb': {
+    'Age': 'Alder',
+    'Years': 'År',
+    'Events': 'Arrangementer',
+    'Birthdays today': 'Bursdager idag',
+    'Birthdays tomorrow': 'Bursdager imorgen',
+    'Birthdays in {0} days': 'Bursdager om {0} dager',
+    'Anniversaries today': 'Jubileer idag',
+    'Anniversaries tomorrow': 'Jubileer imorgen',
+    'Anniversaries in {0} days': 'Jubileer om {0} dager',
+    'Custom events today': 'Egendefinerte arrangementer idag',
+    'Custom events tomorrow': 'Egendefinerte arrangementer imorgen',
+    'Custom events in {0} days': 'Egendefinerte arrangementer om {0} dager',
+    'Hey! Don\'t forget these events': 'Hei! Ikke glem disse arrangementene',
+    'version': 'versjon',
     'dd-MM-yyyy': 'dd-MM-yyyy',
     'Mobile phone': 'Mobiltelefon',
-    'Work phone': 'Geschäftlich',
-    'Home phone': 'Privat',
-    'Main phone': 'Hauptnummer',
-    // TODO: 'Other phone': '',
-    // TODO: 'Home fax': '',
-    // TODO: 'Work fax': '',
-    // TODO: 'Google voice': '',
-    // TODO: 'Pager': '',
-    // TODO: 'Home email': '',
-    // TODO: 'Work email': '',
-    // TODO: 'Other email': '',
-    'It looks like you are using an outdated version of this script': 'Du scheinst eine veraltete Version dieses Skripts zu benutzen',
-    'You can find the latest one here': 'Die aktuelle Version findest du hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
-  },
-  'pl': {
-    'Age': 'Wiek',
-    'Years': 'Lat(a)',
-    'Events': 'Wydarzenia',
-    'Birthdays today': 'Urodziny dzisiaj',
-    'Birthdays tomorrow': 'Urodziny jutro',
-    'Birthdays in {0} days': 'Urodziny za {0} dni',
-    'Anniversaries today': 'Rocznice dzisiaj',
-    'Anniversaries tomorrow': 'Rocznice jutro',
-    'Anniversaries in {0} days': 'Rocznice za {0} dni',
-    'Custom events today': 'Inne wydarzenia dzisiaj',
-    'Custom events tomorrow': 'Inne wydarzenia jutro',
-    'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
-    'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
-    'version': 'wersja',
-    'dd-MM-yyyy': 'dd.MM.yyyy',
-    'Mobile phone': 'Telefon',
-    'Work phone': 'Telefon (służbowy)',
-    'Home phone': 'Telefon (stacjonarny)',
-    'Main phone': 'Telefon (główny)',
-    'Other phone': 'Inne numery',
-    'Home fax': 'Fax (domowy)',
-    'Work fax': 'Fax (służbowy)',
+    'Work phone': 'Arbeidstelefon',
+    'Home phone': 'Hjemmetelefon',
+    'Main phone': 'Hovedtelefon',
+    'Other phone': 'Annen telefon',
+    'Home fax': 'Hjemme faks',
+    'Work fax': 'Arbeids faks',
     'Google voice': 'Google voice',
-    'Pager': 'Pager',
-    'Home email': 'E-mail (prywatny)',
-    'Work email': 'E-mail (służbowy)',
-    'Other email': 'Inne adresy e-mail',
-    'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
-    'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
-  },
-  'fr': {
-    'Age': 'Age',
-    'Years': 'Années',
-    'Events': 'Evénements',
-    'Birthdays today': 'Anniversaire aujourd\'hui',
-    'Birthdays tomorrow': 'Anniversaire demain',
-    'Birthdays in {0} days': 'Anniversaire dans {0} jours',
-    'Anniversaries today': 'Anniversaire aujourd\'hui',
-    'Anniversaries tomorrow': 'Anniversaire demain',
-    'Anniversaries in {0} days': 'Anniversaire dans {0} jours',
-    'Custom events today': 'Autres événements aujourd\'hui',
-    'Custom events tomorrow': 'Autres événements demain',
-    'Custom events in {0} days': 'Autres événements dans {0} jours',
-    'Hey! Don\'t forget these events': 'Hey n\'oubliez pas ces événements',
-    'version': 'version',
-    'dd-MM-yyyy': 'dd-MM-yyyy',
-    'Mobile phone': 'Téléphone portable',
-    'Work phone': 'Téléphone travail',
-    'Home phone': 'Téléphone maison',
-    'Main phone': 'Téléphone principale',
-    'Other phone': 'Autre téléphone',
-    'Home fax': 'Fax maison',
-    'Work fax': 'Fax travail',
-    'Google voice': 'Google voice',
-    'Pager': 'Téléavertisseur',
-    'Home email': 'Adresse mail personelle',
-    'Work email': 'Adresse mail professionelle',
-    'Other email': 'Autre adresse mail',
-    'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
-    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
+    'Pager': 'Personsøker ',
+    'Home email': 'Hjemme e-post',
+    'Work email': 'Arbeids e-post',
+    'Other email': 'Annen e-post',
+    'It looks like you are using an outdated version of this script': 'Det ser ut til at du bruker utdatert versjon av dette skriptet',
+    'You can find the latest one here': 'Du kan finne den nyeste her',
   },
   'nl': {
     'Age': 'Leeftijd',
@@ -1628,6 +1688,68 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'Het lijkt erop alsof je een verouderde versie van dit script gebruikt.',
     'You can find the latest one here': 'Je kunt de laatste versie hier vinden',
   },
+  'no': {
+    'Age': 'Alder',
+    'Years': 'År',
+    'Events': 'Arrangementer',
+    'Birthdays today': 'Bursdager i dag',
+    'Birthdays tomorrow': 'Bursdager i morgen',
+    'Birthdays in {0} days': 'Bursdager om {0} dager',
+    'Anniversaries today': 'Jubileum i dag',
+    'Anniversaries tomorrow': 'Jubileum i morgen',
+    'Anniversaries in {0} days': 'Jubileum om {0} dager',
+    'Custom events today': 'Egendefinerte hendelser i dag',
+    'Custom events tomorrow': 'Egendefinerte hendelser i morgen',
+    'Custom events in {0} days': 'Egendefinerte hendelser om {0} dager',
+    'Hey! Don\'t forget these events': 'Hei! Ikke glem disse arrangementene',
+    'version': 'versjon',
+    'dd-MM-yyyy': 'dd.MM.yyyy',
+    'Mobile phone': 'Mobil',
+    'Work phone': 'Jobbtelefon',
+    'Home phone': 'Hjemtelefon',
+    'Main phone': 'Hovedtelefon',
+    'Other phone': 'Annen telefon',
+    'Home fax': 'Hjemmefax',
+    'Work fax': 'Jobbfax',
+    'Google voice': 'Google voice',
+    'Pager': 'Personsøker',
+    'Home email': 'Hjem e-post',
+    'Work email': 'Jobb e-post',
+    'Other email': 'Annen e-post',
+    'It looks like you are using an outdated version of this script': 'Det ser ut som du bruker en gammel versjon av dette scriptet',
+    'You can find the latest one here': 'Du kan finne nyeste versjon her',
+  },
+  'pl': {
+    'Age': 'Wiek',
+    'Years': 'Lat(a)',
+    'Events': 'Wydarzenia',
+    'Birthdays today': 'Urodziny dzisiaj',
+    'Birthdays tomorrow': 'Urodziny jutro',
+    'Birthdays in {0} days': 'Urodziny za {0} dni',
+    'Anniversaries today': 'Rocznice dzisiaj',
+    'Anniversaries tomorrow': 'Rocznice jutro',
+    'Anniversaries in {0} days': 'Rocznice za {0} dni',
+    'Custom events today': 'Inne wydarzenia dzisiaj',
+    'Custom events tomorrow': 'Inne wydarzenia jutro',
+    'Custom events in {0} days': 'Inne wydarzenia za {0} dni',
+    'Hey! Don\'t forget these events': 'Hej! Nie zapomnij o tych datach',
+    'version': 'wersja',
+    'dd-MM-yyyy': 'dd.MM.yyyy',
+    'Mobile phone': 'Telefon',
+    'Work phone': 'Telefon (służbowy)',
+    'Home phone': 'Telefon (stacjonarny)',
+    'Main phone': 'Telefon (główny)',
+    'Other phone': 'Inne numery',
+    'Home fax': 'Fax (domowy)',
+    'Work fax': 'Fax (służbowy)',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'E-mail (prywatny)',
+    'Work email': 'E-mail (służbowy)',
+    'Other email': 'Inne adresy e-mail',
+    'It looks like you are using an outdated version of this script': 'Wygląda na to, że używasz nieaktualnej wersji skryptu',
+    'You can find the latest one here': 'Najnowszą możesz znaleźć tutaj', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
+  },
   'pt': {
     'Age': 'Idade',
     'Years': 'Anos',
@@ -1659,11 +1781,140 @@ var i18n = {
     'It looks like you are using an outdated version of this script': 'Parece que tens uma versão desatualizada deste script',
     'You can find the latest one here': 'Podes encontrar a última versão aqui',
   },
+  'pt-BR': {
+    'Age': 'Idade',
+    'Years': 'Anos',
+    'Events': 'Eventos',
+    'Birthdays today': 'Aniversários hoje',
+    'Birthdays tomorrow': 'Aniversários amanhã',
+    'Birthdays in {0} days': 'Aniversários em {0} dias',
+    'Anniversaries today': 'Aniversários hoje',
+    'Anniversaries tomorrow': 'Aniversários amanhã',
+    'Anniversaries in {0} days': 'Aniversários em {0} dias',
+    'Custom events today': 'Eventos personalizados hoje',
+    'Custom events tomorrow': 'Eventos personalizados amanhã',
+    'Custom events in {0} days': 'Eventos personalizados em {0} dias',
+    'Hey! Don\'t forget these events': 'Ei! Não se esqueça destes eventos',
+    'version': 'versão',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Celular',
+    'Work phone': 'Telefone de trabalho',
+    'Home phone': 'Telefone residencial',
+    'Main phone': 'Telefone principal',
+    'Other phone': 'Outro telefone',
+    'Home fax': 'Fax residencial',
+    'Work fax': 'Fax profissional',
+    'Google voice': 'Google voice',
+    'Pager': 'Pager',
+    'Home email': 'Email residencial',
+    'Work email': 'Email profissional',
+    'Other email': 'Outro email',
+    'It looks like you are using an outdated version of this script': 'Parece que você está usando uma versão desatualizada deste script',
+    'You can find the latest one here': 'Você pode encontrar a última versão aqui',
+  },
+  'ru': {
+    'Age': 'Возраст',
+    'Years': 'Лет',
+    'Events': 'События',
+    'Birthdays today': 'Дни рождения сегодня',
+    'Birthdays tomorrow': 'Дни рождения завтра',
+    'Birthdays in {0} days': 'Дни рождения через {0} дней',
+    'Anniversaries today': 'Юбилей сегодня',
+    'Anniversaries tomorrow': 'Юбилей завтра',
+    'Anniversaries in {0} days': 'Юбилей через {0} дней',
+    'Custom events today': 'Специальное событие сегодня',
+    'Custom events tomorrow': 'Специальное событие завтра',
+    'Custom events in {0} days': 'Специальное событие через {0} дней',
+    'Hey! Don\'t forget these events': 'Эй! Не забудь об этих мероприятиях',
+    'version': 'версия',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Мобильный телефон',
+    'Work phone': 'Рабочий телефон',
+    'Home phone': 'Домашний телефон',
+    'Main phone': 'Основной телефон',
+    'Other phone': 'Другой телефон',
+    'Home fax': 'Домашний факс',
+    'Work fax': 'Рабочий факс',
+    'Google voice': 'Google voice',
+    'Pager': 'Пейджер',
+    'Home email': 'Домашний email',
+    'Work email': 'Рабочий email',
+    'Other email': 'Другой email',
+    'It looks like you are using an outdated version of this script': 'Похоже вы используете устаревшую версию этой программы',
+    'You can find the latest one here': 'Вы можете найти последнюю версию здесь',
+  },
+  'th': {
+    'Age': 'อายุ',
+    'Years': 'ปี',
+    'Events': 'อีเวนท์',
+    'Birthdays today': 'วันเกิดวันนี้',
+    'Birthdays tomorrow': 'วันเกิดพรุ่งนี้',
+    'Birthdays in {0} days': 'วันเกิดในอีก {0} วัน',
+    'Anniversaries today': 'วันครบรอบวันนี้',
+    'Anniversaries tomorrow': 'วันครบรอบพรุ่งนี้',
+    'Anniversaries in {0} days': 'วันครบรอบในอีก {0} วัน',
+    'Custom events today': 'อีเวนท์ที่กำหนดเองวันนี้',
+    'Custom events tomorrow': 'อีเวนท์ที่กำหนดเองวันพรุ่งนี้',
+    'Custom events in {0} days': 'อีเวนท์ที่กำหนดเองในอีก {0} วัน',
+    'Hey! Don\'t forget these events': 'เฮ้! อย่าลืมอีเวน์เหล่านี้ล่ะ',
+    'version': 'เวอร์ชั่น',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'เบอร์โทรศัพท์',
+    'Work phone': 'เบอร์โทรศัพท์ที่ทำงาน',
+    'Home phone': 'เบอร์โทรศัพท์บ้าน',
+    'Main phone': 'เบอร์โทรศัพท์หลัก',
+    'Other phone': 'เบอร์โทรศัพท์อื่นๆ',
+    'Home fax': 'แฟกซ์บ้าน',
+    'Work fax': 'แฟกซ์ที่ทำงาน',
+    'Google voice': 'Google voice',
+    'Pager': 'เพจเจอร์',
+    'Home email': 'อีเมลบ้าน',
+    'Work email': 'อีเมลที่ทำงาน',
+    'Other email': 'อีเมลอื่นๆ',
+    'It looks like you are using an outdated version of this script': 'ดูเหมือนว่าคุณกำลังใช้เวอร์ชั่นเก่าสำหรับสคริปท์นี้',
+    'You can find the latest one here': 'คุณสามารถหาเวอร์ชั่นใหม่ได้ที่นี่',
+  },
+  'tr': {
+    'Age': 'Yaş',
+    'Years': 'Yıl',
+    'Events': 'Etkinlikler',
+    'Birthdays today': 'Bugünkü doğum günleri',
+    'Birthdays tomorrow': 'Yarınki doğum günleri',
+    'Birthdays in {0} days': '{0} gün içindeki doğum günleri',
+    'Anniversaries today': 'Bugünkü yıldönümleri',
+    'Anniversaries tomorrow': 'Yarınki yıldönümleri',
+    'Anniversaries in {0} days': '{0} gün içindeki yıldönümleri',
+    'Custom events today': 'Bugünkü özel etkinlikler',
+    'Custom events tomorrow': 'Yarınki özel etkinlikler',
+    'Custom events in {0} days': '{0} gün içindeki özel etkinlikler',
+    'Hey! Don\'t forget these events': 'Hey! Bu etkinlikleri unutma!',
+    'version': 'sürüm',
+    'dd-MM-yyyy': 'dd-MM-yyyy',
+    'Mobile phone': 'Cep telefonu',
+    'Work phone': 'İş telefonu',
+    'Home phone': 'Ev telefonu',
+    'Main phone': 'Birincil telefon',
+    'Other phone': 'Diğer telefon',
+    'Home fax': 'Fax (ev)',
+    'Work fax': 'Fax (iş)',
+    'Google voice': 'Google voice',
+    'Pager': 'Çağrı cihazı',
+    'Home email': 'E-mail (ev)',
+    'Work email': 'E-mail (iş)',
+    'Other email': 'Email (diğer)',
+    'It looks like you are using an outdated version of this script': 'Görünüşe göre bu betiğin eski bir sürümünü kullanıyorsunuz',
+    'You can find the latest one here': 'En son sürümü burada bulabilirsiniz',
+  },
   /* To add a language:
   '[lang-code]': {
     '[first phrase]': '[translation here]',
     '[second phrase]': '[translation here]',
     ...
+    // Note: 'dd-MM-yyyy' should NOT be translated (especially in a different alphabet). You just need to reorder
+    //       dd (day) MM (month) and yyyy (year) in the order your language usually represents dates.
+    //       Examples:
+    //         USA:   (month/day/year) should be 'MM-dd-yyyy'
+    //         Italy: (day/month/year) should be 'dd-MM-yyyy'
   }
   */
 };
@@ -1893,28 +2144,16 @@ function validateSettings () {
     log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
   }
 
-  switch (settings.user.eventSource) {
-    case 'DEFAULT':
-      // Get the calendar ID from Google Calendar.
-      calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
-        // All the valid calendar IDs contain this string.
-        return isIn('#contacts@group.v.calendar.google.com', cal.getId());
-      }).map(function (cal) { return cal.getId(); });
+  // Get the calendar ID from Google Calendar.
+  calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
+    // All the valid calendar IDs contain this string.
+    return isIn('#contacts@group.v.calendar.google.com', cal.getId());
+  }).map(function (cal) { return cal.getId(); });
 
-      if (calendarId.length > 0) {
-        settings.user.calendarId = calendarId[0];
-      } else {
-        log.add('Could not find the birthday calendar! Please check that you have enabled it and that your user.eventSource setting is correct!', Priority.FATAL_ERROR);
-      }
-      break;
-    case 'CONTACTS_ONLY':
-      settings.user.calendarId = 'addressbook#contacts@group.v.calendar.google.com';
-      break;
-    case 'CONTACTS_AND_GPLUS':
-      settings.user.calendarId = '#contacts@group.v.calendar.google.com';
-      break;
-    default:
-      settings.user.calendarId = settings.user.eventSource;
+  if (calendarId.length > 0) {
+    settings.user.calendarId = calendarId[0];
+  } else {
+    log.add('Could not find the birthday calendar! Please check that you have enabled it!', Priority.FATAL_ERROR);
   }
 
   try {
@@ -1922,18 +2161,12 @@ function validateSettings () {
       throw new Error('');
     }
   } catch (err) {
-    log.add('Your user.eventSource setting is invalid!', Priority.FATAL_ERROR);
+    log.add('The birthday calendar failed to load!', Priority.FATAL_ERROR);
   }
 
   // emailSenderName has no restrictions.
 
   // lang has no restrictions.
-
-  if (typeof settings.user.accessGooglePlus !== 'boolean') {
-    log.add('Your user.accessGooglePlus setting is invalid!', Priority.ERROR);
-    // Default value.
-    settings.user.accessGooglePlus = true;
-  }
 
   setting = settings.notifications.hour;
   if (!Number.isInteger(setting) || setting < 0 || setting >= 24) {
@@ -2078,7 +2311,7 @@ function getEventsOnDate (year, month, day, calendarId) {
 function generateEmailNotification (forceDate) {
   var now, events, contactList, subjectPrefix, subjectBuilder, subject,
     bodyPrefix, bodySuffixes, bodyBuilder, body, htmlBody, htmlBodyBuilder,
-    contactIter, runningOutdatedVersion;
+    contactIter, runningOutdatedVersion, maxSubjectLength, ellipsis;
 
   log.add('generateEmailNotification() running.', Priority.INFO);
   now = forceDate || new Date();
@@ -2123,14 +2356,8 @@ function generateEmailNotification (forceDate) {
     // Look if the contact of this event is already in the contact list.
     for (contactIter = 0; contactIter < contactList.length; contactIter++) {
       if (
-        (
-          eventData['goo.contactsContactId'] !== null &&
-          eventData['goo.contactsContactId'] === contactList[contactIter].contactId
-        ) ||
-        (
-          eventData['goo.contactsProfileId'] !== null &&
-          eventData['goo.contactsProfileId'] === contactList[contactIter].gPlusId
-        )
+        eventData['goo.contactsContactId'] !== null &&
+        eventData['goo.contactsContactId'] === contactList[contactIter].contactId
       ) {
         // FOUND!
         // Integrate this event information into the contact.
@@ -2237,6 +2464,12 @@ function generateEmailNotification (forceDate) {
     log.add('Building the email notification.', Priority.INFO);
     runningOutdatedVersion = isRunningOutdatedVersion();
     subject = subjectPrefix + subjectBuilder.join(' - ');
+    // An error is thrown if the subject of the email is longer than 250 characters.
+    maxSubjectLength = 250;
+    ellipsis = '...';
+    if (subject.length > maxSubjectLength) {
+      subject = subject.substr(0, maxSubjectLength - ellipsis.length) + ellipsis;
+    }
     body = [bodyPrefix, '\n']
       .concat(bodyBuilder)
       .concat(['\n\n ', bodySuffixes[0], '\n '])

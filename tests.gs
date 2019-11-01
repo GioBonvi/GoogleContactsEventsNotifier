@@ -1,4 +1,4 @@
-/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification dateWithTimezone Utilities */
+/* global Logger Log Priority SimplifiedSemanticVersion log generateEmailNotification dateWithTimezone Utilities MailApp settings validateSettings */
 
 /**
  * This function throws an error when the condition provided is false.
@@ -155,33 +155,52 @@ function testDSTCorrectness () {
 }
 
 /**
- * Test all events from the selected period. It won't send actual e-mails to you, but put content of them into the log.
+ * Test all events from the selected period. After running you'll get combined email for all days (for testing subjects and HTML view) and second mail with logs (for testing text view).
  *
- * **NB:** Execution of this function very often exceeds maximum time (5min - 300s).
+ * **NB:** Execution of this function very often exceeds maximum time (5min - 300s), so it's good idea to split it up into few runs (for me running it for 185 days works perfectly).
  *
  * @param {Date} [testDate=01/01/CURRENT_YEAR] - First date to test.
  * @param {number} [numberOfDaysToTest=365] - Number of days to test.
- * @param {boolean} [printHTML=false] - Whether or not to print HTML mailContent into log.
  */
-function testSelectedPeriod (testDate, numberOfDaysToTest, printHTML) { // eslint-disable-line no-unused-vars
+function testSelectedPeriod (testDate, numberOfDaysToTest) { // eslint-disable-line no-unused-vars
   testDate = testDate || new Date(new Date().getFullYear(), 0, 1, 6, 0, 0);
   numberOfDaysToTest = numberOfDaysToTest || 365;
 
   log.add('testSelectedPeriod() running checking from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days.', Priority.INFO);
 
-  for (var i = 0; i < numberOfDaysToTest; i++) {
-    var mailContent = generateEmailNotification(testDate);
+  var emailData = {
+    'subject': 'testSelectedPeriod run from ' + testDate.toDateString() + ' for ' + numberOfDaysToTest + ' days',
+    'body': '',
+    'htmlBody': ''
+  };
 
-    if (mailContent !== null) {
-      log.add('Subject: ' + mailContent.subject);
-      log.add('Content: ' + mailContent.body);
-      if (printHTML) {
-        log.add('HTML Content: ' + mailContent.htmlBody);
-      }
+  validateSettings();
+
+  for (var i = 0; i < numberOfDaysToTest; i++) {
+    var dayMailContent = generateEmailNotification(testDate);
+
+    if (dayMailContent !== null) {
+      log.add('Subject: ' + dayMailContent.subject);
+      log.add('Content: ' + dayMailContent.body);
+
+      emailData.body += '\n' + dayMailContent.subject + '\n';
+      emailData.body += dayMailContent.body;
+
+      emailData.htmlBody += '<h1>' + dayMailContent.subject + '</h1>';
+      emailData.htmlBody += dayMailContent.htmlBody;
     }
 
     testDate = testDate.addDays(1);
   }
 
-  log.add('Test finished.');
+  MailApp.sendEmail({
+    to: settings.user.notificationEmail,
+    subject: emailData.subject,
+    body: emailData.body,
+    htmlBody: emailData.htmlBody,
+    name: settings.user.emailSenderName
+  });
+
+  log.add('Test finished. Sending logs via email.', Priority.MAX);
+  log.sendEmail(settings.user.notificationEmail, settings.user.emailSenderName);
 }

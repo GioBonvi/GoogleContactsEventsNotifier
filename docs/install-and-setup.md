@@ -4,7 +4,7 @@ Follow these instructions to install and setup the script correctly.
 
 <!-- TOC -->
 
-- [Setup](#installation-and-setup)
+- [Installation and setup](#installation-and-setup)
   - [Enable the calendar](#enable-the-calendar)
   - [Create the script](#create-the-script)
   - [Customize the script](#customize-the-script)
@@ -35,8 +35,8 @@ Now read carefully the code you've pasted. At the top of the file you will find
 some lines you need to modify along with many lines of instructions. Edit the
 values as explained by the instructions.  
 
-Once you're done editing the variables click `File->Save` in the menu and enter a
-name for the script (it doesn't really matter, just name it so that you'll
+Once you're done editing the variables click `File->Save` in the menu and enter
+a name for the script (it doesn't really matter, just name it so that you'll
 recognize it in the future).
 
 The customization variables can be categorized in three groups.
@@ -56,10 +56,8 @@ This second group of settings contains some variables that you could leave as
 they are, but you are warmly encouraged to edit them to fit your exact needs.  
 These are the names of the variables:
 
-- `settings.user.eventSource`
 - `settings.user.emailSenderName`
 - `settings.user.lang`
-- `settings.user.accessGooglePlus`
 - `settings.notifications.hour`
 - `settings.notifications.timeZone`
 - `settings.notifications.anticipateDays`
@@ -71,10 +69,9 @@ These are the names of the variables:
 
 ### Debugging options
 
-Variables in this group are used to debug and troubleshoot the
-script when it does not work as intended. Generally you should not need to
-edit these values, but you may be asked to do so if you submit a help
-request.  
+Variables in this group are used to debug and troubleshoot the script when it
+does not work as intended. Generally you should not need to edit these values,
+but you may be asked to do so if you submit a help request.  
 These are the names of the variables:
 
 - `settings.debug.log.filterLevel`
@@ -83,9 +80,9 @@ These are the names of the variables:
 
 ### Developer options
 
-This list just provides a convenient place for the developers and/or
-maintainers to update variables without searching through the code. For normal
-use you should never need or want to edit these.
+This list just provides a convenient place for the developers and/or maintainers
+to update variables without searching through the code. For normal use you
+should never need or want to edit these.
 
 - `settings.developer.version`
 - `settings.developer.repoName`
@@ -95,15 +92,14 @@ use you should never need or want to edit these.
 
 Now that the script is saved in your Google Drive folder we need to activate it.
 To do so click the menu `Resources->Advanced Google services`.  
-In the popup which will open set "Calendar API" to `enabled` (click the
-switch on its row on the right) and press "Okay".  
+In the popup which will open set "Calendar API" to `enabled` (click the switch
+on its row on the right) and press "Okay".  
 Once you have done this open `Resources->Advanced Google services` again and
-click on the link which says "Google API Console": you
-will be taken to another page. In this page search for "Google Calendar API" and
-open it. Now click `Enable` at the top of the window and close this page.  
-Unless you have set the `accessGooglePlus` setting to `false`, then repeat these
-steps for "Google+ API". Set it to `enabled` in the list, click on the "Google
-API Console" link, search for "Google+ API" and activate it.
+click on the link which says "Google Cloud Platform API Dashboard": you will be
+taken to another page. Click on "Library" in the menu on the left, search for
+"Google Calendar API" in the search box and open it. Now click `Enable` and
+close this page. There is no need to create any credentials as suggested on the
+page.  
 That's it for this step.
 
 **Important note**: please double check that you have performed **all** steps
@@ -116,6 +112,10 @@ step is granting it the rights to access those resources. To do so click on the
 menu `Run->notifStart`. You will be prompted to "Review authorizations": do it
 and click `Allow` (You can read the full list of the permissions and why they
 are required [here][Permissions list]).
+During this phase you might be prompted with a "This app isn't verified" error
+message: in this case you'll have to click on "Advanced" and click on the link
+that will appear to continue with the setup.
+
 From this moment on you will always receive an email before any of your
 contacts' birthday (You should have set how many days before at the beginning).
 

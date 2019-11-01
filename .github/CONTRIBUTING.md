@@ -100,9 +100,11 @@ Before submitting a PR:
 
 - If you've updated translation strings, please check that you have used the same
   format as the other entries, for example:
+
   ```javascript
   'You can find the latest one here': 'Puoi trovare l\'ultima qui',
   ```
+
   - Both the "from" and "to" parts of each entry are surrounded by single-quotes
     (`'aa'`)
   - Any single-quotes within the "from" or "to" are escaped with a backslash
