@@ -25,7 +25,7 @@ calendar] to know how to do it).
 
 ## Create the script
 
-Copy the whole content of [this file][Main code file].  
+Copy the whole content of [this file][Main code file].
 Open [Google Script][Google scripts website] and login if requested, then paste
 the code into the page.
 
@@ -33,7 +33,7 @@ the code into the page.
 
 Now read carefully the code you've pasted. At the top of the file you will find
 some lines you need to modify along with many lines of instructions. Edit the
-values as explained by the instructions.  
+values as explained by the instructions.
 
 Once you're done editing the variables click `File->Save` in the menu and enter
 a name for the script (it doesn't really matter, just name it so that you'll
@@ -44,7 +44,7 @@ The customization variables can be categorized in three groups.
 ### Mandatory customization
 
 These are the first settings you will find: these are variables that you
-**must** initialize correctly, otherwise the script will not work at all.  
+**must** initialize correctly, otherwise the script will not work at all.
 These are the names of the variables:
 
 - `settings.user.googleEmail`
@@ -53,7 +53,7 @@ These are the names of the variables:
 ### Optional customization
 
 This second group of settings contains some variables that you could leave as
-they are, but you are warmly encouraged to edit them to fit your exact needs.  
+they are, but you are warmly encouraged to edit them to fit your exact needs.
 These are the names of the variables:
 
 - `settings.user.emailSenderName`
@@ -71,7 +71,7 @@ These are the names of the variables:
 
 Variables in this group are used to debug and troubleshoot the script when it
 does not work as intended. Generally you should not need to edit these values,
-but you may be asked to do so if you submit a help request.  
+but you may be asked to do so if you submit a help request.
 These are the names of the variables:
 
 - `settings.debug.log.filterLevel`
@@ -91,15 +91,13 @@ should never need or want to edit these.
 ## Activate API for the script
 
 Now that the script is saved in your Google Drive folder we need to activate it.
-To do so click the menu `Resources->Advanced Google services`.  
+To do so click the menu `Resources->Advanced Google services`.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
-on its row on the right) and press "Okay".  
-Once you have done this open `Resources->Advanced Google services` again and
-click on the link which says "Google Cloud Platform API Dashboard": you will be
-taken to another page. Click on "Library" in the menu on the left, search for
-"Google Calendar API" in the search box and open it. Now click `Enable` and
-close this page. There is no need to create any credentials as suggested on the
-page.  
+on its row on the right) and press "Okay".
+Once you have done this, open [Google Cloud Platform API Dashboard][https://console.cloud.google.com/apis/dashboard],
+click on "Library" in the menu on the left, search for "Google Calendar API" in
+the search box and open it. Now click `Enable` and close this page. There is no
+need to create any credentials as suggested on the page.
 That's it for this step.
 
 **Important note**: please double check that you have performed **all** steps
