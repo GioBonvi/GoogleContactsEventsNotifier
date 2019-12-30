@@ -91,7 +91,7 @@ var settings = {
      * By default the script only tracks birthday events.
      */
     eventTypes: {
-      Birtyhdays: true,
+      Birthdays: true,
       BIRTHDAY: true,
       ANNIVERSARY: false,
       CUSTOM: false
