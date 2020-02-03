@@ -2452,7 +2452,7 @@ function generateEmailNotification (forceDate) {
         plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
         htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
         htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
-        htmlBodyBuilder.push('</dd></ul>');
+        htmlBodyBuilder.push('</ul></dd>');
       });
     });
 
