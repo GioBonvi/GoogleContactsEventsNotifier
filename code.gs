@@ -550,7 +550,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
         try {
           // Get the default profile image from the cache.
           inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
-          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" alt="" />');
         } catch (err) {
           log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), Priority.WARNING);
         }
