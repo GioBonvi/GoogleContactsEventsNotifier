@@ -94,9 +94,10 @@ Now that the script is saved in your Google Drive folder we need to activate it.
 To do so click the menu `Resources->Advanced Google services`.  
 In the popup which will open set "Calendar API" to `enabled` (click the switch
 on its row on the right) and press "Okay".  
-Once you have done this open `Resources->Advanced Google services` again and
-click on the link which says "Google Cloud Platform API Dashboard": you will be
-taken to another page. Click on "Library" in the menu on the left, search for
+Once you have done this, open [Google Cloud Platform API Dashboard][Google Cloud
+Platform API Dashboard], click on the dropdown menu left at the top, next to
+"Google Cloud Platform" and choose your Google Contacts Events Notifier project
+from the list, then click on "Library" in the menu on the left, search for
 "Google Calendar API" in the search box and open it. Now click `Enable` and
 close this page. There is no need to create any credentials as suggested on the
 page.  

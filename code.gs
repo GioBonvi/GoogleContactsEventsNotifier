@@ -52,7 +52,8 @@ var settings = {
      * HOUR OF THE NOTIFICATION
      *
      * Specify at which hour of the day would you like to receive the email notifications.
-     * This must be an integer between 0 and 23.
+     * This must be an integer between 0 and 23. This will set and automatic trigger for
+     * the script between e.g. 6 and 7 am.
      */
     hour: 6,
     /*
@@ -165,9 +166,9 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '5.0.0',
+    version: '5.0.1',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'development'
+    gitHubBranch: 'master'
   }
 };
 
@@ -415,7 +416,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   });
 
   // Email addresses.
-  googleContact.getEmails().forEach(function (emailField, i) {
+  googleContact.getEmails().forEach(function (emailField) {
     self.addToField('emails', new EmailAddressDC(
       String(emailField.getLabel()),
       emailField.getAddress()
@@ -423,7 +424,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   });
 
   // Phone numbers.
-  googleContact.getPhones().forEach(function (phoneField, i) {
+  googleContact.getPhones().forEach(function (phoneField) {
     self.addToField('phones', new PhoneNumberDC(
       String(phoneField.getLabel()),
       phoneField.getPhoneNumber()
@@ -550,7 +551,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
         try {
           // Get the default profile image from the cache.
           inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
-          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" />');
+          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" alt="" />');
         } catch (err) {
           log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), Priority.WARNING);
         }
@@ -2452,7 +2453,7 @@ function generateEmailNotification (forceDate) {
         plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
         htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
         htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
-        htmlBodyBuilder.push('</dd></ul>');
+        htmlBodyBuilder.push('</ul></dd>');
       });
     });
 
