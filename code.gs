@@ -52,7 +52,8 @@ var settings = {
      * HOUR OF THE NOTIFICATION
      *
      * Specify at which hour of the day would you like to receive the email notifications.
-     * This must be an integer between 0 and 23.
+     * This must be an integer between 0 and 23. This will set and automatic trigger for
+     * the script between e.g. 6 and 7 am.
      */
     hour: 6,
     /*
