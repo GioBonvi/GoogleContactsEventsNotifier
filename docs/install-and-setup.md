@@ -95,6 +95,8 @@ To do so click the menu `Resources->Advanced Google services`.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
 on its row on the right) and press "Okay".  
 Once you have done this, open [Google Cloud Platform API Dashboard][https://console.cloud.google.com/apis/dashboard],
+click on the dropdown menu left at the top, next to "Google Cloud Platform"
+and choose your Google Contacts Events Notifier project from the list, then
 click on "Library" in the menu on the left, search for "Google Calendar API" in
 the search box and open it. Now click `Enable` and close this page. There is no
 need to create any credentials as suggested on the page.
