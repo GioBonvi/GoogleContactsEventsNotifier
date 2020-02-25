@@ -122,4 +122,4 @@ contacts' birthday (You should have set how many days before at the beginning).
 [Main code file]: https://raw.githubusercontent.com/GioBonvi/GoogleContactsEventsNotifier/master/code.gs
 [Google Scripts website]: https://script.google.com
 [Google setup birthday calendar]: https://support.google.com/calendar/answer/6084659?hl=en
-[Permissions list]: ../README.md#permissions-required
+[Permissions list]: ../README.md#permissions-required 
