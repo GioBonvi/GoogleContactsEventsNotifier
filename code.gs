@@ -604,7 +604,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
             line.push(' - ', htmlEscape(_('Years')), ': ');
         }
       }
-      line.push(Math.round(date.getYear() - event.getProp('year')));
+      line.push(Math.round(date.getFullYear() - event.getProp('year')));
     }
     // Email addresses and phone numbers.
     var collected;
