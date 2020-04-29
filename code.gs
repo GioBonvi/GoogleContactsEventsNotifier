@@ -416,7 +416,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   });
 
   // Email addresses.
-  googleContact.getEmails().forEach(function (emailField) {
+  googleContact.getEmails().forEach(function (emailField, i) {
     self.addToField('emails', new EmailAddressDC(
       String(emailField.getLabel()),
       emailField.getAddress()
@@ -424,7 +424,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   });
 
   // Phone numbers.
-  googleContact.getPhones().forEach(function (phoneField) {
+  googleContact.getPhones().forEach(function (phoneField, i) {
     self.addToField('phones', new PhoneNumberDC(
       String(phoneField.getLabel()),
       phoneField.getPhoneNumber()
