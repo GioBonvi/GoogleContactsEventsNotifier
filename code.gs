@@ -172,6 +172,8 @@ var settings = {
   }
 };
 
+var defaultProfileImageBlob = null;
+
 /*
  * There is no need to edit anything below this line.
  * The script will work if you inserted valid values up
@@ -300,7 +302,7 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
   this.data.merge(new ContactDataDC(
     eventData['goo.contactsFullName'],  // Name.
     null,                               // Nickname.
-    eventData['goo.contactsPhotoUrl']   // Profile image URL.
+    null // eventData['goo.contactsPhotoUrl']   // Profile image URL.
   ));
   // The raw event contains an email of the contact, but without label.
   this.addToField('emails', new EmailAddressDC(
@@ -374,11 +376,31 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
   }
   self.contactId = contactId;
 
+
+  var url = 'https://www.google.com/m8/feeds/photos/media/' + encodeURIComponent(settings.user.googleEmail) + '/' + encodeURIComponent(contactId);
+  var token = ScriptApp.getOAuthToken();
+  var photo = null;
+  log.add('fetching photo: '+url, Priority.INFO);
+  var response = UrlFetchApp.fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + token
+    },
+    muteHttpExceptions: true
+  });
+  if (response.getResponseCode() !== 200) {
+    log.add('error fetching contact photo: '+response.getResponseCode(), Priority.INFO);
+    photo = defaultProfileImageBlob;
+  } else {
+    log.add('success: photo in format: '+response.getBlob().getContentType(), Priority.INFO);
+    photo = response.getBlob();
+  }
+
+
   // Contact identification data.
   self.data.merge(new ContactDataDC(
     googleContact.getFullName(),  // Name.
     googleContact.getNickname(),  // Nickname.
-    null                          // Profile image URL.
+    photo                          // Profile image URL.
   ));
 
   // Events blacklist.
@@ -542,7 +564,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
         line.push(indent);
         break;
       case NotificationType.HTML:
-        line.push('<li>');
+        line.push('<tr>');
     }
     // Profile photo.
     switch (format) {
@@ -550,10 +572,13 @@ MergedContact.prototype.getLines = function (type, date, format) {
         imgCount = Object.keys(inlineImages).length;
         try {
           // Get the default profile image from the cache.
-          inlineImages['contact-img-' + imgCount] = cache.retrieve(self.data.getProp('photoURL')).getBlob().setName('contact-img-' + imgCount);
-          line.push('<img src="cid:contact-img-' + imgCount + '" style="height:1.4em;margin-right:0.4em" alt="" />');
+          inlineImages['contact-img-' + imgCount] = self.data.getProp('photoURL').setName('contact-img-' + imgCount);
+          line.push('<td style="width:1px;" valign="top"><img src="cid:contact-img-' + imgCount + '" style="height:3em;" alt="" /></td><td valign="top">');
         } catch (err) {
           log.add('Unable to get the profile picture with URL ' + self.data.getProp('photoURL'), Priority.WARNING);
+          // TODO: I need to understand why loading fails and better report to the log. Probably attach default image then.
+          // Replace failing photo with a blank space image.
+          line.push('<td style="width:1px;" valign="top">&nbsp;</td><td valign="top">');
         }
     }
     // Custom label
@@ -606,6 +631,12 @@ MergedContact.prototype.getLines = function (type, date, format) {
       }
       line.push(Math.round(date.getFullYear() - event.getProp('year')));
     }
+
+    switch (format) {
+      case NotificationType.HTML:
+        line.push('<br/>');
+    }
+
     // Email addresses and phone numbers.
     var collected;
 
@@ -702,7 +733,7 @@ MergedContact.prototype.getLines = function (type, date, format) {
     // Finish line.
     switch (format) {
       case NotificationType.HTML:
-        line.push('</li>');
+        line.push('</td></tr>');
     }
     return line.join('');
   });
@@ -1257,10 +1288,8 @@ var version = new SimplifiedSemanticVersion(settings.developer.version);
 var cache = new LocalCache();
 
 // These URLs are used to access the files in the repository or specific pages on GitHub.
-var baseRawFilesURL = 'https://raw.githubusercontent.com/' + settings.developer.repoName + '/' + settings.developer.gitHubBranch + '/';
 var baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
 var baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
-var defaultProfileImageURL = baseRawFilesURL + 'images/default_profile.jpg';
 
 // Convert user-configured hash to an array
 var eventTypes = Object.keys(settings.notifications.eventTypes)
@@ -2120,7 +2149,7 @@ function monthToInt (month) {
 function uniqueStrings (arr) {
   var seen = {};
   return arr.filter(function (str) {
-    return seen.hasOwnProperty(str) ? false : (seen[str] = true);
+    return Object.prototype.hasOwnProperty.call(seen, str) ? false : (seen[str] = true);
   });
 }
 
@@ -2391,7 +2420,7 @@ function generateEmailNotification (forceDate) {
     contact.data.merge(new ContactDataDC(
       null,                                             // Full name.
       null,                                             // Nickname.
-      defaultProfileImageURL                            // Profile photo URL.
+      defaultProfileImageBlob                           // Profile photo.
     ));
   });
 
@@ -2436,7 +2465,7 @@ function generateEmailNotification (forceDate) {
         log.add('Found ' + plaintextLines.length + ' ' + eventTypeNamePlural[eventType], Priority.INFO);
         // Build the headers of 'eventType' event grouping by date.
         bodyBuilder.push('\n * ');
-        htmlBodyBuilder.push('<dt style="margin-left:0.8em;font-style:italic">');
+        htmlBodyBuilder.push('<tr><td colspan="2" style="font-size:large; font-family: Arial, sans-serif;"><b>');
         whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
         switch (daysInterval) {
           case 0:
@@ -2451,9 +2480,8 @@ function generateEmailNotification (forceDate) {
         whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
         bodyBuilder.push(whenIsIt, ':\n');
         plaintextLines.forEach(function (line) { bodyBuilder.extend(line); });
-        htmlBodyBuilder.push(whenIsIt, '</dt><dd style="margin-left:0.4em;padding-left:0"><ul style="list-style:none;margin-left:0;padding-left:0;">');
+        htmlBodyBuilder.push(whenIsIt, '</b></td></tr>');
         htmlLines.forEach(function (line) { htmlBodyBuilder.extend(line); });
-        htmlBodyBuilder.push('</ul></dd>');
       });
     });
 
@@ -2476,10 +2504,18 @@ function generateEmailNotification (forceDate) {
       .concat(['\n\n ', bodySuffixes[0], '\n '])
       .concat('\n', runningOutdatedVersion ? [bodySuffixes[1], ' ', bodySuffixes[2], ':\n', baseGitHubProjectURL + 'releases/latest', '\n '] : [])
       .join('');
-    htmlBody = ['<h3>', htmlEscape(bodyPrefix), '</h3><dl>']
+
+
+    htmlBody = ['<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'+
+                '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title>Google Contacts Events Notifier</title>'+
+                '<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" /><meta http-equiv="Content-Style-Type" content="text/css" />'+
+                '</head><body style="margin-top:0;margin-bottom:0;margin-left:0;margin-right:0;padding-top:0;padding-bottom:0;padding-left:0;padding-right:0;">'+
+                '<table border="0" cellpadding="8" cellspacing="0" style="width:100%;">']
+      .concat(['<tr><td colspan="2" style="font-size:x-large; font-family: Arial, sans-serif;"><b>', htmlEscape(bodyPrefix), '</b></td></tr>'])
       .concat(htmlBodyBuilder)
-      .concat(['</dl><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
+      .concat(['</table><hr/><p style="text-align:center;font-size:smaller"><a href="' + baseGitHubProjectURL + '">', htmlEscape(bodySuffixes[0]), '</a>'])
       .concat(runningOutdatedVersion ? ['<br/><br/><b>', htmlEscape(bodySuffixes[1]), ' <a href="', baseGitHubProjectURL, 'releases/latest', '">', htmlEscape(bodySuffixes[2]), '</a>.</b></p>'] : ['</p>'])
+      .concat(['</body></html>'])
       .join('');
 
     // ...and return it.
@@ -2503,6 +2539,11 @@ function main (forceDate) {
   log.add('main() running.', Priority.INFO);
 
   validateSettings();
+
+  // https://pixabay.com/vectors/avatar-icon-placeholder-1577909/
+  // Pixabay license: free for commercial use, no attribution required, modification allowed
+  // image down-sized to 128x128 px, compressed to optimized 16 color PNG
+  defaultProfileImageBlob = Utilities.newBlob(Utilities.base64Decode('iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAElBMVEWVu9+Ot92wzefJ3O/j7ff///+IuyMoAAACMElEQVR4Xu2XTXLCMAyF7RT2MvQASdPuIZA9gL3PNPb9r9LGLUwKAetF0wwL3i6Z0TeyZP1YJfXUUyZqvLkqN9ZuKjUSQaULUb7So+y34azjGEIdemphgJ6FP9oRCFiECxWgAx+XgE9CHZC5ML8GNBDAXQM8AliGAa2xE4jOoOshQEuCEERJkhhVIDGURXE2DNgJkhDVoIWQKAcoi1HtdAA3DPCTAdQtgHpMwPRBfPyLJK8FOUBezvKG8joM2It74nRdWQXhXNAOLgV8tMmHK57H/ZT7gUonAY9iS5MuWctkCPAgYPa6ToQAbwk7BSpxArgvxn4oycNa4S4kHMDaUoFGID56Lh48BNhntiO8nwCHztbmbILJXEy7+Xk4+srEi+Fzw3Ofys5K/z5dfx+u1LEqTRz3617czbd6OWnTx9Avp468ov7fU2deUco+nLU6H9n0/xI/+ZWOCENl6KkAqthXHaB0F1UBDUXvoBE5Dww1yEwEZ+QisFQgEw2bcR88wCcyj7A573gAD8QQi+KSC1gDSYDSMOcCGmDHRrZuOaDmAloCSgkpJz4gMdHTAooZKeglH7AWA4CbDNzlGR+wE5RCVCMGMEoBLwY5oOYD2gcFOD7APyZAIQAl9UCehX8ppgW/qd6Yrhl3P8hvrtnvHMBB051Ff5sCHHOT2PXtPYBNb/yabntxzJPmEWGyITdslZtozkJQZPyx1idzNkO9lZuttcdN9RY/cZmzEgZPPfUFwJ35yvTjuKsAAAAASUVORK5CYII='), 'image/png');
 
   var emailData = generateEmailNotification(forceDate);
 
