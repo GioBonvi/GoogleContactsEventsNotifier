@@ -1,4 +1,4 @@
-/* global Logger MailApp Session Utilities */
+/* global Logger MailApp People Session Utilities */
 
 // #region CLASSES
 
@@ -158,3 +158,55 @@ const loggedUserEmail = Session.getActiveUser().getEmail();
 const log = new Log(loggedUserEmail, Priority.ERROR);
 
 // #endregion GLOBAL VARIABLES
+
+// #region MAIN FUNCTIONS
+
+/**
+ * Retrieves all the user contacts from the People API.
+ *
+ * @returns {Object[]} - The list of Person objects from the API.
+ */
+function fetchPeople () {
+  var pageToken = '';
+  var people = [];
+
+  log.add('Fetching contacts from People API.');
+
+  while (pageToken !== null) {
+    // Merge all the pages returned by the People API in a single list of people.
+    const { peoplePage, nextPageToken } = fetchPeoplePage(pageToken);
+    pageToken = nextPageToken;
+    people.push(...peoplePage);
+  }
+
+  log.add(`Fetched ${people.length} contacts from Pepole API.`);
+
+  return people;
+}
+
+/**
+ * Retrieves one page of the user contacts from the People API.
+ *
+ * @param {?string} pageToken - Token to use the API pagination feature. If null the first page is returned.
+ *
+ * @returns {Object} content - The content from the API.
+ * @returns {Object[]} content.pepoplePage - The list of Person objects from the page.
+ * @returns {?String} content.nextPageToken - The token for the next page. If no next page exists this is null.
+ */
+function fetchPeoplePage (pageToken) {
+  log.add('Fetching one page from People API.');
+
+  const response = People.People.Connections.list('people/me', {
+    personFields: 'names,birthdays,events,photos',
+    pageSize: 1000, // Maximum page size.
+    sortOrder: 'LAST_NAME_ASCENDING', // Only for simplicity/debugging.
+    pageToken: pageToken || ''
+  });
+
+  return {
+    peoplePage: response.connections,
+    nextPageToken: response.nextPageToken || null
+  };
+}
+
+// #endregion MAIN FUNCTIONS
