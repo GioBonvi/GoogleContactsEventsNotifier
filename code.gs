@@ -149,6 +149,24 @@ class LogEvent {
   }
 }
 
+/**
+ * @typedef {Object} EventDataPoint
+ * @property {string} name - The full name of the contact.
+ * @property {string} nickname - The nickname of the contact.
+ * @property {Object.<string,string>[]} phoneNumbers - The data regarding the phone numbers of the contact
+ * @property {string} phoneNumber.value - The phone number.
+ * @property {string} phoneNumber.canonicalForm - The phone number without spaces and with the prefix.
+ * @property {string} phoneNumber.type - The type of phone.
+ * @property {Object.<string,string>[]} emailAddresses - The data regarding the email addresses of the contact
+ * @property {string} emailAddress.value - The email address.
+ * @property {string} emailAddress.type - The type of email address.
+ * @property {string} photoURL - The URL of the profile image of the contact.
+ * @property {string} event - The type of the event.
+ * @property {string} event.date - The dictionary containing day, month and optionally the year (as numbers) of the event.
+ * @property {string} event.type - The type (birthday, anniversary, custom) of the event.
+ * @property {string} event.label - The label (birthday, anniversary, custom) of the event.
+ */
+
 // #endregion CLASSES
 
 // #region GLOBAL VARIABLES
@@ -157,9 +175,147 @@ const loggedUserEmail = Session.getActiveUser().getEmail();
 
 const log = new Log(loggedUserEmail, Priority.ERROR);
 
+// These events are available in the dropdown of the Google Contacts interface.
+const MAIN_EVENT_TYPES = ['birthday', 'anniversary'];
+// Any other event will fall into this type.
+const OTHER_EVENT_TYPE = 'custom';
+
 // #endregion GLOBAL VARIABLES
 
 // #region MAIN FUNCTIONS
+
+/**
+ * Extract the important data (names, dates, profile images) from a list of people.
+ *
+ * Only people with events of the correct type and with a matching date will be considered.
+ *
+ * @param {Object[]} people - The list of Person objects from which the data will be extracted.
+ * @param {Date[]} allowedEventDates - The list of dates which will be used to filter the data.
+ * @param {String[]} allowedEventTypes - The list of event types which will be used to filter the data.
+ *
+ * @returns {Object.<string,EventDataPoint[]>[]} - The useful data extracted from the contacts.
+ *          It is a list, containing one element for each eventDate.
+ *          Each element is an Object with all the eventTypes as keys.
+ *          Each key contains a list of EventDataPoints.
+ */
+function getEventDataFromPeople (people, allowedEventDates, allowedEventTypes) {
+  // The data object is a list of objects (one for every date), each containing
+  // a list of events for each event type.
+  var singleData = {};
+  MAIN_EVENT_TYPES.concat(OTHER_EVENT_TYPE).forEach(eventType => { singleData[eventType] = []; });
+  var data = [];
+  for (let i = 0; i < allowedEventDates.length; i++) {
+    // Use JSON parse and stringify to perform a shallow copy of the singleData object.
+    data.push(JSON.parse(JSON.stringify(singleData)));
+  }
+
+  for (const person of people) {
+    // Identify the primary name of the person.
+    let name = 'UNKNOWN';
+    if (person.names) {
+      for (const nameData of person.names) {
+        if (nameData.metadata.primary && nameData.displayName) {
+          name = nameData.displayName;
+          break;
+        }
+      }
+    }
+
+    // Identify the primary nickname of the person.
+    let nickname = null;
+    if (person.nicknames) {
+      for (const nicknameData of person.nicknames) {
+        if (nicknameData.metadata.primary && nicknameData.value) {
+          nickname = nicknameData.value;
+          break;
+        }
+      }
+    }
+
+    // Identify the phone numbers of the person.
+    const phoneNumbers = [];
+    if (person.phoneNumbers) {
+      for (const phoneData of person.phoneNumbers) {
+        phoneNumbers.push({
+          value: phoneData.value,
+          canonicalForm: phoneData.canonicalForm,
+          type: phoneData.type
+        });
+      }
+    }
+
+    // Identify the email addresses of the person.
+    const emailAddresses = [];
+    if (person.emailAddresses) {
+      for (const emailData of person.emailAddresses) {
+        emailAddresses.push({
+          value: emailData.value,
+          type: emailData.type
+        });
+      }
+    }
+
+    // Identify the URL of the primary profile image of the person.
+    let photoURL = null;
+    if (person.photos) {
+      for (const photoData of person.photos) {
+        if (photoData.metadata.primary && photoData.url) {
+          photoURL = photoData.url;
+          break;
+        }
+      }
+    }
+
+    // Birthdays are not listed under the generic events category and have slightly different
+    // fields (missing type and formattedType fields), so if a birthday is present we take it,
+    // change it to have the same fields of a generic event and place it in the events list
+    // for later processing.
+    if (person.birthdays) {
+      for (const birthdayData of person.birthdays) {
+        if (birthdayData.metadata.primary && birthdayData.date) {
+          birthdayData.type = 'birthday';
+          // Insertion in the event list.
+          if (person.events) {
+            person.events.push(birthdayData);
+          } else {
+            person.events = [birthdayData];
+          }
+          break;
+        }
+      }
+    }
+
+    // Identify which events of this person fall on one of the eventDates and store the corresponding data.
+    if (person.events) {
+      for (const event of person.events) {
+        // Filter unwanted event types.
+        if (allowedEventTypes.includes(event.type) || (allowedEventTypes.includes(OTHER_EVENT_TYPE) && !MAIN_EVENT_TYPES.includes(event.type))) {
+          for (let i = 0; i < allowedEventDates.length; i++) {
+            // Filter unwanted event dates.
+            if (event.date.day === allowedEventDates[i].getDate() && event.date.month === (allowedEventDates[i].getMonth() + 1)) {
+              const eventType = MAIN_EVENT_TYPES.includes(event.type) ? event.type : OTHER_EVENT_TYPE;
+              const dataPoint = {
+                name,
+                nickname,
+                photoURL,
+                event: {
+                  type: eventType,
+                  label: event.formattedType,
+                  date: event.date
+                },
+                phoneNumbers,
+                emailAddresses
+              };
+              data[i][eventType].push(dataPoint);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return data;
+}
 
 /**
  * Retrieves all the user contacts from the People API.
@@ -197,7 +353,7 @@ function fetchPeoplePage (pageToken) {
   log.add('Fetching one page from People API.');
 
   const response = People.People.Connections.list('people/me', {
-    personFields: 'names,birthdays,events,photos',
+    personFields: 'names,nicknames,birthdays,events,photos,phoneNumbers,emailAddresses',
     pageSize: 1000, // Maximum page size.
     sortOrder: 'LAST_NAME_ASCENDING', // Only for simplicity/debugging.
     pageToken: pageToken || ''
