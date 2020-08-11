@@ -828,3 +828,360 @@ function fetchPeoplePage (pageToken) {
 }
 
 // #endregion MAIN FUNCTIONS
+
+// #region EMAIL NOTIFICATION
+
+/**
+ * Generate the content of an email to the user containing a list of the events
+ * of his/her contacts scheduled on a given date.
+ *
+ * @param {Object.<string,EventDataPoint[]>[]} - The event data returned by getEventDataFromPeople().
+ * @param {number[]} anticipateDays - List of days into the future to check for events (as in: "x days from today").
+ * @param {Object} setting - The settings object.
+ * @param {?Date} forceDate - If this value is not null it's used as 'now'.
+ *
+ * @returns {Object.<string,any>} - The content of the email.
+ */
+function buildEmailNotification (eventData, anticipateDays, settings, forceDate) {
+  var eventDataList, subjectPrefix, subjectBuilder, subject, bodyPrefix, bodySuffixes,
+    inlineImages, plainTextBodyBuilder, htmlBodyBuilder;
+
+  log.add('generateEmailNotification() running.');
+
+  const now = forceDate || new Date();
+  log.add('Date used as "now": ' + now);
+
+  // Count how many events are present (if 0 then the notification is empty).
+  eventDataList = [];
+  for (let i = 0; i < eventData.length; i++) {
+    const data = eventData[i];
+    for (const eventType in data) {
+      eventDataList.push(...data[eventType]);
+    }
+  }
+  if (eventDataList.length === 0) {
+    log.add('No events listed. Exiting now.');
+    return null;
+  }
+  log.add('Found ' + eventDataList.length + ' events: building the email notification.');
+
+  // Start building the email notification text.
+
+  // SUBJECT
+  subjectPrefix = _('Events') + ': ';
+  subjectBuilder = [...new Set(eventDataList.map(ed => ed.name))];
+  subject = subjectPrefix + subjectBuilder.join(' - ');
+  // An error is thrown if the subject of the email is longer than 250 characters.
+  const maxSubjectLength = 250;
+  const ellipsis = '...';
+  if (subject.length > maxSubjectLength) {
+    subject = subject.substr(0, maxSubjectLength - ellipsis.length) + ellipsis;
+  }
+
+  // BODY
+  // This goes at the top of the email.
+  bodyPrefix = _('Hey! Don\'t forget these events') + ':';
+  // This goes to the bottom of the email.
+  bodySuffixes = [
+    _('Google Contacts Events Notifier') + ' (' + _('version') + ' ' + version.toString() + ')',
+    _('It looks like you are using an outdated version of this script') + '.',
+    _('You can find the latest one here')
+  ];
+  // This will contain the blobs of the profile images.
+  inlineImages = {};
+
+  // The email is built in two versions: plain text and HTML.
+  plainTextBodyBuilder = [];
+  htmlBodyBuilder = [];
+
+  // Push the prefix in the builder.
+  plainTextBodyBuilder.push(bodyPrefix, '\n');
+  htmlBodyBuilder.push('<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
+    `<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${settings.user.lang}" lang="${settings.user.lang}"><head><title>Google Contacts Events Notifier</title>`,
+    '<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" /><meta http-equiv="Content-Style-Type" content="text/css" />',
+    '</head><body style="margin-top:0;margin-bottom:0;margin-left:0;margin-right:0;padding-top:0;padding-bottom:0;padding-left:0;padding-right:0;">',
+    '<table border="0" cellpadding="8" cellspacing="0" style="width:100%;">',
+    '<tr><td colspan="2" style="font-size:small; font-family: Arial, sans-serif;"><b>', htmlEscape(bodyPrefix), '</b></td></tr>');
+
+  // Build the "true" content of the email: the list of events with all the details.
+  // Iterate on all the dates...
+  for (let dateIndex = 0; dateIndex < anticipateDays.length; dateIndex++) {
+    const daysInterval = anticipateDays[dateIndex];
+    const date = now.addDays(daysInterval);
+    const formattedDate = Utilities.formatDate(date, settings.notifications.timeZone, _('dd-MM-yyyy'));
+
+    // ... and for each date iterate on all the event types...
+    for (const eventType in eventData[dateIndex]) {
+      // Check if there are events for this date and event type combination or skip it.
+      log.add(`Found ${eventData[dateIndex][eventType].length} ${eventTypeNamePlural[eventType]} on ${formattedDate}.`);
+      if (eventData[dateIndex][eventType].length === 0) {
+        break;
+      }
+
+      // Build the headers for this date and event type combination and push them in the builder.
+      let whenIsIt = eventTypeNamePlural[eventType].charAt(0).toUpperCase() + eventTypeNamePlural[eventType].slice(1);
+      switch (daysInterval) {
+        case 0:
+          whenIsIt += ' today';
+          break;
+        case 1:
+          whenIsIt += ' tomorrow';
+          break;
+        default:
+          whenIsIt += ' in {0} days';
+      }
+      whenIsIt = _(whenIsIt).format(daysInterval) + ' (' + formattedDate + ')';
+      // Push it to the builder.
+      plainTextBodyBuilder.push('\n * ' + whenIsIt + ':\n');
+      htmlBodyBuilder.push(`<tr><td colspan="2" style="font-size:large; font-family: Arial, sans-serif;"><b>${whenIsIt}</b></td></tr>`);
+
+      // Generate the list of events.
+      const plaintextLines = eventData[dateIndex][eventType]
+        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.PLAIN_TEXT, now, settings));
+      const htmlLines = eventData[dateIndex][eventType]
+        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.HTML, now, settings));
+      // Push them to the builder.
+      plainTextBodyBuilder.push(...plaintextLines);
+      htmlBodyBuilder.push(...htmlLines);
+    }
+  }
+
+  // Build the footer of the email and push it to the builder.
+  const runningOutdatedVersion = isRunningOutdatedVersion();
+  plainTextBodyBuilder.push(
+    '\n\n ' + bodySuffixes[0] + '\n ',
+    '\n',
+    runningOutdatedVersion
+      ? bodySuffixes[1] + ' ' + bodySuffixes[2] + ':\n' + baseGitHubProjectURL + 'releases/latest' + '\n '
+      : ''
+  );
+  htmlBodyBuilder.push(
+    `</table><hr/><p style="text-align:center;font-size:smaller"><a href="${baseGitHubProjectURL}">${htmlEscape(bodySuffixes[0])}</a>`,
+    runningOutdatedVersion
+      ? `<br/><br/><b>${htmlEscape(bodySuffixes[1])} <a href="${baseGitHubProjectURL}releases/latest">${htmlEscape(bodySuffixes[2])}</a>.</b></p>`
+      : '</p>',
+    '</body></html>'
+  );
+
+  // Generate the body.
+  const plainTextBody = plainTextBodyBuilder.join('');
+  const htmlBody = htmlBodyBuilder.join('');
+
+  // Finally return all the contents.
+  return {
+    subject,
+    body: plainTextBody,
+    htmlBody,
+    inlineImages
+  };
+}
+
+/**
+ * Describe the EventDataPoint with a string of the specified format.
+ *
+ * @param {EventDataPoint} data - The event data to describe.
+ * @param {Object.<string,Blob>} inlineImages - The object containing the inline images.
+ * @param {NotificationFormat} format - The format of the notification.
+ * @param {Date} now - The date used as "now".
+ * @param {Object }settings  - The settings object.
+ *
+ * @returns {string} - The description of the data point.
+ */
+function getEmailNotificationLine (data, inlineImages, format, now, settings) {
+  var line, indent, imgCount, collected;
+
+  line = [];
+  indent = Array(settings.notifications.indentSize + 1).join(' ');
+
+  // Start line.
+  switch (format) {
+    case NotificationFormat.PLAIN_TEXT:
+      line.push(indent);
+      break;
+    case NotificationFormat.HTML:
+      line.push('<tr>');
+  }
+
+  // Profile photo.
+  switch (format) {
+    case NotificationFormat.HTML:
+      imgCount = Object.keys(inlineImages).length;
+      try {
+        if (data.photoURL) {
+          inlineImages['contact-img-' + imgCount] = cache.retrieve(data.photoURL, 3);
+        } else {
+          inlineImages['contact-img-' + imgCount] = DEFAULT_PROFILE_IMG_BLOB.copyBlob();
+        }
+      } catch (err) {
+        log.add('Unable to get the profile picture with URL ' + data.photoURL, Priority.WARNING);
+        log.add('Error:' + JSON.stringify(err, null, 2), Priority.WARNING);
+        // Use the default profile image as a fallback.
+        inlineImages['contact-img-' + imgCount] = DEFAULT_PROFILE_IMG_BLOB.copyBlob().setName('contact-img-' + imgCount);
+      } finally {
+        // The image is shown even if an error happened thanks to the fallback.
+        line.push('<td style="width:1px;" valign="top"><img src="cid:contact-img-' + imgCount + '" style="height:3em;" alt="" /></td><td valign="top">');
+      }
+  }
+
+  // Custom label
+  if (data.event.type === OTHER_EVENT_TYPE) {
+    const eventLabel = data.event.label || 'Other';
+    switch (format) {
+      case NotificationFormat.PLAIN_TEXT:
+        line.push('<', beautifyLabel(eventLabel), '> ');
+        break;
+      case NotificationFormat.HTML:
+        line.push(htmlEscape('<' + beautifyLabel(eventLabel) + '> '));
+    }
+  }
+
+  // Full name.
+  switch (format) {
+    case NotificationFormat.PLAIN_TEXT:
+      line.push(data.name);
+      break;
+    case NotificationFormat.HTML:
+      line.push(htmlEscape(data.name));
+  }
+
+  // Nickname.
+  if (data.nickname) {
+    switch (format) {
+      case NotificationFormat.PLAIN_TEXT:
+        line.push(' "', data.nickname, '"');
+        break;
+      case NotificationFormat.HTML:
+        line.push(htmlEscape(' "' + data.nickname + '"'));
+    }
+  }
+
+  // Age/years passed.
+  if (data.event.date.year) {
+    if (data.event.type === 'birthday') {
+      switch (format) {
+        case NotificationFormat.PLAIN_TEXT:
+          line.push(' - ', _('Age'), ': ');
+          break;
+        case NotificationFormat.HTML:
+          line.push(' - ', htmlEscape(_('Age')), ': ');
+      }
+    } else {
+      switch (format) {
+        case NotificationFormat.PLAIN_TEXT:
+          line.push(' - ', _('Years'), ': ');
+          break;
+        case NotificationFormat.HTML:
+          line.push(' - ', htmlEscape(_('Years')), ': ');
+      }
+    }
+    line.push(Math.round(now.getFullYear() - data.event.date.year));
+  }
+
+  switch (format) {
+    case NotificationFormat.HTML:
+      line.push('<br/>');
+  }
+
+  // Emails and phones are grouped by label: these are the default main label groups.
+  collected = {
+    HOME_EMAIL: [],
+    WORK_EMAIL: [],
+    OTHER_EMAIL: [],
+    MAIN_PHONE: [],
+    HOME_PHONE: [],
+    WORK_PHONE: [],
+    MOBILE_PHONE: [],
+    OTHER_PHONE: []
+  };
+  // Collect and group the email addresses.
+  data.emailAddresses.forEach((emailData, i) => {
+    if (settings.notifications.maxEmailsCount < 0 || i < settings.notifications.maxEmailsCount) {
+      const label = emailData.type;
+      const type = `${label}_EMAIL`.toLocaleUpperCase();
+      const emailAddr = emailData.value;
+      if (![undefined, null].includes(collected[type])) {
+        // Store the value if the label group is already defined.
+        collected[type].push({ display: emailAddr, link: `mailto:${emailAddr}` });
+      } else if (!settings.notifications.compactGrouping) {
+        // Define a new label groups different from the main ones only if compactGrouping is set to false.
+        collected[label] = [{ display: emailAddr, link: `mailto:${emailAddr}` }];
+      } else {
+        // Store any other label in the OTHER_EMAIL label group.
+        collected.OTHER_EMAIL.push({ display: emailAddr, link: `mailto:${emailAddr}` });
+      }
+    }
+  });
+  // Collect and group the phone numbers.
+  data.phoneNumbers.forEach((phoneData, i) => {
+    if (settings.notifications.maxPhonesCount < 0 || i < settings.notifications.maxPhonesCount) {
+      const label = phoneData.type;
+      const type = `${label}_PHONE`.toLocaleUpperCase();
+      if (![undefined, null].includes(collected[type])) {
+        // Store the value if the label group is already defined.
+        collected[type].push({ display: phoneData.value, link: `tel:${phoneData.canonicalForm}` });
+      } else if (!settings.notifications.compactGrouping) {
+        // Define a new label groups different from the main ones only if compactGrouping is set to false.
+        collected[label] = [{ display: phoneData.value, link: `tel:${phoneData.canonicalForm}` }];
+      } else {
+        // Store any other label in the OTHER_EMAIL label group.
+        collected.OTHER_PHONE.push({ display: phoneData.value, link: `tel:${phoneData.canonicalForm}` });
+      }
+    }
+  });
+
+  // If there is at least an email address/phone number to be added to the email...
+  const totalPhonesEmailCount = Object.keys(collected).reduce((acc, label) => { return acc + collected[label].length; }, 0);
+  if (totalPhonesEmailCount >= 1) {
+    // ...generate the text from the grouped emails and phone numbers.
+
+    line.push('(');
+
+    const contactTypes = [];
+
+    // Iterate over the types.
+    for (const label in collected) {
+      if (collected[label].length > 0) {
+        const contactType = [];
+        // For each type store the label...
+        switch (format) {
+          case NotificationFormat.PLAIN_TEXT:
+            contactType.push(beautifyLabel(label));
+            break;
+          case NotificationFormat.HTML:
+            contactType.push(htmlEscape(beautifyLabel(label)));
+        }
+        contactType.push(': ');
+        // ... and the dash-separated list of values.
+        const values = collected[label].map(val => {
+          switch (format) {
+            case NotificationFormat.PLAIN_TEXT:
+              return val.display;
+            case NotificationFormat.HTML:
+              return '<a href="' + htmlEscape(val.link) + '">' + htmlEscape(val.display) + '</a>';
+          }
+        });
+        contactType.push(values.join(' - '));
+
+        // Store the contact type as a string
+        contactTypes.push(contactType.join(''));
+      }
+    }
+    // Store the contact types in the line as comma-separated strings.
+    line.push(contactTypes.join(', '));
+    line.push(')');
+  }
+
+  // Finish line.
+  switch (format) {
+    case NotificationFormat.PLAIN_TEXT:
+      line.push('\n');
+      break;
+    case NotificationFormat.HTML:
+      line.push('</td></tr>');
+  }
+
+  // Store the line as a string.
+  return line.join('');
+}
+
+// #endregion EMAIL NOTIFICATION
