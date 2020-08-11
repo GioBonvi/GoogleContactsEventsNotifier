@@ -1,4 +1,89 @@
-/* global Logger MailApp People Session Utilities */
+/* global Logger MailApp People Session UrlFetchApp Utilities */
+/* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
+/* eslint comma-dangle: ["error", "only-multiline"] */
+/* eslint quote-props: off */
+
+// #region SETTINGS
+
+const defaultSettings = {
+  user: {
+    lang: 'en'
+  },
+  notifications: {
+    /*
+     * NOTIFICATION TIMEZONE
+     *
+     * To ensure the correctness of the notifications timing please set this variable to the
+     * timezone you are living in.
+     * Accepted values:
+     *  GMT (e.g. 'GMT-4', 'GMT+6')
+     *  regional timezones (e.g. 'Europe/Berlin' - See here for a complete list: http://joda-time.sourceforge.net/timezones.html)
+     */
+    timeZone: 'Europe/Rome',
+    /*
+     * HOW MANY DAYS BEFORE EVENT
+     *
+     * Here you have to decide when you want to receive the email notification.
+     * Insert a comma-separated list of numbers between the square brackets, where each number
+     * represents how many days before an event you want to be notified.
+     * If you want to be notified only once then enter a single number between the brackets.
+     *
+     * Examples:
+     *  [0] means "Notify me the day of the event";
+     *  [0, 7] means "Notify me the day of the event and 7 days before";
+     *  [0, 1, 7] means "Notify me the day of the event, the day before and 7 days before";
+     *
+     * Note: in any case you will receive one email per day: all the notifications will be grouped
+     * together in that email.
+     */
+    anticipateDays: [0, 1, 7],
+    /*
+     * MAXIMUM NUMBER OF EMAIL ADDRESSES
+     *
+     * You can limit the maximum number of email addresses displayed for each contact in the notification emails
+     * by changing this number. If you don't want to impose any limits change it to -1, if you don't want any
+     * email address to be shown change it to 0.
+     */
+    maxEmailsCount: -1,
+    /*
+     * MAXIMUM NUMBER OF PHONE NUMBERS
+     *
+     * You can limit the maximum number of phone numbers displayed for each contact in the notification emails
+     * by changing this number. If you don't want to impose any limits change it to -1, if you don't want any
+     * phone number to be shown change it to 0.
+     */
+    maxPhonesCount: -1,
+    /*
+     * INDENT SIZE
+     *
+     * Use this variable to determine how many spaces are used for indentation.
+     * This is used in the plaintext part of emails only (invisible to email clients which display
+     * the html part by default).
+     */
+    indentSize: 4,
+    /*
+     * GROUP ALL LABELS
+     *
+     * By default only the main emails and phone numbers (work, home, mobile, main) are displayed with their
+     * own label: all the other special and/or custom emails and phone numbers are grouped into a single
+     * "other" group. By setting this variable to false instead, every phone and email will be grouped
+     * under its own label.
+     */
+    compactGrouping: true
+  },
+  developer: {
+    /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
+     *     convenience of developers/maintainers only.
+     */
+    version: '6.0.0',
+    repoName: 'GioBonvi/GoogleContactsEventsNotifier'
+  }
+};
+
+// TODO: Implement overridable settings with local properties.
+var settings = defaultSettings;
+
+// #endregion SETTINGS
 
 // #region CLASSES
 
@@ -167,6 +252,181 @@ class LogEvent {
  * @property {string} event.label - The label (birthday, anniversary, custom) of the event.
  */
 
+class SimplifiedSemanticVersion {
+  /**
+   * An object representing a simplified semantic version number.
+   *
+   * It must be composed of:
+   *
+   * * three dot-separated positive integers (major version,
+   *   minor version and patch number);
+   * * optionally a pre-release identifier, prefixed by a hyphen;
+   * * optionally a metadata identifier, prefixed by a plus sign;
+   *
+   * This differs from the official SemVer style because the pre-release
+   * string is compared as a whole in version comparison instead of
+   * being spliced into chunks.
+   *
+   * @param {!string} versionNumber - The version number to build the object with.
+   *
+   * @class
+   */
+  constructor (versionNumber) {
+    // Extract the pieces of information from the given string.
+    const matches = versionNumber.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+?))?(?:\+(.+))?$/);
+    if (matches) {
+      this.numbers = [];
+      this.numbers[0] = parseInt(matches[1], 10);
+      this.numbers[1] = parseInt(matches[2], 10);
+      this.numbers[2] = parseInt(matches[3], 10);
+      this.preRelease = [undefined, null].includes(matches[4]) ? '' : matches[4];
+      this.metadata = [undefined, null].includes(matches[5]) ? '' : matches[5];
+    } else {
+      throw new Error(`The version number "${versionNumber}" is not valid!`);
+    }
+  }
+
+  /**
+   * Build the version number string from the data.
+   *
+   * @returns {string} - The version number of this version.
+   */
+  toString () {
+    return this.numbers.join('.') +
+      (this.preRelease !== '' ? `-${this.preRelease}` : '') +
+      (this.metadata !== '' ? `+${this.metadata}` : '');
+  }
+
+  /**
+   * Compare a semantic version number with another one.
+   *
+   * Order of comparison: major number, minor number, patch number,
+   * preRelease string (ASCII comparison). Metadata do not influence
+   * comparisons.
+   *
+   * @param {!SimplifiedSemanticVersion} comparedVersion - The version to compare.
+   * @returns {number} - 1, 0 , -1 if this version number is greater than, equal to or smaller than the one passed as the parameter.
+   */
+  compare ({ numbers, preRelease }) {
+    let i;
+    for (i = 0; i < 3; i++) {
+      if (this.numbers[i] !== numbers[i]) {
+        return this.numbers[i] < numbers[i] ? -1 : 1;
+      }
+    }
+    if (this.preRelease !== preRelease) {
+      // Between two versions with the same numbers, one in pre-release and the
+      // other not, the one in pre-release must be considered smaller.
+      if (this.preRelease === '') {
+        return 1;
+      } else if (preRelease === '') {
+        return -1;
+      }
+      return this.preRelease < preRelease ? -1 : 1;
+    }
+    return 0;
+  }
+}
+
+/**
+ * Enum for notification type.
+ *
+ * @readonly
+ * @enum {number}
+ */
+var NotificationFormat = {
+  PLAIN_TEXT: 0,
+  HTML: 1
+};
+
+/**
+ * An enum of plurals for eventTypes.
+ *
+ * @readonly
+ * @enum {string}
+ */
+var eventTypeNamePlural = {
+  birthday: 'birthdays',
+  anniversary: 'anniversaries',
+  custom: 'custom events'
+};
+
+class LocalCache {
+  /**
+   * Initialize a LocalCache object.
+   *
+   * A LocalCache object is used to store external resources which are used multiple
+   * times to optimize the number of `UrlFetchApp.fetch()` calls.
+   *
+   * @class
+   */
+  constructor () {
+    this.cache = {};
+  }
+
+  /**
+   * Fetch an URL, optionally making more than one try.
+   *
+   * @param {!string} url - The URL which has to be fetched.
+   * @param {?number} [tries=1] - Number of times to try the fetch operation before failing.
+   * @returns {?Object} - The fetch response or null if the fetch failed.
+   */
+  fetch (url, tries) {
+    let response;
+    let i;
+
+    tries = tries || 1;
+
+    response = null;
+    // Try fetching the data.
+    for (i = 0; i < tries; i++) {
+      try {
+        response = UrlFetchApp.fetch(url);
+        if (response.getResponseCode() !== 200) {
+          throw new Error('Response code: ' + response.getResponseCode());
+        }
+        // Break the loop if the fetch was successful.
+        break;
+      } catch (error) {
+        log.add('Fetch failed. URL: ' + url, Priority.WARNING);
+        log.add('Error: ' + JSON.stringify(error, null, 2), Priority.WARNING);
+        response = null;
+        Utilities.sleep(1000);
+      }
+    }
+    // Store the result in the cache and return it.
+    this.cache[url] = response;
+    return this.cache[url];
+  }
+
+  /**
+   * Determine whether an url has already been cached.
+   *
+   * @param {!string} url - The URL to check.
+   * @returns {boolean} - True if the cache contains an object for the URL, false otherwise.
+   */
+  isCached (url) {
+    return !!this.cache[url];
+  }
+
+  /**
+   * Retrieve an object from the cache.
+   *
+   * The object is loaded from the cache if present, otherwise it is fetched.
+   *
+   * @param {!string} url - The URL to retrieve.
+   * @param {?number} tries - Number of times to try the fetch operation before failing (passed to `this.fetch()`).
+   * @returns {Object} - The response object.
+   */
+  retrieve (url, tries) {
+    if (this.isCached(url)) {
+      return this.cache[url];
+    } else {
+      return this.fetch(url, tries);
+    }
+  }
+}
+
 // #endregion CLASSES
 
 // #region GLOBAL VARIABLES
@@ -175,12 +435,214 @@ const loggedUserEmail = Session.getActiveUser().getEmail();
 
 const log = new Log(loggedUserEmail, Priority.ERROR);
 
+const version = new SimplifiedSemanticVersion(settings.developer.version);
+
+const cache = new LocalCache();
+
 // These events are available in the dropdown of the Google Contacts interface.
 const MAIN_EVENT_TYPES = ['birthday', 'anniversary'];
 // Any other event will fall into this type.
 const OTHER_EVENT_TYPE = 'custom';
 
+// https://pixabay.com/vectors/avatar-icon-placeholder-1577909/
+// Pixabay license: free for commercial use, no attribution required, modification allowed
+// image down-sized to 128x128 px, compressed to optimized 16 color PNG
+const DEFAULT_PROFILE_IMG_BLOB = Utilities.newBlob(Utilities.base64Decode('iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAElBMVEWVu9+Ot92wzefJ3O/j7ff///+IuyMoAAACMElEQVR4Xu2XTXLCMAyF7RT2MvQASdPuIZA9gL3PNPb9r9LGLUwKAetF0wwL3i6Z0TeyZP1YJfXUUyZqvLkqN9ZuKjUSQaULUb7So+y34azjGEIdemphgJ6FP9oRCFiECxWgAx+XgE9CHZC5ML8GNBDAXQM8AliGAa2xE4jOoOshQEuCEERJkhhVIDGURXE2DNgJkhDVoIWQKAcoi1HtdAA3DPCTAdQtgHpMwPRBfPyLJK8FOUBezvKG8joM2It74nRdWQXhXNAOLgV8tMmHK57H/ZT7gUonAY9iS5MuWctkCPAgYPa6ToQAbwk7BSpxArgvxn4oycNa4S4kHMDaUoFGID56Lh48BNhntiO8nwCHztbmbILJXEy7+Xk4+srEi+Fzw3Ofys5K/z5dfx+u1LEqTRz3617czbd6OWnTx9Avp468ov7fU2deUco+nLU6H9n0/xI/+ZWOCENl6KkAqthXHaB0F1UBDUXvoBE5Dww1yEwEZ+QisFQgEw2bcR88wCcyj7A573gAD8QQi+KSC1gDSYDSMOcCGmDHRrZuOaDmAloCSgkpJz4gMdHTAooZKeglH7AWA4CbDNzlGR+wE5RCVCMGMEoBLwY5oOYD2gcFOD7APyZAIQAl9UCehX8ppgW/qd6Yrhl3P8hvrtnvHMBB051Ff5sCHHOT2PXtPYBNb/yabntxzJPmEWGyITdslZtozkJQZPyx1idzNkO9lZuttcdN9RY/cZmzEgZPPfUFwJ35yvTjuKsAAAAASUVORK5CYII='), 'image/png');
+
+// These URLs are used to access the files in the repository or specific pages on GitHub.
+const baseGitHubProjectURL = 'https://github.com/' + settings.developer.repoName + '/';
+const baseGitHubApiURL = 'https://api.github.com/repos/' + settings.developer.repoName + '/';
+
+// TODO: Add translations.
+const i18n = {
+  'en': {}
+};
+
 // #endregion GLOBAL VARIABLES
+
+// #region EXTENDED NATIVE PROTOTYPES
+
+if ([undefined, null].includes(Date.prototype.addDays)) {
+  /**
+   * Generate a new date adding a number of days to a given date.
+   *
+   * @param {number} days Number of days to be added to the date.
+   * @author AnthonyWJones
+   * @see {@link https://stackoverflow.com/a/563442|Stackoverflow}
+   */
+  Date.prototype.addDays = function (days) { // eslint-disable-line no-extend-native
+    var dat = new Date(this.valueOf());
+    dat.setDate(dat.getDate() + days);
+    return dat;
+  };
+}
+
+if ([undefined, null].includes(String.prototype.format)) {
+  /**
+   * Format a string, replace {1}, {2}, etc with their corresponding trailing args.
+   *
+   * * Examples:
+   *         'This is a {0}'.format('test') -> 'This is a test.'
+   *         'This {0} a {1}'.format('is') -> 'This is a {1}.'
+   *
+   * @param {...!string} arguments
+   * @returns {string}
+   */
+  String.prototype.format = function () { // eslint-disable-line no-extend-native
+    var args;
+
+    args = arguments;
+    return this.replace(/\{(\d+)\}/g, function (match, number) {
+      return [undefined, null].includes(args[number]) ? match : args[number];
+    });
+  };
+}
+
+if ([undefined, null].includes(String.prototype.replaceAll)) {
+  /**
+   * Replace all occurrences of a substring (not a regex).
+   *
+   * @param {!string} substr - The substring to be replaced.
+   * @param {!string} repl - The replacement for the substring.
+   * @returns {string} - The string with the substrings replaced.
+   */
+  String.prototype.replaceAll = function (substr, repl) { // eslint-disable-line no-extend-native
+    return this.split(substr).join(repl);
+  };
+}
+
+// #endregion EXTENDED NATIVE PROTOTYPES
+
+// #region HELPER FUNCTIONS
+
+/**
+ * Get the translation of a string.
+ *
+ * If the language or the chosen string is invalid return the string itthis.
+ *
+ * @param {!string} str - String to attempt translation for.
+ * @returns {string}
+ */
+function _ (str) {
+  return i18n[settings.user.lang][str] || str;
+}
+
+/**
+ * Replace a `Field.Label` object with its "beautified" text representation.
+ *
+ * @param {?string} label - The internal label to transform to readable form.
+ * @returns {string}
+ */
+function beautifyLabel (label) {
+  switch (String(label)) {
+    /*
+     * Phone labels:
+     */
+    case 'MOBILE_PHONE':
+    case 'WORK_PHONE':
+    case 'HOME_PHONE':
+    case 'MAIN_PHONE':
+    case 'HOME_FAX':
+    case 'WORK_FAX':
+    case 'GOOGLE_VOICE':
+    case 'PAGER':
+    case 'OTHER_PHONE': // Fake label for output.
+    /*
+     * (falls through)
+     * Email labels:
+     */
+    case 'HOME_EMAIL':
+    case 'WORK_EMAIL':
+    case 'OTHER_EMAIL': // Fake label for output.
+    /*
+     * (falls through)
+     * Event labels:
+     */
+    case 'OTHER':
+    case 'BIRTHDAY':
+    case 'ANNIVERSARY':
+      return _(label[0] + label.slice(1).replaceAll('_', ' ').toLocaleLowerCase());
+    /*
+     * Custom labels:
+     */
+    case 'CUSTOM:' + label.slice('CUSTOM:'.length):
+      // Don't interfere with the upper/lower-casing for this one though
+      return label.slice('CUSTOM:'.length);
+    default:
+      return String(label);
+  }
+}
+
+/**
+ * Replace HTML special characters in a string with their HTML-escaped equivalent.
+ *
+ * @param {?string} str - The string to escape.
+ * @returns {string} - The escaped string.
+ */
+function htmlEscape (str) {
+  str = str || '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\//g, '&#x2F;');
+}
+
+/**
+ * Check if the script is not updated to the latest version.
+ *
+ * The latest version number is obtained from the GitHub API and compared with the
+ * script's one.
+ *
+ * If there is any problem retrieving the latest version number false is returned.
+ *
+ * @returns {boolean} - True if the script version is lower than the latest released one, false otherwise.
+ */
+function isRunningOutdatedVersion () {
+  var response, latestVersion, fetchTries;
+
+  // Retrieve the last version info.
+  fetchTries = 2;
+  try {
+    response = cache.retrieve(baseGitHubApiURL + 'releases/latest', fetchTries);
+    if (response === null) {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Unable to get the latest version number after ' + fetchTries + ' tries', Priority.WARNING);
+    return false;
+  }
+  // Parse the info for the version number.
+  try {
+    response = JSON.parse(response);
+    if (typeof response !== 'object') {
+      throw new Error('');
+    }
+  } catch (err) {
+    log.add('Unable to get the latest version number: failed to parse the API response as JSON object', Priority.WARNING);
+    return false;
+  }
+  latestVersion = response.tag_name;
+  if (typeof latestVersion !== 'string' || latestVersion.length === 0) {
+    log.add('Unable to get the latest version number: there was no valid tag_name string in the API response.', Priority.WARNING);
+    return false;
+  }
+  if (latestVersion.substring(0, 1) === 'v') {
+    latestVersion = latestVersion.substring(1);
+  }
+
+  // Compare the versions.
+  try {
+    return (version).compare(new SimplifiedSemanticVersion(latestVersion)) === -1;
+  } catch (err) {
+    log.add(err.message, Priority.WARNING);
+    return false;
+  }
+}
+
+// #endregion HELPER FUNCTIONS
 
 // #region MAIN FUNCTIONS
 
