@@ -1,4 +1,4 @@
-/* global Logger MailApp People Session ScriptApp UrlFetchApp Utilities */
+/* global Logger MailApp People PropertiesService Session ScriptApp UrlFetchApp Utilities */
 /* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
 /* eslint comma-dangle: ["error", "only-multiline"] */
 /* eslint quote-props: off */
@@ -127,8 +127,15 @@ const defaultSettings = {
   }
 };
 
-// TODO: Implement overridable settings with local properties.
-var settings = defaultSettings;
+// User settings can be used to override one or more default properties by
+// setting a UserProperty with name "settings.property" and value equal to the desired value (JSON-encoded).
+// Example: PropertiesService.getUserProperties().setProperty('settings.user.lang', '"it"');
+// For now this is only useful for developers e.g. by setting a user property with my personal email for the
+// notification setting I can avoid changing the corresponding setting in the script each time I paste an
+// updated version.
+// In the future (for example this evolves into a full-fledged app or website) this could be used to store
+// user preferences without altering the default ones.
+const settings = updateSettings(defaultSettings, PropertiesService.getUserProperties().getProperties());
 
 // #endregion SETTINGS
 
@@ -689,6 +696,29 @@ function isRunningOutdatedVersion () {
   }
 }
 
+/**
+ * Set a property in a nested object to a value.
+ *
+ * @param obj - The object to be modified.
+ * @param path - The path to the property to be modified (e.g. "root.leaf.prop")
+ * @param value - THe value to be assigned to the proeprty
+ * @author bpmason1
+ * @see {@link https://stackoverflow.com/a/18937118/3047294|Stackoverflow}
+ */
+function setObjectByPath (obj, path, value) {
+  var schema = obj;
+  var pList = path.split('.');
+  var len = pList.length;
+  for (var i = 0; i < len - 1; i++) {
+    var elem = pList[i];
+    if (!schema[elem]) {
+      schema[elem] = {};
+    }
+    schema = schema[elem];
+  }
+  schema[pList[len - 1]] = value;
+}
+
 // #endregion HELPER FUNCTIONS
 
 // #region MAIN FUNCTIONS
@@ -872,6 +902,33 @@ function fetchPeoplePage (pageToken) {
     peoplePage: response.connections,
     nextPageToken: response.nextPageToken || null
   };
+}
+
+/**
+ * Generate a settings object updating a previous settings object with some new properties and/or values.
+ *
+ * @param {Object} baseSettings - The previous setting object.
+ * @param {Object.<string,string>} props - A dictionary wit the properties to update: the keys
+ *                                must be of the form "root.leaf.prop" and the values must be the
+ *                                JSON-econded value of the property.
+ *
+ * @returns {Object} - The new settings object.
+ */
+function updateSettings (baseSettings, props) {
+  var newSettings = JSON.parse(JSON.stringify(baseSettings)); // Object clone.
+
+  for (const propPath in props) {
+    const splitPropPath = propPath.split('.');
+    if (splitPropPath[0] === 'settings') {
+      try {
+        setObjectByPath(newSettings, splitPropPath.slice(1).join('.'), JSON.parse(props[propPath]));
+      } catch (err) {
+        log.add('Failed to parse the property ' + propPath, Priority.WARNING);
+      }
+    }
+  }
+
+  return newSettings;
 }
 
 // #endregion MAIN FUNCTIONS
