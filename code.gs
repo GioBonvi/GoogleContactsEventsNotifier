@@ -1573,6 +1573,91 @@ function updateSettings (baseSettings, props) {
   return newSettings;
 }
 
+/**
+ * Validate the settings, logging all problems found and stopping the script
+ * execution if a FATAL_ERROR is thrown.
+ */
+function validateSettings (settings) {
+  var setting;
+
+  log.add('validateSettings() running.');
+
+  setting = settings.user.notificationEmail;
+  if (!setting || !/^(?!YOUREMEAILHERE)\S+@(?!example)\S+\.\S+$/.test(setting)) {
+    log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  // emailSenderName has no restrictions.
+
+  setting = settings.user.lang;
+  if (!i18n[setting]) {
+    log.add('Your user.lang setting is invalid!', Priority.FATAL_ERROR);
+  }
+
+  setting = settings.notifications.hour;
+  if (!Number.isInteger(setting) || setting < 0 || setting >= 24) {
+    log.add('Your notifications.hour setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.hour = 6;
+  }
+
+  // It would be quite difficult to test the timeZone.
+
+  setting = settings.notifications.anticipateDays;
+  if (
+    setting.constructor !== Array ||
+    setting.filter(function (x) {
+      return Number.isInteger(x) && x >= 0;
+    }).length !== setting.length
+  ) {
+    log.add('Your notifications.anticipateDays setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.anticipateDays = [0, 1, 7];
+  }
+
+  setting = settings.notifications.eventTypes;
+  if (
+    typeof setting.birthday !== 'boolean' ||
+    typeof setting.anniversary !== 'boolean' ||
+    typeof setting.custom !== 'boolean'
+  ) {
+    log.add('Your notifications.eventTypes setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.eventTypes = {
+      birthday: true,
+      anniversary: false,
+      custom: false
+    };
+  }
+
+  setting = settings.notifications.maxEmailsCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxEmailsCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxEmailsCount = -1;
+  }
+
+  setting = settings.notifications.maxPhonesCount;
+  if (!Number.isInteger(setting) || setting < -1) {
+    log.add('Your notifications.maxPhonesCount setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.maxPhonesCount = -1;
+  }
+
+  setting = settings.notifications.indentSize;
+  if (!Number.isInteger(setting) || setting <= 0) {
+    log.add('Your notifications.indentSize setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.indentSize = 4;
+  }
+
+  if (typeof settings.notifications.compactGrouping !== 'boolean') {
+    log.add('Your notifications.compactGrouping setting is invalid!', Priority.ERROR);
+    // Default value.
+    settings.notifications.compactGrouping = true;
+  }
+}
+
 // #endregion MAIN FUNCTIONS
 
 // #region EMAIL NOTIFICATION
@@ -1587,6 +1672,8 @@ function updateSettings (baseSettings, props) {
 function sendEmailNotification (localSettings, forceDate) { // eslint-disable-line no-unused-vars
   localSettings = localSettings || settings;
   const now = forceDate || new Date();
+
+  validateSettings(localSettings);
 
   const targetDates = localSettings.notifications.anticipateDays.map(daysInterval => now.addDays(daysInterval));
   const wantedTypes = Object.keys(localSettings.notifications.eventTypes)
@@ -1976,10 +2063,10 @@ function getEmailNotificationLine (data, inlineImages, format, now, localSetting
  * Start the notification service.
  */
 function notifStart () { // eslint-disable-line no-unused-vars
-  // TODO: Implement settings validation.
-
   // Delete old triggers.
   notifStop();
+
+  validateSettings(settings);
 
   // Add a new trigger.
   try {
