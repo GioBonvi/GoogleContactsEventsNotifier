@@ -1,4 +1,4 @@
-/* global Logger MailApp People Session UrlFetchApp Utilities */
+/* global Logger MailApp People Session ScriptApp UrlFetchApp Utilities */
 /* eslint no-multi-spaces: ["error", { ignoreEOLComments: true }] */
 /* eslint comma-dangle: ["error", "only-multiline"] */
 /* eslint quote-props: off */
@@ -37,6 +37,14 @@ const defaultSettings = {
 
   },
   notifications: {
+    /*
+     * HOUR OF THE NOTIFICATION
+     *
+     * Specify at which hour of the day would you like to receive the email notifications.
+     * This must be an integer between 0 and 23. This will set and automatic trigger for
+     * the script between e.g. 6 and 7 am.
+     */
+    hour: 6,
     /*
      * NOTIFICATION TIMEZONE
      *
@@ -1262,3 +1270,65 @@ function getEmailNotificationLine (data, inlineImages, format, now, localSetting
 }
 
 // #endregion EMAIL NOTIFICATION
+
+// #region EMAIL NOTIFICATION SERVICE
+
+/**
+ * Start the notification service.
+ */
+function notifStart () { // eslint-disable-line no-unused-vars
+  // TODO: Implement settings validation.
+
+  // Delete old triggers.
+  notifStop();
+
+  // Add a new trigger.
+  try {
+    const triggerId = ScriptApp.newTrigger('sendEmailNotification')
+      .timeBased()
+      .atHour(settings.notifications.hour)
+      .everyDays(1)
+      .inTimezone(settings.notifications.timeZone)
+      .create()
+      .getUniqueId();
+    log.add(`Created trigger: ${triggerId}`, Priority.INFO);
+  } catch (err) {
+    log.add('Failed to start the notification service: make sure that settings.notifications.timeZone contains a valid value.', Priority.FATAL_ERROR);
+  }
+  log.add('Notification service started.', Priority.INFO);
+}
+
+/**
+ * Stop the notification service.
+ */
+function notifStop () {
+  // Delete all the triggers.
+  for (const trigger of ScriptApp.getProjectTriggers()) {
+    if (
+      trigger.getHandlerFunction() === 'sendEmailNotification' &&
+      trigger.getEventType() === ScriptApp.EventType.CLOCK
+    ) {
+      log.add('Deleting trigger: ' + trigger.getUniqueId(), Priority.INFO);
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+  log.add('Notification service stopped.', Priority.INFO);
+}
+
+/**
+ * Check if notification service is running.
+ */
+function notifStatus () { // eslint-disable-line no-unused-vars
+  var output = 'The notification service is ';
+  if (ScriptApp.getProjectTriggers().filter(trigger =>
+    trigger.getHandlerFunction() === 'sendEmailNotification' &&
+    trigger.getEventType() === ScriptApp.EventType.CLOCK
+  ).length === 0) {
+    output += 'not ';
+  }
+  output += 'running.';
+  log.add(output);
+  log.sendEmail();
+}
+
+// #endregion EMAIL NOTIFICATION SERVICE
