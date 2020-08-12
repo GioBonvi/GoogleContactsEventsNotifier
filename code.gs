@@ -7,7 +7,34 @@
 
 const defaultSettings = {
   user: {
-    lang: 'en'
+    /*
+     * NOTIFICATION EMAIL ADDRESS
+     *
+     * Replace this fake email address with the one you want the notifications to be sent
+     * to. This can be the same email address as 'googleEmail' on or any other email
+     * address. Non-Gmail addresses are fine as well.
+     */
+    notificationEmail: 'YOUREMEAILHERE@example.com',
+    /*
+    * LANGUAGE
+    *
+    * To translate the notifications messages into your language enter the two-letter language
+    * code here.
+    * Available languages are:
+    *   en, cs, de, el, es, fa, fr, he, id, it, kr, lt, nl, no, nb, pl, pt, pt-BR, ru, th, tr.
+    * If you want to add your own language find the variable called i18n below and follow the
+    * instructions: it's quite simple as long as you can translate from one of the available
+    * languages.
+    */
+    lang: 'en',
+    /*
+     * EMAIL SENDER NAME
+     *
+     * This is the name you will see as the sender of the email: if you leave it blank it will
+     * default to your Google account name.
+     */
+    emailSenderName: 'Contacts Events Notifications',
+
   },
   notifications: {
     /*
@@ -37,6 +64,18 @@ const defaultSettings = {
      * together in that email.
      */
     anticipateDays: [0, 1, 7],
+    /*
+     * TYPE OF EVENTS
+     *
+     * This script can track any Google Contact Event: you can decide which ones by placing true
+     * or false next to each type in the following lines.
+     * By default the script only tracks birthday events.
+     */
+    eventTypes: {
+      birthday: true,
+      anniversary: false,
+      custom: false
+    },
     /*
      * MAXIMUM NUMBER OF EMAIL ADDRESSES
      *
@@ -832,17 +871,55 @@ function fetchPeoplePage (pageToken) {
 // #region EMAIL NOTIFICATION
 
 /**
+ * Send an email notification to the user with the description of all the events
+ * in the next days, according to the settings.
+ *
+ * @param {?Object} [localSettings=settings] - The settings object. If null the global settings are used.
+ * @param {?Date} [forceDate=new Date()] - The date used as "now". If null the current time will be used.
+ */
+function sendEmailNotification (localSettings, forceDate) { // eslint-disable-line no-unused-vars
+  localSettings = localSettings || settings;
+  const now = forceDate || new Date();
+
+  const targetDates = localSettings.notifications.anticipateDays.map(daysInterval => now.addDays(daysInterval));
+  const wantedTypes = Object.keys(localSettings.notifications.eventTypes)
+    .filter(x => localSettings.notifications.eventTypes[x]);
+  const allContacts = fetchPeople();
+  const eventData = getEventDataFromPeople(allContacts, targetDates, wantedTypes);
+  const emailData = buildEmailNotification(eventData, localSettings, now);
+
+  if (emailData) {
+    log.add('Sending the email notification...');
+    MailApp.sendEmail({
+      to: localSettings.user.notificationEmail,
+      subject: emailData.subject,
+      body: emailData.body,
+      htmlBody: emailData.htmlBody,
+      inlineImages: emailData.inlineImages,
+      name: localSettings.user.senderName
+    });
+  } else {
+    log.add('No events detected: email notification not sent.');
+  }
+
+  // Send the logs if necessary.
+  if (log.containsMinimumPriority()) {
+    log.sendEmail();
+  }
+}
+
+/**
  * Generate the content of an email to the user containing a list of the events
  * of his/her contacts scheduled on a given date.
  *
  * @param {Object.<string,EventDataPoint[]>[]} - The event data returned by getEventDataFromPeople().
  * @param {number[]} anticipateDays - List of days into the future to check for events (as in: "x days from today").
- * @param {Object} setting - The settings object.
+ * @param {Object} localSettings - The settings object.
  * @param {?Date} forceDate - If this value is not null it's used as 'now'.
  *
  * @returns {Object.<string,any>} - The content of the email.
  */
-function buildEmailNotification (eventData, anticipateDays, settings, forceDate) {
+function buildEmailNotification (eventData, localSettings, forceDate) {
   var eventDataList, subjectPrefix, subjectBuilder, subject, bodyPrefix, bodySuffixes,
     inlineImages, plainTextBodyBuilder, htmlBodyBuilder;
 
@@ -897,7 +974,7 @@ function buildEmailNotification (eventData, anticipateDays, settings, forceDate)
   // Push the prefix in the builder.
   plainTextBodyBuilder.push(bodyPrefix, '\n');
   htmlBodyBuilder.push('<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
-    `<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${settings.user.lang}" lang="${settings.user.lang}"><head><title>Google Contacts Events Notifier</title>`,
+    `<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${localSettings.user.lang}" lang="${localSettings.user.lang}"><head><title>Google Contacts Events Notifier</title>`,
     '<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" /><meta http-equiv="Content-Style-Type" content="text/css" />',
     '</head><body style="margin-top:0;margin-bottom:0;margin-left:0;margin-right:0;padding-top:0;padding-bottom:0;padding-left:0;padding-right:0;">',
     '<table border="0" cellpadding="8" cellspacing="0" style="width:100%;">',
@@ -905,10 +982,10 @@ function buildEmailNotification (eventData, anticipateDays, settings, forceDate)
 
   // Build the "true" content of the email: the list of events with all the details.
   // Iterate on all the dates...
-  for (let dateIndex = 0; dateIndex < anticipateDays.length; dateIndex++) {
-    const daysInterval = anticipateDays[dateIndex];
+  for (let dateIndex = 0; dateIndex < localSettings.notifications.anticipateDays.length; dateIndex++) {
+    const daysInterval = localSettings.notifications.anticipateDays[dateIndex];
     const date = now.addDays(daysInterval);
-    const formattedDate = Utilities.formatDate(date, settings.notifications.timeZone, _('dd-MM-yyyy'));
+    const formattedDate = Utilities.formatDate(date, localSettings.notifications.timeZone, _('dd-MM-yyyy'));
 
     // ... and for each date iterate on all the event types...
     for (const eventType in eventData[dateIndex]) {
@@ -937,9 +1014,9 @@ function buildEmailNotification (eventData, anticipateDays, settings, forceDate)
 
       // Generate the list of events.
       const plaintextLines = eventData[dateIndex][eventType]
-        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.PLAIN_TEXT, now, settings));
+        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.PLAIN_TEXT, now, localSettings));
       const htmlLines = eventData[dateIndex][eventType]
-        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.HTML, now, settings));
+        .map(data => getEmailNotificationLine(data, inlineImages, NotificationFormat.HTML, now, localSettings));
       // Push them to the builder.
       plainTextBodyBuilder.push(...plaintextLines);
       htmlBodyBuilder.push(...htmlLines);
@@ -983,15 +1060,15 @@ function buildEmailNotification (eventData, anticipateDays, settings, forceDate)
  * @param {Object.<string,Blob>} inlineImages - The object containing the inline images.
  * @param {NotificationFormat} format - The format of the notification.
  * @param {Date} now - The date used as "now".
- * @param {Object }settings  - The settings object.
+ * @param {Object} localSettings  - The settings object.
  *
  * @returns {string} - The description of the data point.
  */
-function getEmailNotificationLine (data, inlineImages, format, now, settings) {
+function getEmailNotificationLine (data, inlineImages, format, now, localSettings) {
   var line, indent, imgCount, collected;
 
   line = [];
-  indent = Array(settings.notifications.indentSize + 1).join(' ');
+  indent = Array(localSettings.notifications.indentSize + 1).join(' ');
 
   // Start line.
   switch (format) {
@@ -1095,14 +1172,14 @@ function getEmailNotificationLine (data, inlineImages, format, now, settings) {
   };
   // Collect and group the email addresses.
   data.emailAddresses.forEach((emailData, i) => {
-    if (settings.notifications.maxEmailsCount < 0 || i < settings.notifications.maxEmailsCount) {
+    if (localSettings.notifications.maxEmailsCount < 0 || i < localSettings.notifications.maxEmailsCount) {
       const label = emailData.type;
       const type = `${label}_EMAIL`.toLocaleUpperCase();
       const emailAddr = emailData.value;
       if (![undefined, null].includes(collected[type])) {
         // Store the value if the label group is already defined.
         collected[type].push({ display: emailAddr, link: `mailto:${emailAddr}` });
-      } else if (!settings.notifications.compactGrouping) {
+      } else if (!localSettings.notifications.compactGrouping) {
         // Define a new label groups different from the main ones only if compactGrouping is set to false.
         collected[label] = [{ display: emailAddr, link: `mailto:${emailAddr}` }];
       } else {
@@ -1113,13 +1190,13 @@ function getEmailNotificationLine (data, inlineImages, format, now, settings) {
   });
   // Collect and group the phone numbers.
   data.phoneNumbers.forEach((phoneData, i) => {
-    if (settings.notifications.maxPhonesCount < 0 || i < settings.notifications.maxPhonesCount) {
+    if (localSettings.notifications.maxPhonesCount < 0 || i < localSettings.notifications.maxPhonesCount) {
       const label = phoneData.type;
       const type = `${label}_PHONE`.toLocaleUpperCase();
       if (![undefined, null].includes(collected[type])) {
         // Store the value if the label group is already defined.
         collected[type].push({ display: phoneData.value, link: `tel:${phoneData.canonicalForm}` });
-      } else if (!settings.notifications.compactGrouping) {
+      } else if (!localSettings.notifications.compactGrouping) {
         // Define a new label groups different from the main ones only if compactGrouping is set to false.
         collected[label] = [{ display: phoneData.value, link: `tel:${phoneData.canonicalForm}` }];
       } else {
