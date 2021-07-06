@@ -376,7 +376,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
       // so we iterate over all contacts and find the first one that has a source with the correct contact id
       googleContact = allContacts.connections.find(c => c.metadata.sources.some(s => s.id === contactId));
       if (googleContact !== undefined) {
-        log.add('Found contact: ' + googleContact.resourceName)
+        log.add('Found contact: ' + googleContact.resourceName, Priority.INFO);
         googleContact = People.People.get(googleContact.resourceName, {personFields: "names,events,emailAddresses,phoneNumbers,birthdays,userDefined"});
         break;
       }
@@ -386,8 +386,8 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
       throw new Error('No suitable contact found');
     }
   } catch (err) {
-      log.add(err.message)
-      log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.INFO);
+      log.add(err.message, Priority.WARNING);
+      log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.WARNING);
       return;
   }
 
@@ -410,7 +410,6 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
     }
 
     function processEvent(event) {
-      log.add(event);
       const date = event.date;
       if (date.getDay() !== eventDay || date.getMonth() !== eventMonth) {
         return;
@@ -453,8 +452,8 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
       });
     }
   } catch (err) {
-      log.add(err.message)
-      log.add('Error merging info for: ' + self.contactId, Priority.INFO);
+      log.add(err.message, Priority.WARNING)
+      log.add('Error merging info for: ' + self.contactId, Priority.WARNING);
     return;
   }
 };
