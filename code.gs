@@ -166,9 +166,9 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '5.0.2',
+    version: '6.0.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
-    gitHubBranch: 'development'
+    gitHubBranch: 'master'
   }
 };
 
@@ -359,77 +359,104 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
 
   self = this;
   log.add('Extracting info from Google Contact...', Priority.INFO);
+  log.add('Fetching contact info for: ' + contactId, Priority.INFO);
 
-  // Contact ID.
-  // Using try-catch here because failure to fetch data for the ID is as much of a
-  // problem as an invalid ID.
+  var pageToken = null;
+
   try {
-    googleContact = ContactsApp.getContactById('http://www.google.com/m8/feeds/contacts/' + encodeURIComponent(settings.user.googleEmail) + '/base/' + encodeURIComponent(contactId));
-    if (googleContact === null) {
-      throw new Error('');
+    do {
+      var requestParams = {personFields: "metadata", pageSize: 1000};
+      if (pageToken != null) {
+        requestParams.pageToken = pageToken;
+      }
+      const allContacts = People.People.Connections.list('people/me', requestParams);
+      pageToken = allContacts.getNextPageToken();
+
+      // unfortunately, the people API uses a different ID than the calendar API
+      // so we iterate over all contacts and find the first one that has a source with the correct contact id
+      googleContact = allContacts.connections.find(c => c.metadata.sources.some(s => s.id === contactId));
+      if (googleContact !== undefined) {
+        log.add('Found contact: ' + googleContact.resourceName)
+        googleContact = People.People.get(googleContact.resourceName, {personFields: "names,events,emailAddresses,phoneNumbers,birthdays,userDefined"});
+        break;
+      }
+    } while(pageToken != null);
+
+    if (googleContact === null || googleContact === undefined) {
+      throw new Error('No suitable contact found');
     }
   } catch (err) {
-    log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.INFO);
-    return;
-  }
-  self.contactId = contactId;
-
-  // Contact identification data.
-  self.data.merge(new ContactDataDC(
-    googleContact.getFullName(),  // Name.
-    googleContact.getNickname(),  // Nickname.
-    null                          // Profile image URL.
-  ));
-
-  // Events blacklist.
-  blacklist = googleContact.getCustomFields('notificationBlacklist');
-  if (blacklist && blacklist[0]) {
-    self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
-      x = x.toLocaleLowerCase();
-      return ((x === 'birthday' || x === 'anniversary') ? x : ('CUSTOM:' + x));
-    })));
+      log.add(err.message)
+      log.add('Invalid Google Contact ID or error retrieving data for ID: ' + contactId, Priority.INFO);
+      return;
   }
 
-  // Events.
-  googleContact.getDates().forEach(function (dateField) {
-    var thisEventLabel, thisEventMonth, thisEventDay, lowerCaseEventLabel, dateMatches, blacklistMatches;
+  try {
+    self.contactId = googleContact.resourceName;
 
-    thisEventLabel = dateField.getLabel();
-    if (typeof thisEventLabel === 'string') {
-      thisEventLabel = 'CUSTOM:' + thisEventLabel;
-    } else {
-      thisEventLabel = String(thisEventLabel);
+    // Contact identification data.
+    self.data.merge(new ContactDataDC(
+      googleContact.names[0].displayName,  // Name.
+      googleContact.givenName,  // Nickname.
+      null                          // Profile image URL.
+    ));
+
+    // Events blacklist.
+    blacklist = googleContact.getUserDefined('notificationBlacklist');
+    if (blacklist && blacklist[0]) {
+      self.blacklist = uniqueStrings(self.blacklist.concat(blacklist[0].getValue().replace(/,+/g, ',').replace(/(^,|,$)/g, '').split(',').map(function (x) {
+        return x.toLocaleLowerCase();
+      })));
     }
-    lowerCaseEventLabel = eventLabelToLowerCase(thisEventLabel);
-    thisEventMonth = monthToInt(dateField.getMonth()) + 1;
-    thisEventDay = dateField.getDay();
-    dateMatches = ((!eventDay && !eventMonth) || (thisEventMonth === eventMonth && thisEventDay === eventDay));
-    blacklistMatches = self.blacklist && self.blacklist.length && isIn(lowerCaseEventLabel, self.blacklist);
-    if (dateMatches && !blacklistMatches) {
+
+    function processEvent(event) {
+      log.add(event);
+      const date = event.date;
+      if (date.getDay() !== eventDay || date.getMonth() !== eventMonth) {
+        return;
+      }
+
+      if (self.blacklist && self.blacklist.length && isIn(event.type.toLocaleLowerCase(), self.blacklist)) {
+        return;
+      }
+
       self.addToField('events', new EventDC(
-        thisEventLabel,
-        dateField.getYear(),
-        thisEventMonth,
-        thisEventDay
+          event.formattedType,
+          date.getYear(),
+          eventMonth,
+          eventDay
       ));
     }
-  });
 
-  // Email addresses.
-  googleContact.getEmails().forEach(function (emailField) {
-    self.addToField('emails', new EmailAddressDC(
-      String(emailField.getLabel()),
-      emailField.getAddress()
-    ));
-  });
+    if (settings.notifications.eventTypes.CUSTOM) {
+      googleContact.getEvents().forEach(processEvent);
+    }
+    googleContact.getBirthdays().map(b => ({...b, type:"BIRTHDAY", formattedType:"BIRTHDAY"})).forEach(processEvent);
 
-  // Phone numbers.
-  googleContact.getPhones().forEach(function (phoneField) {
-    self.addToField('phones', new PhoneNumberDC(
-      String(phoneField.getLabel()),
-      phoneField.getPhoneNumber()
-    ));
-  });
+    // Email addresses.
+    if (googleContact.getEmailAddresses() !== undefined) {
+      googleContact.getEmailAddresses().forEach(function (emailField) {
+        self.addToField('emails', new EmailAddressDC(
+          String(emailField.getFormattedType()),
+          emailField.getValue()
+        ));
+      });
+    }
+
+    // Phone numbers.
+    if (googleContact.getPhoneNumbers() !== undefined) {
+      googleContact.getPhoneNumbers().forEach(function (phoneField) {
+        self.addToField('phones', new PhoneNumberDC(
+          String(phoneField.getFormattedType()),
+          phoneField.getValue()
+        ));
+      });
+    }
+  } catch (err) {
+      log.add(err.message)
+      log.add('Error merging info for: ' + self.contactId, Priority.INFO);
+    return;
+  }
 };
 
 /**
