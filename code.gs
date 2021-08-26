@@ -166,7 +166,7 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '6.0.0',
+    version: '5.1.0',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
     gitHubBranch: 'master'
   }
@@ -374,7 +374,20 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
 
       // unfortunately, the people API uses a different ID than the calendar API
       // so we iterate over all contacts and find the first one that has a source with the correct contact id
-      googleContact = allContacts.connections.find(c => c.metadata.sources.some(s => s.id === contactId));
+      function findContactWithId(connections, contactId) {
+        for (var i = 0; i < connections.length; i++) {
+          for (var j = 0; j < connections[i].metadata.sources.length; j++) {
+            if (connections[i].metadata.sources[j].id == contactId) {
+              return connections[i];
+            }
+          }
+        }
+
+        return undefined;
+      }
+
+      googleContact = findContactWithId(allContacts.connections, contactId);
+
       if (googleContact !== undefined) {
         log.add('Found contact: ' + googleContact.resourceName, Priority.INFO);
         googleContact = People.People.get(googleContact.resourceName, {personFields: "names,events,emailAddresses,phoneNumbers,birthdays,userDefined"});
@@ -430,7 +443,13 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
     if (settings.notifications.eventTypes.CUSTOM) {
       googleContact.getEvents().forEach(processEvent);
     }
-    googleContact.getBirthdays().map(b => ({...b, type:"BIRTHDAY", formattedType:"BIRTHDAY"})).forEach(processEvent);
+
+    bdays = googleContact.getBirthdays();
+    for (var i = 0; i < bdays.length; i++) {
+      bdays[i].type = "BIRTHDAY";
+      bdays[i].formattedType = bdays[i].type;
+      processEvent(bdays[i]);
+    }
 
     // Email addresses.
     if (googleContact.getEmailAddresses() !== undefined) {
