@@ -1390,7 +1390,7 @@ var i18n = {
     'Home email': 'E-Mail (privat)',
     'Work email': 'E-Mail (geschäftlich)',
     'Other email': 'E-Mail (sonstige)',
-    'It looks like you are using an outdated version of this script': 'Du scheinst eine veraltete Version dieses Skripts zu benutzen',
+    'It looks like you are using an outdated version of this script': 'Du verwendest anscheinend eine veraltete Version dieses Skripts',
     'You can find the latest one here': 'Du findest die neuste Version hier', // Using feminime version of 'latest', because it refers to 'version'. There's possibility it won't fit into diffrent context.
   },
   'el': {
