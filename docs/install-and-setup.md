@@ -26,8 +26,10 @@ calendar] to know how to do it).
 ## Create the script
 
 Copy the whole content of [this file][Main code file].  
-Open [Google Script][Google scripts website] and login if requested, then paste
-the code into the page.
+Open [Google Script][Google scripts website] and login if requested,
+click "New Script", then paste the code into the page.
+
+!["New Script" button](screenshots/new-script.png)
 
 ## Customize the script
 
@@ -91,16 +93,46 @@ should never need or want to edit these.
 ## Activate API for the script
 
 Now that the script is saved in your Google Drive folder we need to activate it.
-To do so click the menu `Resources->Advanced Google services`.  
+To do so click the Services menu on the left-hand side.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
-on its row on the right) and press "Okay".  
-Once you have done this, open [Google Cloud Platform API Dashboard][Google Cloud
-Platform API Dashboard], click on the dropdown menu left at the top, next to
-"Google Cloud Platform" and choose your Google Contacts Events Notifier project
-from the list, then click on "Library" in the menu on the left, search for
-"Google Calendar API" in the search box and open it. Now click `Enable` and
-close this page. There is no need to create any credentials as suggested on the
-page.  
+on its row on the right) and press "Okay".
+
+![Screenshot of location of Services menu](screenshots/add-service.png)
+
+Next, you need to attach a Google Cloud Platform project to your script.
+Open the Settings for your scripts in the far left,
+and navigate to the section that says "Google Cloud Platform (GCP) Project",
+then click the "Change Project" button.
+
+![Change project button under settings](screenshots/gcp-change-project.png)
+
+We're prompted for a project number.
+To get one, follow the instructions in Step 1; that is, open the
+[Google Cloud Platform API Dashboard][Google Cloud Platform API Dashboard]
+and create a new Google Cloud project
+(or, you can use an existing one if you already have one).
+
+![Create new project](screenshots/gcloud-create-new-project.png)
+
+Once you have a project either created or selected,
+you should then see a project number on the dashboard.
+Input it back on the prompt from the Scripts page to link the two together.
+
+Once you have done this, go back to the [Google Cloud Platform API Dashboard][Google Cloud
+Platform API Dashboard] and (with your project selected),
+open the hamburger menu on the left and scroll through the myriad of services
+until you find "API & Services".
+This takes you to a page which has a button "Enable API's and Services" at the
+top; click that one.
+
+![Enable API's](screenshots/enable-apis.png)
+
+This opens up an enormous list of various API's
+Search for "Google Calendar API" in the search box and open it.
+Now click `Enable` and close this page.
+
+![Calendar API](screenshots/calendar-api.png)
+
 That's it for this step.
 
 **Important note**: please double check that you have performed **all** steps
