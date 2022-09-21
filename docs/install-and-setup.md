@@ -29,7 +29,7 @@ Copy the whole content of [this file][Main code file].
 Open [Google Script][Google scripts website] and login if requested,
 click "New Script", then paste the code into the page.
 
-!["New Script" button](screenshots/new-script.png)
+[!["New Script" button](thumbnails/new-script.png)](screenshots/new-script.png)
 
 ## Customize the script
 
@@ -97,31 +97,33 @@ To do so click the Services menu on the left-hand side.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
 on its row on the right) and press "Okay".
 
-![Screenshot of location of Services menu](screenshots/add-service.png)
+[![Screenshot of location of Services
+menu](thumbnails/add-service.png)](screenshots/add-service.png)
 
 Next, you need to attach a Google Cloud Platform project to your script.
 Open the Settings for your scripts in the far left,
 and navigate to the section that says "Google Cloud Platform (GCP) Project",
 then click the "Change Project" button.
 
-![Change project button under settings](screenshots/gcp-change-project.png)
+[![Change project button under
+settings](thumbnails/gcp-change-project.png)](screenshots/gcp-change-project.png)
 
 We're prompted for a project number.
 
-![Prompt for a project number](screenshots/gcp-enter-number.png)
+[![Prompt for a project number](thumbnails/gcp-enter-number.png)](screenshots/gcp-enter-number.png)
 
 To get one, follow the instructions in Step 1; that is, open the
 [Google Cloud Platform API Dashboard][Google Cloud Platform API Dashboard]
 and create a new Google Cloud project
 (or, you can use an existing one if you already have one).
 
-![Create new project](screenshots/gcloud-create-new-project.png)
+[![Create new project](thumbnails/gcloud-create-new-project.png)](screenshots/gcloud-create-new-project.png)
 
 Once you have a project either created or selected,
 you should then see a project number on the dashboard.
 Input it back on the prompt from the Scripts page to link the two together.
 
-![Project number](screenshots/project-number.png)
+[![Project number](thumbnails/project-number.png)](screenshots/project-number.png)
 
 Once you have done this, go back to the [Google Cloud Platform API Dashboard][Google Cloud
 Platform API Dashboard] and (with your project selected),
@@ -130,13 +132,13 @@ until you find "API & Services".
 This takes you to a page which has a button "Enable API's and Services" at the
 top; click that one.
 
-![Enable API's](screenshots/enable-apis.png)
+[![Enable API's](thumbnails/enable-apis.png)](screenshots/enable-apis.png)
 
 This opens up an enormous list of various API's
 Search for "Google Calendar API" in the search box and open it.
 Now click `Enable` and close this page.
 
-![Calendar API](screenshots/calendar-api.png)
+[![Calendar API](thumbnails/calendar-api.png)](screenshots/calendar-api.png)
 
 That's it for this step.
 
