@@ -125,10 +125,10 @@ Input it back on the prompt from the Scripts page to link the two together.
 
 [![Project number](thumbnails/project-number.png)](screenshots/project-number.png)
 
-Once you have done this, go back to the [Google Cloud Platform API Dashboard][Google Cloud
-Platform API Dashboard] and (with your project selected),
-open the hamburger menu on the left and scroll through the myriad of services
-until you find "API & Services".
+Once you have done this, go back to the
+[Google Cloud Platform API Dashboard][Google Cloud Platform API Dashboard]
+and (with your project selected), open the hamburger menu on the left
+and scroll through the myriad of services until you find "API & Services".
 This takes you to a page which has a button "Enable API's and Services" at the
 top; click that one.
 
