@@ -107,6 +107,9 @@ then click the "Change Project" button.
 ![Change project button under settings](screenshots/gcp-change-project.png)
 
 We're prompted for a project number.
+
+![Prompt for a project number](screenshots/gcp-enter-number.png)
+
 To get one, follow the instructions in Step 1; that is, open the
 [Google Cloud Platform API Dashboard][Google Cloud Platform API Dashboard]
 and create a new Google Cloud project
@@ -117,6 +120,8 @@ and create a new Google Cloud project
 Once you have a project either created or selected,
 you should then see a project number on the dashboard.
 Input it back on the prompt from the Scripts page to link the two together.
+
+![Project number](screenshots/project-number.png)
 
 Once you have done this, go back to the [Google Cloud Platform API Dashboard][Google Cloud
 Platform API Dashboard] and (with your project selected),
