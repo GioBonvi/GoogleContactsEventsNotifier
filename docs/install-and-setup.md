@@ -27,7 +27,7 @@ calendar] to know how to do it).
 
 Copy the whole content of [this file][Main code file].  
 Open [Google Script][Google scripts website] and login if requested,
-click "New Script", then paste the code into the page.
+click "New project", then paste the code into the page.
 
 [!["New Script" button](thumbnails/new-script.png)](screenshots/new-script.png)
 
