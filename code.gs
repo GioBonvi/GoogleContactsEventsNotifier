@@ -1514,8 +1514,8 @@ var i18n = {
     'Home email': 'Adresse mail personnelle',
     'Work email': 'Adresse mail professionnelle',
     'Other email': 'Autre adresse mail',
-    'It looks like you are using an outdated version of this script': 'Il semblerait que vous utilisiez une ancienne version de ce script',
-    'You can find the latest one here': 'Vous pouvez trouver la dernière version ici',
+    'It looks like you are using an outdated version of this script': 'Il semble que vous utilisez une ancienne version de ce script',
+    'You can find the latest one here': 'Vous pouvez trouver la dernière ici',
   },
   'he': {
     'Age': 'גיל',
