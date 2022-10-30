@@ -1490,7 +1490,7 @@ var i18n = {
     'Age': 'Age',
     'Years': 'Années',
     'Events': 'Evénements',
-    'Birthdays today': 'Anniversaires d`'aujourd\'hui',
+    'Birthdays today': 'Anniversaires d`\'aujourd\'hui',
     'Birthdays tomorrow': 'Anniversaires de demain',
     'Birthdays in {0} days': 'Anniversaires dans {0} jours',
     'Anniversaries today': 'Anniversaires d\'aujourd\'hui',
