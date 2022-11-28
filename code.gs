@@ -166,7 +166,7 @@ var settings = {
     /* NB: Users shouldn't need to (or want to) touch these settings. They are here for the
      *     convenience of developers/maintainers only.
      */
-    version: '5.1.3',
+    version: '5.1.4',
     repoName: 'GioBonvi/GoogleContactsEventsNotifier',
     gitHubBranch: 'master'
   }
@@ -322,12 +322,6 @@ MergedContact.prototype.getInfoFromRawEvent = function (rawEvent) {
     }
     eventMonth = (eventDate[2] !== '00' ? parseInt(eventDate[2], 10) : null);
     eventDay = (eventDate[3] !== '00' ? parseInt(eventDate[3], 10) : null);
-    this.addToField('events', new EventDC(
-      eventLabel,                                                   // Label.
-      null,                                                         // Year.
-      eventMonth,                                                   // Month.
-      eventDay                                                      // Day.
-    ));
   }
   // Collect info from the contactId if not already collected and if contactsContactId exists.
   if (this.contactId === null && eventData['goo.contactsContactId']) {
@@ -441,7 +435,7 @@ MergedContact.prototype.getInfoFromContact = function (contactId, eventMonth, ev
     }
 
     if (settings.notifications.eventTypes.CUSTOM) {
-      googleContact.getEvents().forEach(processEvent);
+      googleContact.getEvents()?.forEach(processEvent);
     }
 
     bdays = googleContact.getBirthdays();
