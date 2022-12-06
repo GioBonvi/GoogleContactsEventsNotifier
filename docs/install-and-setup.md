@@ -92,13 +92,15 @@ should never need or want to edit these.
 
 ## Activate API for the script
 
-Now that the script is saved in your Google Drive folder we need to activate it.
-To do so click the Services menu on the left-hand side.
+Now that the script is saved in your Google Drive folder we need to activate required services for it.
+To do so click the "+" next to the Services menu. The Services menu can be found on the left-hand side.
 In the popup which will open set "Calendar API" to `enabled` (click the switch
-on its row on the right) and press "Okay".
+on its row on the right) and press "Okay". Do the same for "Peopleapi".
 
 [![Screenshot of location of Services
 menu](thumbnails/add-service.png)](screenshots/add-service.png)
+
+Once you have done this, you should see the two Services "Calendar" and "People" in the Services list.
 
 Next, you need to attach a Google Cloud Platform project to your script.
 Open the Settings for your scripts in the far left,
