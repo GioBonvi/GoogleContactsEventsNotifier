@@ -23,6 +23,9 @@ First of all you need to enable your contacts birthday and events calendar in
 your Google Calendar (read [this Google help page][Google setup birthday
 calendar] to know how to do it).
 
+## Allow sharing data between Google Services
+Google has introduced new data sharing policies for citizens of the EU, which requires explicit permission to share data between your contacts and the calendar. Enable it by checking [here](https://myactivity.google.com/linked-services?hl=de&utm_source=google-account&utm_medium=web&continue=https%3A%2F%2Fmyaccount.google.com%2Fdata-and-privacy) the checkbox next to "Contacts".
+
 ## Create the script
 
 Copy the whole content of [this file][Main code file].  
