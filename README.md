@@ -15,6 +15,8 @@ a solution, however it did not quite work.
 This project takes inspiration from that code to solve the problem of the
 missing notifications on Google Calendar Birthday Calendar.
 
+**Is your script not working?** Take a look at the updated [installation guide][Setup and installation guide] and see [#199](https://github.com/GioBonvi/GoogleContactsEventsNotifier/issues/199).
+
 <!-- TOC -->
 
 - [Google Contacts Events Notifier](#google-contacts-events-notifier)
