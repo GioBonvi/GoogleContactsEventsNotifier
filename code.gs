@@ -2184,17 +2184,8 @@ function validateSettings () {
     log.add('Your user.notificationEmail setting is invalid!', Priority.FATAL_ERROR);
   }
 
-  // Get the calendar ID from Google Calendar.
-  calendarId = CalendarApp.getAllCalendars().filter(function (cal) {
-    // All the valid calendar IDs contain this string.
-    return isIn('#contacts@group.v.calendar.google.com', cal.getId());
-  }).map(function (cal) { return cal.getId(); });
-
-  if (calendarId.length > 0) {
-    settings.user.calendarId = calendarId[0];
-  } else {
-    log.add('Could not find the birthday calendar! Please check that you have enabled it!', Priority.FATAL_ERROR);
-  }
+  // Hardcode the calendar ID for the address book
+  settings.user.calendarId = "addressbook#contacts@group.v.calendar.google.com";
 
   try {
     if (Calendar.Calendars.get(settings.user.calendarId) === null) {
